@@ -11,8 +11,7 @@ import { Sequelize, DataTypes } from 'sequelize';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 
 const app = express();
 app.use(cors());
@@ -663,18 +662,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'UP', dbEnabled, cloudinaryConfigured, timestamp: new Date() });
 });
 
-// Serve frontend build in production
-const distPath = path.join(__dirname, 'dist');
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.use((req, res, next) => {
-    if (!req.url.startsWith('/api')) {
-      res.sendFile(path.join(distPath, 'index.html'));
-    } else {
-      next();
-    }
-  });
-}
+
 
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production' || process.env.RUN_LOCAL) {
