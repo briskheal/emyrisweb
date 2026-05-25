@@ -55,11 +55,13 @@ const isPlaceholderDb = !process.env.DATABASE_URL ||
 
 let sequelize;
 let dbEnabled = false;
+let dbError = null;
 
 let Inquiry, Career, ConfigRecord, FormSubmission;
 
 if (isPlaceholderDb) {
   console.warn('⚠️ DATABASE_URL is configured with placeholder values. Running in Fallback/InMemory Database Mode.');
+  dbError = 'DATABASE_URL is missing or contains placeholder values';
 } else {
   try {
     sequelize = new Sequelize(process.env.DATABASE_URL, {
@@ -75,6 +77,7 @@ if (isPlaceholderDb) {
     dbEnabled = true;
   } catch (err) {
     console.error('❌ Failed to initialize Sequelize database connection:', err.message);
+    dbError = 'Instantiation error: ' + err.message;
     dbEnabled = false;
   }
 }
@@ -812,6 +815,7 @@ if (!currentPages.services || currentPages.services.length < 6) {
     }
   } catch (err) {
     console.error('❌ Error establishing Postgres connection. Falling back to InMemory mode.', err.message);
+    dbError = 'Connection error: ' + err.message;
     dbEnabled = false;
   }
 }
@@ -1140,7 +1144,15 @@ app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'UP', dbEnabled, cloudinaryConfigured, timestamp: new Date() });
+  res.json({ 
+    status: 'UP', 
+    dbEnabled, 
+    dbError,
+    cloudinaryConfigured, 
+    hasDbUrl: !!process.env.DATABASE_URL,
+    dbUrlLength: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0,
+    timestamp: new Date() 
+  });
 });
 
 
