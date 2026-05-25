@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
+import IndiaMap from '../components/IndiaMap';
 
 function DiscoverSubpage() {
   const { pageId } = useParams();
@@ -258,12 +259,8 @@ function DiscoverSubpage() {
                 </p>
                 <Link to="/contact" className="btn">Connect with Us</Link>
               </div>
-              <div style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--glass-border)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-                <img 
-                  src="https://cms.emyrisbio.com//Content/images/offerings/Anti-Infective.jpg" 
-                  alt="Business Presence Map" 
-                  style={{ width: '100%', height: 'auto', display: 'block' }} 
-                />
+              <div style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--glass-border)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', background: 'white' }}>
+                <IndiaMap markets={siteData.markets || []} />
               </div>
             </div>
 

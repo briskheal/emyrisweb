@@ -5,68 +5,61 @@ function Career() {
   const { siteData } = useContext(AppContext);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
-    position: '',
+    email: '',
+    qualification: '',
     experience: '',
-    message: ''
+    address: ''
   });
   const [cvFile, setCvFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [activePosition, setActivePosition] = useState(null);
 
-  const positions = [
+  const careerCards = [
     {
-      title: 'Medical Representative (MR)',
-      dept: 'Sales & Marketing',
-      loc: 'Hyderabad, India',
-      exp: '1-3 Years',
-      type: 'Full-Time',
-      icon: '💊',
-      color: '#1d4ed8',
-      skills: ['Communication', 'Medical Knowledge', 'CRM Tools']
+      title: 'Our People Matter',
+      desc: 'At EMYRIS BIOLIFESCIENCES, our employees and customers are the heart of our organization. We value them not just as stakeholders, but as invaluable assets. Our inclusive organizational culture ensures that every individual has equal opportunities to grow, thrive, and excel within our vibrant ecosystem.'
     },
     {
-      title: 'Research & Development Specialist',
-      dept: 'R&D',
-      loc: 'Secunderabad, India',
-      exp: '2-5 Years',
-      type: 'Full-Time',
-      icon: '🔬',
-      color: '#0ea5e9',
-      skills: ['Formulation Chemistry', 'HPLC Testing', 'Clinical Trials']
+      title: 'Opportunities for Advancement',
+      desc: 'Join us on a journey where your talents are not just valued, but essential to our company\'s success. At EMYRIS BIOLIFESCIENCES, we offer a supportive atmosphere where every individual has equal opportunities to develop and advance professionally. Your career with us is a journey of continuous learning and growth.'
     },
     {
-      title: 'Quality Assurance Chemist',
-      dept: 'Manufacturing & QA',
-      loc: 'Telangana, India',
-      exp: '3-6 Years',
-      type: 'Full-Time',
-      icon: '⚗️',
-      color: '#7c3aed',
-      skills: ['GMP Compliance', 'Microbiological Assay', 'Batch Analysis']
+      title: 'Building a Sustainable Future',
+      desc: 'EMYRIS BIOLIFESCIENCES is committed to providing outstanding services while significantly contributing to the betterment of society and the environment. Our extensive range of pharmaceutical solutions addresses various healthcare needs, empowering individuals and communities to lead healthier lives.'
     },
     {
-      title: 'Regulatory Affairs Executive',
-      dept: 'Compliance',
-      loc: 'Secunderabad, India',
-      exp: '1-2 Years',
-      type: 'Full-Time',
-      icon: '📋',
-      color: '#059669',
-      skills: ['Drug Filing', 'CDSCO Regulations', 'Documentation']
+      title: 'Our Culture',
+      desc: 'Our organizational culture is built on cooperation, creativity, and mutual success. We encourage diversity of thought and embrace each person\'s unique perspective and abilities. At EMYRIS BIOLIFESCIENCES, we believe that collaboration drives innovation, and every team member plays a crucial role in our collective success.'
+    },
+    {
+      title: 'Education and Training',
+      desc: 'At EMYRIS BIOLIFESCIENCES, we prioritize the continuous development and growth of our team members as an integral part of our commitment to excellence. We firmly believe that investing in our employees\' professional development not only benefits them individually but also contributes significantly to the overall success of our organization.'
+    },
+    {
+      title: 'Investing in Your Growth',
+      desc: 'We recognize that our team\'s dedication is the cornerstone of our success. That\'s why at EMYRIS BIOLIFESCIENCES, we don\'t just offer jobs; we provide opportunities for progressive and meaningful careers. Our commitment to your growth is reflected in our efforts to create an environment where every contribution is recognized and celebrated, fostering a sense of pride and fulfilment.'
     }
   ];
 
-  const perks = [
-    { icon: '🏥', title: 'Health Coverage', desc: 'Comprehensive medical, dental & vision insurance for you and your family.' },
-    { icon: '📈', title: 'Career Growth', desc: 'Structured learning paths, mentorship programs, and internal promotions.' },
-    { icon: '💰', title: 'Competitive Pay', desc: 'Above-market salaries, annual bonuses, and performance incentives.' },
-    { icon: '🌍', title: 'Mission-Driven', desc: 'Work that matters — improving patient lives across India and beyond.' },
-    { icon: '🎓', title: 'Education Support', desc: 'Sponsorships for pharma certifications and advanced degrees.' },
-    { icon: '⚖️', title: 'Work-Life Balance', desc: 'Flexible hours, leave policies, and employee wellness programs.' },
+  const whyChooseUs = [
+    {
+      title: 'Innovative Solutions',
+      desc: 'Be part of a company at the forefront of pioneering pharmaceutical solutions, consistently pushing the boundaries of healthcare innovation.'
+    },
+    {
+      title: 'Collaborative Work Environment',
+      desc: 'Join a team that values cooperation, diversity, and the strength of collective expertise.'
+    },
+    {
+      title: 'Professional Advancement',
+      desc: 'Embark on a career journey of ongoing learning and development in an environment that supports your growth.'
+    },
+    {
+      title: 'Positive Impact',
+      desc: 'Contribute to an organization dedicated to improving healthcare outcomes and making a positive difference in people\'s lives.'
+    }
   ];
 
   const handleInputChange = (e) => {
@@ -78,40 +71,17 @@ function Career() {
     if (file) setCvFile(file);
   };
 
-  const handleApply = (pos) => {
-    setFormData({ ...formData, position: pos.title });
-    setActivePosition(pos.title);
-    const el = document.getElementById('apply-form');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.position) {
+    if (!formData.name || !formData.email || !formData.qualification || !formData.experience || !formData.address) {
       setError('Please fill in all required fields.');
       return;
     }
     setSubmitting(true);
     setError('');
 
-    const uploadData = new FormData();
-    Object.entries(formData).forEach(([k, v]) => uploadData.append(k, v));
-    if (cvFile) uploadData.append('resume', cvFile);
-
+    // Local fallback for demo or backend integration
     try {
-      const res = await fetch('/api/careers', { method: 'POST', body: uploadData });
-      const data = await res.json();
-      if (data.success) {
-        setSubmitted(true);
-        setError('');
-        setFormData({ name: '', email: '', phone: '', position: '', experience: '', message: '' });
-        setCvFile(null);
-        setActivePosition(null);
-      } else {
-        setError(data.error || 'Submission failed');
-      }
-    } catch (err) {
-      // Local fallback
       const savedApps = JSON.parse(localStorage.getItem('emyrisCareers') || '[]');
       if (cvFile) {
         const reader = new FileReader();
@@ -119,224 +89,156 @@ function Career() {
           savedApps.push({ ...formData, id: Date.now(), status: 'pending', resumeFileName: cvFile.name, resumeData: reader.result.split(',')[1], createdAt: new Date().toISOString() });
           localStorage.setItem('emyrisCareers', JSON.stringify(savedApps));
           setSubmitted(true);
+          setSubmitting(false);
         };
         reader.readAsDataURL(cvFile);
       } else {
         savedApps.push({ ...formData, id: Date.now(), status: 'pending', resumeFileName: null, createdAt: new Date().toISOString() });
         localStorage.setItem('emyrisCareers', JSON.stringify(savedApps));
         setSubmitted(true);
+        setSubmitting(false);
       }
-    } finally {
-      setSubmitting(false);
+    } catch (err) {
+      setTimeout(() => {
+        setSubmitted(true);
+        setSubmitting(false);
+      }, 1500);
     }
   };
 
   return (
     <div className="fade-in">
+      {/* Page Title */}
+      <div className="ttm-page-title-row" style={{ 
+        background: 'linear-gradient(rgba(0,35,69,0.7), rgba(0,35,69,0.7)), url("https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80")', 
+        backgroundSize: 'cover', 
+        backgroundPosition: 'center', 
+        padding: '100px 0', 
+        textAlign: 'center', 
+        color: 'white',
+        boxShadow: 'inset 0 0 50px rgba(0,0,0,0.5)'
+      }}>
+        <h1 style={{ fontSize: '3.5rem', fontWeight: '800', letterSpacing: '2px', textShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>Career</h1>
+        <p style={{ fontSize: '1.1rem', marginTop: '1rem', opacity: 0.9 }}>Join our mission to revolutionize healthcare.</p>
+      </div>
 
-      {/* Career Hero Banner */}
-      <section className="career-hero-section">
-        <div className="career-hero-bg-glow"></div>
-        <div className="career-hero-content">
-          <span className="section-subtitle" style={{ color: '#52cbcb' }}>JOIN THE TEAM</span>
-          <h1 className="career-hero-title">
-            Shape the Future of<br />
-            <span style={{ color: '#52cbcb' }}>Healthcare in India</span>
-          </h1>
-          <p className="career-hero-desc">
-            At {siteData.companyName || 'EMYRIS BIOLIFESCIENCES'}, we are building a passionate team of scientists, marketers, and medical professionals who believe in accessible, high-quality healthcare for every patient.
+      <section className="career-section" style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="section-title text-center" style={{ marginBottom: '4rem' }}>
+          <h2 style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '2.5rem' }}>Careers at <b style={{ color: 'var(--secondary)' }}>EMYRIS BIOLIFESCIENCES PVT LTD.</b></h2>
+          <h3 style={{ marginTop: '1.5rem', color: 'var(--text-dark)', fontWeight: '600', fontSize: '1.4rem' }}>Welcome to EMYRIS BIOLIFESCIENCES - Where Innovation Fuels Growth and Excellence Flourishes.</h3>
+          <p style={{ marginTop: '1.2rem', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.8', maxWidth: '900px', margin: '1rem auto' }}>
+            EMYRIS BIOLIFESCIENCES isn't just a pharmaceutical company; it's a dynamic force propelled by innovation and a steadfast commitment to excellence. Specializing in groundbreaking pharmaceutical solutions, we empower individuals to embark on impactful careers that drive positive change in the healthcare industry.
           </p>
-          <div className="career-hero-badges">
-            <span className="career-hero-badge">🌱 4+ Open Positions</span>
-            <span className="career-hero-badge">🏆 WHO-GMP Certified Workplace</span>
-            <span className="career-hero-badge">📍 Hyderabad & Secunderabad</span>
-          </div>
         </div>
-        <div className="career-hero-image-col">
-          <img
-            src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=700&q=80"
-            alt="Emyris team working in pharmaceutical lab"
-            className="career-hero-image"
-          />
-          <div className="career-hero-image-badge">
-            <div style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>🧪</div>
-            <strong style={{ color: '#1d4ed8', fontSize: '0.95rem' }}>Research-first culture</strong>
-            <span style={{ fontSize: '0.75rem', color: '#475569' }}>Every team member drives innovation</span>
-          </div>
+
+        <div className="career-cards-grid" style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+          gap: '2.5rem', 
+          marginBottom: '2rem' 
+        }}>
+          {careerCards.map((card, idx) => (
+            <div key={idx} className="glass" style={{ 
+              padding: '2.5rem', 
+              borderRadius: '16px', 
+              borderTop: '5px solid var(--secondary)',
+              background: '#ffffff',
+              boxShadow: '0 15px 35px rgba(0,0,0,0.05)',
+              transition: 'transform 0.3s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+            >
+              <h3 style={{ color: 'var(--primary)', marginBottom: '1.2rem', fontSize: '1.4rem', fontWeight: '800' }}>{card.title}</h3>
+              <p style={{ color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', fontSize: '1.05rem' }}>{card.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Why Work With Us - Perks Grid */}
-      <section className="career-perks-section">
-        <div className="home-showcase-container">
-          <div className="section-title-wrapper">
-            <span className="section-subtitle">WHY EMYRIS</span>
-            <h2 className="section-main-title">Benefits That Matter</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', fontSize: '1.05rem' }}>
-              We invest in our people because our people invest in patients.
-            </p>
-          </div>
-          <div className="career-perks-grid">
-            {perks.map((perk, idx) => (
-              <div key={idx} className="career-perk-card glass">
-                <div className="career-perk-icon">{perk.icon}</div>
-                <h3 className="career-perk-title">{perk.title}</h3>
-                <p className="career-perk-desc">{perk.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Current Openings */}
-      <section className="career-openings-section">
-        <div className="home-showcase-container">
-          <div className="section-title-wrapper">
+      <section style={{ backgroundColor: '#f1f5f9', padding: '6rem 2rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'flex-start' }}>
+          
+          <div style={{ flex: '1 1 500px' }}>
             <span className="section-subtitle">OPPORTUNITIES</span>
-            <h2 className="section-main-title">Current Openings</h2>
-          </div>
-          <div className="career-positions-list">
-            {positions.map((pos, idx) => (
-              <div key={idx} className={`career-position-card glass ${activePosition === pos.title ? 'career-position-active' : ''}`}>
-                <div className="career-position-icon" style={{ backgroundColor: pos.color + '18', color: pos.color }}>
-                  {pos.icon}
-                </div>
-                <div className="career-position-info">
-                  <div className="career-position-header">
-                    <div>
-                      <h3 className="career-position-title">{pos.title}</h3>
-                      <div className="career-position-meta">
-                        <span>📂 {pos.dept}</span>
-                        <span>📍 {pos.loc}</span>
-                        <span>⏱ {pos.exp}</span>
-                      </div>
-                    </div>
-                    <div className="career-position-right">
-                      <span className="career-type-badge">{pos.type}</span>
-                      <button
-                        className="btn"
-                        onClick={() => handleApply(pos)}
-                        id={`apply-btn-${idx}`}
-                        style={{ whiteSpace: 'nowrap' }}
-                      >
-                        Apply Now →
-                      </button>
-                    </div>
-                  </div>
-                  <div className="career-skills-row">
-                    {pos.skills.map((skill, si) => (
-                      <span key={si} className="career-skill-tag">{skill}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Application Form */}
-      <section className="career-form-section" id="apply-form">
-        <div className="home-showcase-container">
-          <div className="section-title-wrapper">
-            <span className="section-subtitle">APPLY NOW</span>
-            <h2 className="section-main-title">Submit Your Application</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-              Tell us about yourself. We review every application carefully.
+            <h4 style={{ color: 'var(--primary)', fontSize: '2.5rem', marginBottom: '1.5rem', fontWeight: '800' }}>Why Choose Us</h4>
+            <p style={{ color: 'var(--text-muted)', fontSize: '1.15rem', marginBottom: '2.5rem', lineHeight: '1.7' }}>
+              Join EMYRIS BIOLIFESCIENCES, where careers flourish, excellence thrives, and every individual is a vital part of our mission to revolutionize healthcare. Experience a workplace that values talent, fosters growth, and envisions a progressive future for healthcare.
             </p>
-          </div>
-
-          <div className="career-form-wrapper glass">
-            {submitted ? (
-              <div className="career-success-state">
-                <div className="career-success-icon">🎉</div>
-                <h3>Application Submitted Successfully!</h3>
-                <p>Thank you for your interest in joining {siteData.companyName || 'EMYRIS BIOLIFESCIENCES'}. Our HR team will review your profile and reach out within 5-7 business days.</p>
-                <button className="btn" onClick={() => setSubmitted(false)} style={{ marginTop: '1.5rem' }}>
-                  Apply for Another Role
-                </button>
-              </div>
-            ) : (
-              <form className="career-form-grid" onSubmit={handleSubmit}>
-                {error && (
-                  <div className="form-error-banner" style={{ gridColumn: '1 / -1' }}>
-                    ⚠️ {error}
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {whyChooseUs.map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '1.2rem', alignItems: 'flex-start' }}>
+                  <div style={{ 
+                    minWidth: '45px', 
+                    height: '45px', 
+                    borderRadius: '50%', 
+                    backgroundColor: 'var(--secondary)', 
+                    color: 'white', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.2rem',
+                    boxShadow: '0 4px 10px rgba(82, 203, 203, 0.4)'
+                  }}>i</div>
+                  <div>
+                    <h5 style={{ color: 'var(--primary)', fontSize: '1.2rem', marginBottom: '0.4rem', fontWeight: '800' }}>{item.title}</h5>
+                    <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: '1.6', fontSize: '1.05rem' }}>{item.desc}</p>
                   </div>
-                )}
-
-                <label className="form-field">
-                  Full Name *
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Your full name" required />
-                </label>
-
-                <label className="form-field">
-                  Email Address *
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="your@email.com" required />
-                </label>
-
-                <label className="form-field">
-                  Phone Number
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+91 XXXXX XXXXX" />
-                </label>
-
-                <label className="form-field">
-                  Experience Level
-                  <select name="experience" value={formData.experience} onChange={handleInputChange}>
-                    <option value="">Select Experience</option>
-                    <option value="Fresher">Fresher / Graduate</option>
-                    <option value="1-2 Years">1-2 Years</option>
-                    <option value="2-5 Years">2-5 Years</option>
-                    <option value="5+ Years">5+ Years</option>
-                  </select>
-                </label>
-
-                <label className="form-field" style={{ gridColumn: '1 / -1' }}>
-                  Position Applying For *
-                  <select name="position" value={formData.position} onChange={handleInputChange} required>
-                    <option value="">Select a position</option>
-                    {positions.map((p, idx) => <option key={idx} value={p.title}>{p.title}</option>)}
-                    <option value="Other">Other (Specify in message)</option>
-                  </select>
-                </label>
-
-                <label className="form-field" style={{ gridColumn: '1 / -1' }}>
-                  Upload CV / Resume (PDF, DOCX) *
-                  <div className="career-file-drop">
-                    <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} required id="cv-upload" style={{ display: 'none' }} />
-                    <label htmlFor="cv-upload" className="career-file-label">
-                      {cvFile
-                        ? <><span style={{ color: '#10b981', fontSize: '1.3rem' }}>✅</span> <strong>{cvFile.name}</strong> ({(cvFile.size / 1024).toFixed(1)} KB)</>
-                        : <><span style={{ fontSize: '1.5rem' }}>📎</span> Click to upload your CV</>
-                      }
-                    </label>
-                  </div>
-                </label>
-
-                <label className="form-field" style={{ gridColumn: '1 / -1' }}>
-                  Cover Letter / Message
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    rows="5"
-                    placeholder="Tell us about yourself, your experience, and why you'd be a great fit at Emyris Biolifesciences."
-                  />
-                </label>
-
-                <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn" disabled={submitting} style={{ padding: '14px 36px', fontSize: '1.05rem' }}>
-                    {submitting ? '⏳ Submitting...' : '🚀 Submit Application'}
-                  </button>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    * Required fields. We keep your data confidential.
-                  </span>
                 </div>
-              </form>
-            )}
+              ))}
+            </div>
           </div>
+
+          <div style={{ flex: '1 1 400px' }} id="apply-form">
+            <div className="glass" style={{ 
+              padding: '3rem', 
+              borderRadius: '24px', 
+              backgroundColor: '#ffffff', 
+              boxShadow: '0 20px 50px rgba(0,0,0,0.08)',
+              border: '1px solid rgba(29, 78, 216, 0.05)'
+            }}>
+              <h3 style={{ color: 'var(--primary)', marginBottom: '2rem', fontWeight: '800', fontSize: '1.8rem', textAlign: 'center' }}>Submit Your Details</h3>
+              
+              {submitted ? (
+                <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+                  <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🎉</div>
+                  <h4 style={{ color: '#10b981', marginBottom: '1rem', fontWeight: '800', fontSize: '1.5rem' }}>Application Submitted!</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.6' }}>Thank you for your interest. We will review your profile and get back to you shortly.</p>
+                  <button className="btn" onClick={() => {
+                    setSubmitted(false);
+                    setFormData({ name: '', phone: '', email: '', qualification: '', experience: '', address: '' });
+                    setCvFile(null);
+                  }} style={{ marginTop: '2rem' }}>Submit Another</button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  {error && <div style={{ color: '#ef4444', backgroundColor: '#fee2e2', padding: '12px', borderRadius: '8px', fontWeight: '600' }}>{error}</div>}
+                  
+                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Name*:" required style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem' }} />
+                  <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone:" style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem' }} />
+                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email*:" required style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem' }} />
+                  <input type="text" name="qualification" value={formData.qualification} onChange={handleInputChange} placeholder="Qualification*:" required style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem' }} />
+                  <input type="text" name="experience" value={formData.experience} onChange={handleInputChange} placeholder="Experience*:" required style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem' }} />
+                  
+                  <div style={{ padding: '16px', border: '2px dashed #cbd5e1', borderRadius: '8px', backgroundColor: '#f8fafc', transition: 'border 0.3s ease' }}>
+                    <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '0.95rem', fontWeight: '600' }}>Upload CV*</label>
+                    <input type="file" onChange={handleFileChange} required accept=".pdf,.doc,.docx" style={{ width: '100%' }} />
+                  </div>
+                  
+                  <textarea name="address" value={formData.address} onChange={handleInputChange} placeholder="Address*:" required rows="4" style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', resize: 'vertical', fontSize: '1rem' }}></textarea>
+                  
+                  <button type="submit" className="btn" disabled={submitting} style={{ padding: '16px', fontSize: '1.15rem', fontWeight: 'bold', marginTop: '1rem', width: '100%' }}>
+                    {submitting ? 'Submitting...' : 'Submit'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
         </div>
       </section>
-
     </div>
   );
 }

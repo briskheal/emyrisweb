@@ -56,7 +56,7 @@ const isPlaceholderDb = !process.env.DATABASE_URL ||
 let sequelize;
 let dbEnabled = false;
 
-let Inquiry, Career, ConfigRecord;
+let Inquiry, Career, ConfigRecord, FormSubmission;
 
 if (isPlaceholderDb) {
   console.warn('⚠️ DATABASE_URL is configured with placeholder values. Running in Fallback/InMemory Database Mode.');
@@ -83,6 +83,7 @@ if (isPlaceholderDb) {
 let inMemoryInquiries = [];
 let inMemoryCareers = [];
 let inMemoryConfig = {};
+let inMemorySubmissions = [];
 
 if (dbEnabled && sequelize) {
   // Define SQL Models
@@ -111,6 +112,19 @@ if (dbEnabled && sequelize) {
   ConfigRecord = sequelize.define('ConfigRecord', {
     key: { type: DataTypes.STRING, primaryKey: true },
     value: { type: DataTypes.TEXT, allowNull: false }
+  });
+
+  FormSubmission = sequelize.define('FormSubmission', {
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
+    subject: { type: DataTypes.STRING, allowNull: true },
+    phone: { type: DataTypes.STRING, allowNull: true },
+    message: { type: DataTypes.TEXT, allowNull: false },
+    servicePage: { type: DataTypes.STRING, allowNull: true },
+    attachmentData: { type: DataTypes.TEXT, allowNull: true },
+    attachmentFileName: { type: DataTypes.STRING, allowNull: true },
+    attachmentFileType: { type: DataTypes.STRING, allowNull: true },
+    status: { type: DataTypes.STRING, defaultValue: 'pending' }
   });
 }
 
@@ -171,9 +185,406 @@ const defaultPages = {
     values: ["Authenticity", "Customer Focus", "Responsibility", "Teamwork", "Integrity", "Limitless Living", "Healthcare", "Humanity"]
   },
   offerings: [
-    { title: "Anti-Infective", desc: "Advanced solutions for combating infectious diseases and protecting public health.", color: "rgba(255, 99, 132, 0.2)" },
-    { title: "Oncology", desc: "Cutting-edge therapies dedicated to fighting cancer and improving patient survival rates.", color: "rgba(54, 162, 235, 0.2)" }
-  ],
+        {
+            "title": "Anti-Infective",
+            "slug": "anti-infective",
+            "image": "https://images.unsplash.com/photo-1584308666744-24d5e4a8b79d?auto=format&fit=crop&w=1920&q=80",
+            "icon": "✨",
+            "accentColor": "#1d4ed8",
+            "tagline": "Explore our specialized Anti-Infective formulations.",
+            "desc": [
+                "EMYRIS BIOLIFESCIENCES Anti-Infective, where we specialize\nin providing a comprehensive range of high-quality\nanti-infective medications at affordable prices. Our\ncommitment to healthcare excellence drives us to\noffer effective solutions to combat infections while\nprioritizing accessibility for all.",
+                "Our anti-infective product portfolio encompasses a\ndiverse range of qualitative medications tailored to\naddress various infectious conditions. From\nantibiotics to antivirals and antifungals, we strive\nto meet the therapeutic needs of healthcare\nprofessionals and patients alike.",
+                "At EMYRIS BIOLIFESCIENCES, we prioritize patient safety and\nwellbeing. Therefore, we strictly adhere to the\npractice of selling our anti-infective medications\nexclusively through healthcare professionals (HCPs).\nPatients can connect with us through their\nhealthcare providers to inquire about our\nanti-infective products and pricing.",
+                "Our team is dedicated to ensuring that our\nanti-infective medications meet stringent quality\nstandards, regulatory requirements, and\naffordability criteria. We are committed to\nsupporting healthcare providers in their efforts to\ncombat infections and improve patient outcomes.",
+                "For more information about our anti-infective range\nof products and pricing, please reach out to us. We\nare here to support healthcare professionals and\npatients in their fight against infectious diseases,\nproviding safe, effective, and accessible solutions.",
+                "ICU RANGE",
+                "Anti infection",
+                "Ceftazidime 2gm + Avibactam  0.5gm",
+                "Clindamycin Inj 300 mg /600mg",
+                "Meropenem 1gm",
+                "Clarithromycin 500mg",
+                "Colistimethate Sodium 1MIU/2MIU/3MIU",
+                "Doxycycline 100 mg",
+                "Polymyxin B Sulphate 500000 IU, 750000 IU",
+                "Tiecoplanin 200 mg/400mg",
+                "Tigecycline 50mg/100mg",
+                "Vancomycin 500mg/1000mg",
+                "Ampilicin 1gm Sulbactum .5gm",
+                "Anti Fungals",
+                "Liposomal Amphotericin B 50 mg Inj",
+                "Caspofungin 50mg/70mg",
+                "Voriconazole 200mg Inj, 200mg  Suspension, 200mg Tab",
+                "Anti inflimatory",
+                "Methyl Prednisole Sodium Succinate 40mg/125mg/500mg/1 GM",
+                "Hydrocortisone Sodium 100mg",
+                "Anti Oxidant",
+                "Gluthathione 600 mg",
+                "N Acetylcysteine 400mg/1000mg/600mg Tab",
+                "GH Regulator",
+                "Octreotide 50mcg/100mcg",
+                "Pschostimulant",
+                "Citicoline 500/1000mg"
+            ],
+            "products": [
+                {
+                    "therapy": "Anti infection",
+                    "genericName": "Ceftazidime 2gm + Avibactam&nbsp; 0.5gm\nClindamycin Inj 300 mg /600mg\nMeropenem 1gm\nClarithromycin 500mg\nColistimethate Sodium 1MIU/2MIU/3MIU\nDoxycycline 100 mg\nPolymyxin B Sulphate 500000 IU, 750000 IU\nTiecoplanin 200 mg/400mg\nTigecycline 50mg/100mg\nVancomycin 500mg/1000mg\nAmpilicin 1gm Sulbactum .5gm",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Anti Fungals",
+                    "genericName": "Liposomal Amphotericin B 50 mg Inj\nCaspofungin 50mg/70mg\nVoriconazole 200mg Inj, 200mg&nbsp; Suspension, 200mg Tab",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Anti inflimatory",
+                    "genericName": "Methyl Prednisole Sodium Succinate 40mg/125mg/500mg/1 GM\nHydrocortisone Sodium 100mg",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Anti Oxidant",
+                    "genericName": "Gluthathione 600 mg\nN Acetylcysteine 400mg/1000mg/600mg Tab",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "GH Regulator",
+                    "genericName": "Octreotide 50mcg/100mcg",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Pschostimulant",
+                    "genericName": "Citicoline 500/1000mg",
+                    "moleculeName": ""
+                }
+            ]
+        },
+        {
+            "title": "Oncology",
+            "slug": "oncology",
+            "image": "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=1920&q=80",
+            "icon": "✨",
+            "accentColor": "#1d4ed8",
+            "tagline": "Explore our specialized Oncology formulations.",
+            "desc": [
+                "Where we specialize in offering a comprehensive range of supportive care products tailored to meet the unique needs of cancer patients. As a dedicated healthcare company, we are committed to providing high-quality medications and supportive therapies to improve the quality of life for individuals battling cancer.",
+                "Our oncology portfolio encompasses a diverse array of supportive care products designed to manage the side effects of cancer treatment, alleviate symptoms, and enhance overall well-being. From antiemetics to pain management medications, growth factors, and nutritional supplements, we aim to address the multifaceted challenges faced by cancer patients during their treatment journey.",
+                "At EMYRIS BIOLIFESCIENCES, we prioritize patient-centered care and strive to empower healthcare providers with effective solutions to enhance the comfort and quality of life of their patients undergoing cancer treatment. Our supportive care products are developed and manufactured adhering to rigorous quality standards and regulatory requirements, ensuring their safety, efficacy, and reliability.",
+                "We understand the critical role of supportive care in improving treatment outcomes and minimizing treatment-related complications for cancer patients. Therefore, our team is dedicated to collaborating with healthcare professionals to provide comprehensive support and guidance in managing the complex needs of cancer patients.",
+                "For more information about our range of supportive care products for oncology patients, please connect with us. We are committed to supporting healthcare providers and patients in their journey towards better health and improved quality of life amidst the challenges of cancer treatment.",
+                "Immuno-modulator",
+                "L-Glutamine Sachet",
+                "Protein Supplements",
+                "1.High Protein Powder (Whey)",
+                "2.High Protein Powder(Albumen)",
+                "3.Onco Care Protein (ALA, DHA, Glutamine)",
+                "Antioxidant",
+                "1.Lycopene, Multi-vitamin & Multimineral",
+                "2.Co-enzyme, L-Carnitine & Curcumin Tab",
+                "3.Beta-Carotene, Vit-B, Berry Ext. Omega-3 Capsules",
+                "Antifungals",
+                "Voriconazole Tab & Syp",
+                "Caspofungin Acetate for Inj. 50mg /Inj. 70mg(Lyophilized)",
+                "Amphotericin B Liposomal 50mg inj"
+            ],
+            "products": [
+                {
+                    "therapy": "Immuno-modulator",
+                    "genericName": "L-Glutamine Sachet",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Protein Supplements",
+                    "genericName": "1.High Protein Powder (Whey)\n2.High Protein Powder(Albumen)\n3.Onco Care Protein (ALA, DHA, Glutamine)",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Antioxidant",
+                    "genericName": "1.Lycopene, Multi-vitamin &amp; Multimineral\n2.Co-enzyme, L-Carnitine &amp; Curcumin Tab\n3.Beta-Carotene, Vit-B, Berry Ext. Omega-3 Capsules",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Antifungals",
+                    "genericName": "Voriconazole Tab &amp; Syp\nCaspofungin Acetate for Inj. 50mg /Inj. 70mg(Lyophilized)\nAmphotericin B Liposomal 50mg inj",
+                    "moleculeName": ""
+                }
+            ]
+        },
+        {
+            "title": "Enteral Nutrition",
+            "slug": "enteral-nutrition",
+            "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1920&q=80",
+            "icon": "✨",
+            "accentColor": "#1d4ed8",
+            "tagline": "Explore our specialized Enteral Nutrition formulations.",
+            "desc": [
+                "EMYRIS BIOLIFESCIENCES Enteral Nutrition, where we take pride in manufacturing high-quality enteral nutrition products at our state-of-the-art facility located in Gujarat. As a trusted name in the healthcare industry, we are dedicated to providing superior enteral nutrition solutions to meet the diverse nutritional needs of patients.",
+                "Our enteral nutrition products are meticulously formulated to provide essential nutrients, vitamins, and minerals required for optimal patient health and well-being. Whether it's tube feeding formulas, nutritional supplements, or specialized enteral nutrition solutions, we strive to offer a comprehensive range of products to support patients with varying nutritional requirements.",
+                "At EMYRIS BIOLIFESCIENCES, quality is paramount in everything we do. Our manufacturing facility adheres to stringent quality control measures and complies with regulatory standards to ensure the safety, efficacy, and purity of our enteral nutrition products. We utilize advanced manufacturing processes and cutting-edge technology to produce formulations that meet the highest standards of excellence.",
+                "We understand the importance of tailored nutrition in promoting patient recovery and overall health. Therefore, our enteral nutrition products are developed with a focus on patient-centered care, providing optimal nutrition to support healing, enhance immune function, and improve patient outcomes.",
+                "Healthcare professionals can rely on EMYRIS BIOLIFESCIENCES for reliable, high-quality enteral nutrition solutions that prioritize patient safety and well-being. For more information about our enteral nutrition products and manufacturing capabilities, please connect with us. We are committed to providing superior enteral nutrition options to support the nutritional needs of patients across diverse healthcare settings.",
+                "Enteral Nutriton Range",
+                "Categorization",
+                "Brand Name",
+                "Gold Starndard",
+                "Whey Isolate",
+                "Protein Supplements",
+                "High Protein Formulation",
+                "ALOMOS HP",
+                "Standard Protein Formulation",
+                "ALOMOS ST",
+                "Diabetic Care Formulation",
+                "ALOMOS DM",
+                "Oral Albumen Protein",
+                "ALOMOS ORAL ALBUMEN",
+                "Nephro Care Formulation",
+                "ALOMOS NC",
+                "Weight Reduction Formulation",
+                "ALOMOS GOLD",
+                "Oncho Care Formulation",
+                "ALOMOS ON",
+                "Gastro Care Formulation",
+                "ALOMOS GC",
+                "Pregnancy & Lactation Care",
+                "ALOMOS MAMA",
+                "Ortho Care Formulation",
+                "ALOMOS OC",
+                "Superfood Fiber",
+                "Superfood Fiber Formulation",
+                "ALOMOS SF",
+                "High Fiber Berry",
+                "ALOMOS OB",
+                "BCAA & MCT LIQUID SHOT",
+                "ALOMOS-LS"
+            ],
+            "products": [
+                {
+                    "therapy": "Standard Protein Formulation",
+                    "genericName": "ALOMOS ST",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Diabetic Care Formulation",
+                    "genericName": "ALOMOS DM",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Oral Albumen Protein",
+                    "genericName": "ALOMOS ORAL ALBUMEN",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Nephro Care Formulation",
+                    "genericName": "ALOMOS NC",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Weight Reduction Formulation",
+                    "genericName": "ALOMOS GOLD",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Oncho Care Formulation",
+                    "genericName": "ALOMOS ON",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Gastro Care Formulation",
+                    "genericName": "ALOMOS GC",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Pregnancy & Lactation Care",
+                    "genericName": "ALOMOS MAMA",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Ortho Care Formulation",
+                    "genericName": "ALOMOS OC",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "High Fiber Berry",
+                    "genericName": "ALOMOS OB",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "BCAA & MCT LIQUID SHOT",
+                    "genericName": "ALOMOS-LS",
+                    "moleculeName": ""
+                }
+            ]
+        },
+        {
+            "title": "Nutraceuticals",
+            "slug": "nutraceuticals",
+            "image": "https://images.unsplash.com/photo-1550572017-edb799988ff8?auto=format&fit=crop&w=1920&q=80",
+            "icon": "✨",
+            "accentColor": "#1d4ed8",
+            "tagline": "Explore our specialized Nutraceuticals formulations.",
+            "desc": [
+                "Where we take pride in manufacturing high-quality enteral nutrition products at our state-of-the-art facility located in Gujarat. As a trusted name in the healthcare industry, we are dedicated to providing superior enteral nutrition solutions to meet the diverse nutritional needs of patients.",
+                "Our enteral nutrition products are meticulously formulated to provide essential nutrients, vitamins, and minerals required for optimal patient health and well-being. Whether it's tube feeding formulas, nutritional supplements, or specialized enteral nutrition solutions, we strive to offer a comprehensive range of products to support patients with varying nutritional requirements.",
+                "At EMYRIS BIOLIFESCIENCES, quality is paramount in everything we do. Our manufacturing facility adheres to stringent quality control measures and complies with regulatory standards to ensure the safety, efficacy, and purity of our enteral nutrition products. We utilize advanced manufacturing processes and cutting-edge technology to produce formulations that meet the highest standards of excellence.",
+                "We understand the importance of tailored nutrition in promoting patient recovery and overall health. Therefore, our enteral nutrition products are developed with a focus on patient-centered care, providing optimal nutrition to support healing, enhance immune function, and improve patient outcomes.",
+                "Healthcare professionals can rely on EMYRIS BIOLIFESCIENCES for reliable, high-quality enteral nutrition solutions that prioritize patient safety and well-being. For more information about our enteral nutrition products and manufacturing capabilities, please connect with us. We are committed to providing superior enteral nutrition options to support the nutritional needs of patients across diverse healthcare settings.",
+                "Neutraceutical Range",
+                "Anti Inflammatory Herbal Agent",
+                "Nano Curcumin (Water Soluble) 150ml Syp + Tab",
+                "Conventional Oncho Care",
+                "Nano Curcumin + Piperine + Lycopene Syp + Tab",
+                "Antioxidant",
+                "1.N-Acetyl Cysteine, Vit C, Sillinium",
+                "2.L-Carnitine, Co-Enzyme Q10,Vit-E, Ala, Omega",
+                "Anti Arthritic Pain",
+                "Pain relief Roll On (Herbal)",
+                "Pain Relief Spray with Wintergreen and Nilgiri Oil",
+                "1.Joint Care Capsules Herbal",
+                "2.Joint Care Capsule with MSM and Glucosamine, Chondroitin Sulphate, Co-Enzyme Q10",
+                "Neuro Care",
+                "1.Omega, EPA, DHA, Vit-A, Vit-D3, L-Carnosine Syp (200ml)",
+                "2.Omega, EPA, DHA, Vitamins & Minerals Cap",
+                "3.Co-Enzyme Q10, Astaxanthin, Omega 3Cap",
+                "D3 Deficiency",
+                "1.Nano 60,000 IU for 5ml bottle for Pediatric use",
+                "2.Soft gel 60,00 IU Cap for Adults",
+                "Female care",
+                "1.Intimate Wash",
+                "2.Intimate Gel",
+                "3.Uterine Tonic",
+                "4.Protein Supplements",
+                "5.Mothers Milk Enhancer formulation",
+                "Sleep Disorder",
+                "1.L-Theanine, Milatonin, 5-Hydroxytryptophan,Grifonia Simplicifolia Tan",
+                "2.Milatonin Spray form for better sleep"
+            ],
+            "products": [
+                {
+                    "therapy": "Anti Inflammatory Herbal Agent",
+                    "genericName": "Nano Curcumin (Water Soluble) 150ml Syp + Tab",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Conventional Oncho Care",
+                    "genericName": "Nano Curcumin + Piperine + Lycopene Syp + Tab",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Antioxidant",
+                    "genericName": "1.N-Acetyl Cysteine, Vit C, Sillinium\n2.L-Carnitine, Co-Enzyme Q10,Vit-E, Ala, Omega",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Anti Arthritic Pain",
+                    "genericName": "Pain relief Roll On (Herbal)\nPain Relief Spray with Wintergreen and Nilgiri Oil\n1.Joint Care Capsules Herbal\n2.Joint Care Capsule with MSM and Glucosamine, Chondroitin Sulphate, Co-Enzyme Q10",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Neuro Care",
+                    "genericName": "1.Omega, EPA, DHA, Vit-A, Vit-D3, L-Carnosine Syp (200ml)\n2.Omega, EPA, DHA, Vitamins &amp; Minerals Cap\n3.Co-Enzyme Q10, Astaxanthin, Omega 3Cap",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "D3 Deficiency",
+                    "genericName": "1.Nano 60,000 IU for 5ml bottle for Pediatric use\n2.Soft gel 60,00 IU Cap for Adults",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Female care",
+                    "genericName": "1.Intimate Wash\n2.Intimate Gel\n3.Uterine Tonic\n4.Protein Supplements\n5.Mothers Milk Enhancer formulation",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Sleep Disorder",
+                    "genericName": "1.L-Theanine, Milatonin, 5-Hydroxytryptophan,Grifonia Simplicifolia Tan\n2.Milatonin Spray form for better sleep",
+                    "moleculeName": ""
+                }
+            ]
+        },
+        {
+            "title": "Anasthetics",
+            "slug": "anasthetics",
+            "image": "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1920&q=80",
+            "icon": "✨",
+            "accentColor": "#1d4ed8",
+            "tagline": "Explore our specialized Anasthetics formulations.",
+            "desc": [
+                "Where we offer a comprehensive range of high-quality\nanesthetic products exclusively available to\nhealthcare professionals (HCP). As a leading\npharmaceutical company dedicated to healthcare\nexcellence, we prioritize the safety and efficacy of\nour anesthetic solutions.",
+                "Our anesthetics portfolio encompasses a diverse\nrange of products tailored to meet the varied needs\nof healthcare providers and patients across\ndifferent medical specialties. From local\nanesthetics for minor procedures to general\nanesthetics for major surgeries, we strive to\nprovide a complete suite of anesthesia options to\nsupport optimal patient care.",
+                "At EMYRIS BIOLIFESCIENCES, we place a strong emphasis on\nquality assurance throughout the manufacturing\nprocess. Our anesthetic products are manufactured in\nstate-of-the-art facilities that adhere to strict\nquality control standards and regulatory guidelines.\nWe employ advanced manufacturing technologies and\nrigorous testing procedures to ensure the safety,\npurity, and potency of our products.",
+                "We understand the critical role that anesthetics\nplay in ensuring patient comfort and safety during\nmedical procedures. Therefore, our anesthetic\nformulations are meticulously developed and\ncarefully formulated to deliver reliable and\nconsistent anesthesia outcomes while minimizing\nadverse effects.",
+                "Healthcare professionals can trust EMYRIS BIOLIFESCIENCES\nfor access to a reliable and comprehensive range of\nanesthetic products that meet the highest standards\nof quality and safety. Our commitment to healthcare\nexcellence extends beyond product quality to\nencompass ongoing support, education, and training\nto empower HCPs in delivering optimal patient care.",
+                "For more information about our anesthetic products\nand how they can benefit your clinical practice,\nplease contact us. We are dedicated to supporting\nhealthcare professionals with innovative and\nreliable anesthetic solutions that enhance patient\noutcomes and ensure procedural success.",
+                "Anasthesia Range",
+                "Premedicant",
+                "Gylcopyrolate 0.2mg",
+                "Local Anesthetic",
+                "Lignocaine 2% W/V in 30ml",
+                "Lignocaine 2% W/V + Adrenaline ( 1:200000) 30ml",
+                "Bupivacaine 0.25%/0.5%",
+                "Induction Agent",
+                "Propofol emulsion 1% W/V in 100/200/500 mg vial",
+                "Etomidate 20 mg",
+                "Reversal Agent",
+                "Neostigmine Methylsulphate 0.5mg/ 2.5 mg",
+                "Neostigmine 2.5 mg + Glycopyrolate 0.5 mg",
+                "Sedative Agent",
+                "Dexmedetomidine Hcl 50mg/100mg",
+                "Muscle Relaxants",
+                "Rocuronium Bromide 50/100 mg",
+                "Vecuronium Bromide 4mg/10mg",
+                "Atracuriium Besylate 25/50mg"
+            ],
+            "products": [
+                {
+                    "therapy": "Premedicant",
+                    "genericName": "Gylcopyrolate 0.2mg",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Local Anesthetic",
+                    "genericName": "Lignocaine 2% W/V in 30ml\nLignocaine 2% W/V + Adrenaline ( 1:200000) 30ml\nBupivacaine 0.25%/0.5%",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Induction Agent",
+                    "genericName": "Propofol emulsion 1% W/V in 100/200/500 mg vial\nEtomidate 20 mg",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Reversal Agent",
+                    "genericName": "Neostigmine Methylsulphate 0.5mg/ 2.5 mg\nNeostigmine 2.5 mg + Glycopyrolate 0.5 mg",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Sedative Agent",
+                    "genericName": "Dexmedetomidine Hcl 50mg/100mg",
+                    "moleculeName": ""
+                },
+                {
+                    "therapy": "Muscle Relaxants",
+                    "genericName": "Rocuronium Bromide 50/100 mg\nVecuronium Bromide 4mg/10mg\nAtracuriium Besylate 25/50mg",
+                    "moleculeName": ""
+                }
+            ]
+        },
+        {
+            "title": "HIV",
+            "slug": "hiv",
+            "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1920&q=80",
+            "icon": "✨",
+            "accentColor": "#1d4ed8",
+            "tagline": "Explore our specialized HIV formulations.",
+            "desc": [
+                "We are dedicated to revolutionizing HIV treatment by introducing affordable and innovative pharmaceutical solutions. Our upcoming line of HIV drugs is meticulously designed to meet the pressing healthcare needs of patients living with HIV/AIDS, offering effective treatment options at accessible prices.",
+                "EMYRIS BIOSCIENCES is committed to leveraging cutting-edge research and development to bring forth novel HIV medications that not only effectively manage the virus but also improve the quality of life for patients. Our team of experts is dedicated to formulating HIV drugs that prioritize efficacy, safety, and affordability without compromising on quality.",
+                "We understand the challenges faced by HIV patients in accessing essential medications, which is why we are working tirelessly to ensure that our upcoming HIV drug range is affordable and accessible to all. By offering cost-effective solutions, we aim to empower individuals living with HIV/AIDS to adhere to their treatment regimens and achieve better health outcomes.",
+                "Our commitment to affordability extends beyond just pricing. We also prioritize patient education, support, and advocacy to ensure that individuals affected by HIV have access to comprehensive care and resources. Through partnerships with healthcare providers, advocacy organizations, and community initiatives, we strive to create a supportive ecosystem for HIV patients.",
+                "At EMYRIS BIOLIFESCIENCES, we recognize the urgency of addressing the global HIV epidemic and are dedicated to playing our part in combatting it. Stay tuned for updates on our forthcoming HIV drug offerings, as we continue to work towards providing accessible and effective treatment options for HIV patients worldwide."
+            ],
+            "products": []
+        }
+    ],
   services: [
     {
       title: "Research and Development (R&D)",
@@ -303,6 +714,21 @@ const defaultPages = {
     { id: 2, name: "Blue Dart Apex Cold Chain", scope: "Domestic Express Distribution", icon: "✈️" },
     { id: 3, name: "FedEx Custom Critical Care", scope: "Emergency Distribution Channels", icon: "🚀" },
     { id: 4, name: "Emyris Cold-Chain Express", scope: "Regional Warehouse Logistics", icon: "🚚" }
+  ],
+  markets: [
+    { id: 1, name: "Delhi", lat: 28.6139, lng: 77.2090, status: "Active" },
+    { id: 2, name: "Lucknow", lat: 26.8467, lng: 80.9462, status: "Active" },
+    { id: 3, name: "Bhubaneswar", lat: 20.2961, lng: 85.8245, status: "Active" },
+    { id: 4, name: "Kolkata", lat: 22.5726, lng: 88.3639, status: "Active" },
+    { id: 5, name: "Guwahati", lat: 26.1445, lng: 91.7362, status: "Active" },
+    { id: 6, name: "Hyderabad", lat: 17.3850, lng: 78.4867, status: "Active" },
+    { id: 7, name: "Chennai", lat: 13.0827, lng: 80.2707, status: "Active" },
+    { id: 8, name: "Ahmedabad", lat: 23.0225, lng: 72.5714, status: "Active" },
+    { id: 9, name: "Surat", lat: 21.1702, lng: 72.8311, status: "Active" },
+    { id: 10, name: "Rajkot", lat: 22.3039, lng: 70.8022, status: "Active" },
+    { id: 11, name: "Vadodara", lat: 22.3072, lng: 73.1812, status: "Active" },
+    { id: 12, name: "Mumbai", lat: 19.0760, lng: 72.8777, status: "Active" },
+    { id: 13, name: "Pune", lat: 18.5204, lng: 73.8567, status: "Active" }
   ]
 };
 
@@ -363,7 +789,15 @@ async function initDb() {
             currentPages.logisticPartners = defaultPages.logisticPartners;
             modified = true;
           }
-          if (!currentPages.services || currentPages.services.length < 6) {
+          if (!currentPages.markets) {
+            currentPages.markets = defaultPages.markets;
+            modified = true;
+          }
+                    if (!currentPages.offerings || currentPages.offerings.length <= 2 || !currentPages.offerings[0].slug) {
+            currentPages.offerings = defaultPages.offerings;
+            modified = true;
+          }
+if (!currentPages.services || currentPages.services.length < 6) {
             currentPages.services = defaultPages.services;
             modified = true;
           }
@@ -554,6 +988,46 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
       const newApp = { id: Date.now(), name, email, phone, position, experience, resumeData, resumeFileName, resumeFileType, message, status: 'pending', createdAt: new Date() };
       inMemoryCareers.push(newApp);
       res.json({ success: true, application: { id: newApp.id, name: newApp.name, email: newApp.email, position: newApp.position, resumeFileName } });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Submit Form (for Services Pages)
+app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
+  const { name, email, subject, phone, message, servicePage } = req.body;
+  if (!name || !email || !message) {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
+  }
+
+  let attachmentData = null;
+  let attachmentFileName = null;
+  let attachmentFileType = null;
+
+  if (req.file) {
+    try {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      attachmentData = fileBuffer.toString('base64');
+      attachmentFileName = req.file.originalname;
+      attachmentFileType = req.file.mimetype;
+      fs.unlinkSync(req.file.path);
+    } catch (err) {
+      console.error("Error reading uploaded attachment:", err);
+    }
+  }
+
+  try {
+    if (dbEnabled) {
+      const newSubmission = await FormSubmission.create({ name, email, subject, phone, message, servicePage, attachmentData, attachmentFileName, attachmentFileType });
+      res.json({ success: true, submission: { id: newSubmission.id, name: newSubmission.name, email: newSubmission.email } });
+    } else {
+      const newSubmission = { id: Date.now(), name, email, subject, phone, message, servicePage, attachmentData, attachmentFileName, attachmentFileType, status: 'pending', createdAt: new Date() };
+      inMemorySubmissions.push(newSubmission);
+      res.json({ success: true, submission: { id: newSubmission.id, name: newSubmission.name, email: newSubmission.email } });
     }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });

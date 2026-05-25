@@ -233,7 +233,7 @@ export const AppProvider = ({ children }) => {
       'logo', 'companyName', 'contactNumber', 'email', 'address', 'tollFree',
       'headerColor', 'footerColor', 'headerTextColor', 'footerTextColor', 'socialLinks', 'youtubeVideoId'
     ];
-    const pagesKeys = ['slides', 'discover', 'offerings', 'services', 'advisors', 'doctors', 'enhancers', 'testimonials', 'logisticPartners'];
+    const pagesKeys = ['slides', 'discover', 'offerings', 'services', 'advisors', 'doctors', 'enhancers', 'testimonials', 'logisticPartners', 'markets'];
 
     let hasBranding = false;
     let hasPages = false;

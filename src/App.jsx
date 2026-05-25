@@ -8,6 +8,8 @@ import Offerings from './pages/Offerings';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import GenericPage from './pages/GenericPage';
+import ServiceSubpage from './pages/ServiceSubpage';
+import OfferingSubpage from './pages/OfferingSubpage';
 import Career from './pages/Career';
 import SliderDetails from './pages/SliderDetails';
 import Footer from './components/Footer';
@@ -486,9 +488,9 @@ function App() {
         <Route path="/discover" element={<Discover />} />
         <Route path="/discover/:pageId" element={<DiscoverSubpage />} />
         <Route path="/offerings" element={<Offerings />} />
-        <Route path="/offerings/:pageId" element={<GenericPage />} />
+        <Route path="/offerings/:pageId" element={<OfferingSubpage />} />
         <Route path="/services" element={<Services />} />
-        <Route path="/services/:pageId" element={<GenericPage />} />
+        <Route path="/services/:pageId" element={<ServiceSubpage />} />
         <Route path="/career" element={<Career />} />
         <Route path="/blog" element={<GenericPage />} />
         <Route path="/contact" element={<Contact />} />

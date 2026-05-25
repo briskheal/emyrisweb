@@ -1,0 +1,126 @@
+.india-map-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  background: transparent;
+  padding: 1rem 0;
+}
+
+.marker-group {
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.marker-group:hover {
+  transform: scale(1.35);
+}
+
+.flag-container {
+  position: relative;
+  width: 50px;
+  height: 60px;
+  /* Soft shadow for the entire flag unit */
+  filter: drop-shadow(0 6px 4px rgba(0,0,0,0.3));
+}
+
+.flag-pole {
+  position: absolute;
+  left: 6px;
+  bottom: 0;
+  width: 3px;
+  height: 50px;
+  /* Metallic pole look */
+  background: linear-gradient(to right, #94a3b8, #f8fafc, #64748b);
+  border-radius: 3px;
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.2);
+}
+
+/* Golden finial (ball at the top of the flagpole) */
+.flag-pole::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -1.5px;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle at 30% 30%, #fbbf24, #b45309);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.flag-fabric {
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  width: 42px;
+  height: 24px;
+  /* Premium blue gradient matching Emyris branding */
+  background: linear-gradient(135deg, #0284c7, #1e3a8a);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-radius: 0 3px 3px 0;
+  transform-origin: left center;
+  /* Smooth, natural flutter animation */
+  animation: flutter 1.3s infinite alternate ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 4px rgba(255,255,255,0.3), 3px 3px 6px rgba(0,0,0,0.4);
+}
+
+/* Shine effect that moves with the flutter to create a 3D fabric illusion */
+.flag-fabric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shine 1.3s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@keyframes flutter {
+  0% {
+    transform: perspective(150px) rotateY(-5deg) skewY(2deg);
+  }
+  100% {
+    transform: perspective(150px) rotateY(35deg) skewY(-8deg);
+  }
+}
+
+.marker-base {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+.marker-group:hover .marker-base {
+  fill: #fbbf24;
+}
+
+.marker-text {
+  font-family: "Inter", sans-serif;
+  fill: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  /* Text outline for readability against map lines */
+  text-shadow: 1.5px 1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px -1.5px 0 #fff;
+  transition: all 0.3s ease;
+}
+
+.marker-group:hover .marker-text {
+  fill: #1e3a8a;
+  font-size: 12px;
+}

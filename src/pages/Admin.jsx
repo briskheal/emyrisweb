@@ -282,6 +282,16 @@ function Admin() {
     }
   }, [siteData.enhancers]);
 
+  // Markets local buffering states
+  const [editedMarkets, setEditedMarkets] = useState([]);
+  const [savingMarkets, setSavingMarkets] = useState(false);
+
+  useEffect(() => {
+    if (siteData.markets) {
+      setEditedMarkets(siteData.markets);
+    }
+  }, [siteData.markets]);
+
 
   // Check login on mount
   useEffect(() => {
@@ -380,6 +390,44 @@ function Admin() {
   const handleOfferingChange = (index, field, val) => {
     const newOfferings = [...siteData.offerings];
     newOfferings[index] = { ...newOfferings[index], [field]: val };
+    updateSiteData({ offerings: newOfferings });
+  };
+
+  const addOffering = () => {
+    const newOfferings = [
+      ...(siteData.offerings || []),
+      { 
+        title: 'New Offering', slug: `new-offering-${Date.now()}`, image: '', icon: '🌟', accentColor: '#3b82f6', 
+        tagline: '', highlights: [], desc: [''], products: [] 
+      }
+    ];
+    updateSiteData({ offerings: newOfferings });
+  };
+
+  const deleteOffering = (index) => {
+    if (window.confirm("Are you sure you want to delete this entire offering?")) {
+      const newOfferings = (siteData.offerings || []).filter((_, idx) => idx !== index);
+      updateSiteData({ offerings: newOfferings });
+    }
+  };
+
+  const handleProductChange = (oIdx, pIdx, field, val) => {
+    const newOfferings = [...siteData.offerings];
+    const newProducts = [...(newOfferings[oIdx].products || [])];
+    newProducts[pIdx] = { ...newProducts[pIdx], [field]: val };
+    newOfferings[oIdx] = { ...newOfferings[oIdx], products: newProducts };
+    updateSiteData({ offerings: newOfferings });
+  };
+
+  const addProductToOffering = (oIdx) => {
+    const newOfferings = [...siteData.offerings];
+    newOfferings[oIdx].products = [...(newOfferings[oIdx].products || []), { therapy: '', genericName: '', moleculeName: '' }];
+    updateSiteData({ offerings: newOfferings });
+  };
+
+  const deleteProductFromOffering = (oIdx, pIdx) => {
+    const newOfferings = [...siteData.offerings];
+    newOfferings[oIdx].products = (newOfferings[oIdx].products || []).filter((_, idx) => idx !== pIdx);
     updateSiteData({ offerings: newOfferings });
   };
 
@@ -594,6 +642,40 @@ function Admin() {
       alert("❌ Failed to save business enhancers.");
     } finally {
       setSavingEnhancers(false);
+    }
+  };
+
+  const handleMarketChange = (index, field, val) => {
+    setEditedMarkets(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: val };
+      return next;
+    });
+  };
+
+  const saveMarketsAdmin = async () => {
+    setSavingMarkets(true);
+    try {
+      updateSiteData({ markets: editedMarkets });
+      await saveConfigToServer({ ...siteData, markets: editedMarkets });
+      alert("✅ Markets saved successfully!");
+    } catch (err) {
+      alert("❌ Failed to save markets.");
+    } finally {
+      setSavingMarkets(false);
+    }
+  };
+
+  const addMarket = () => {
+    setEditedMarkets(prev => [
+      ...(prev || []),
+      { id: Date.now(), name: '', lat: '', lng: '', status: 'Active' }
+    ]);
+  };
+
+  const deleteMarket = (index) => {
+    if (window.confirm("Are you sure you want to remove this market location?")) {
+      setEditedMarkets(prev => prev.filter((_, idx) => idx !== index));
     }
   };
 
@@ -897,6 +979,7 @@ function Admin() {
           <li className={activeTab === 'Offerings' ? 'active' : ''} onClick={() => setActiveTab('Offerings')}>Offerings</li>
           <li className={activeTab === 'Services' ? 'active' : ''} onClick={() => setActiveTab('Services')}>Services</li>
           <li className={activeTab === 'Testimonials' ? 'active' : ''} onClick={() => setActiveTab('Testimonials')}>Testimonials</li>
+          <li className={activeTab === 'Markets' ? 'active' : ''} onClick={() => setActiveTab('Markets')}>Presence Markets</li>
           <li className={activeTab === 'Logistics' ? 'active' : ''} onClick={() => setActiveTab('Logistics')}>Logistic Partners</li>
           <li className={activeTab === 'Advisors' ? 'active' : ''} onClick={() => setActiveTab('Advisors')}>Our Advisors</li>
           <li className={activeTab === 'Doctors' ? 'active' : ''} onClick={() => setActiveTab('Doctors')}>Our Doctors</li>
@@ -1241,18 +1324,111 @@ function Admin() {
         {/* Offerings Control */}
         {activeTab === 'Offerings' && (
           <div className="admin-section">
-            <h3>Offerings Page Control</h3>
-            <div className="admin-form" style={{ padding: 0 }}>
-              {siteData.offerings.map((off, idx) => (
-                <div key={idx} className="glass" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
-                  <h4 style={{ color: 'var(--primary)' }}>Offering Card #{idx + 1}</h4>
-                  <label>Title <input value={off.title} onChange={(e) => handleOfferingChange(idx, 'title', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} /></label>
-                  <label>Description <textarea rows="3" value={off.desc} onChange={(e) => handleOfferingChange(idx, 'desc', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} /></label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1.2rem' }}>
+              <h3 style={{ margin: 0, border: 'none', padding: 0 }}>Offerings Page Control</h3>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn-outline" onClick={addOffering}>➕ Add Offering</button>
+                <button type="button" className="btn" onClick={saveOfferings} disabled={savingOfferings}>
+                  {savingOfferings ? 'Saving...' : '💾 Save Offerings'}
+                </button>
+              </div>
+            </div>
+            
+            <div className="admin-form" style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {(siteData.offerings || []).map((off, idx) => (
+                <div key={idx} className="glass" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => deleteOffering(idx)} 
+                    style={{ position: 'absolute', right: '2rem', top: '2rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', padding: '5px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    🗑️ Delete Offering
+                  </button>
+                  <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', width: '70%', fontSize: '1.15rem' }}>
+                    Offering #{idx + 1}: {off.title || 'New Offering'}
+                  </h4>
+                  
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                    <label style={{ flex: 1, minWidth: '200px' }}>Title
+                      <input value={off.title || ''} onChange={(e) => handleOfferingChange(idx, 'title', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 1, minWidth: '200px' }}>Slug (URL path)
+                      <input value={off.slug || ''} onChange={(e) => handleOfferingChange(idx, 'slug', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 0.5, minWidth: '100px' }}>Icon (Emoji)
+                      <input value={off.icon || '🌟'} onChange={(e) => handleOfferingChange(idx, 'icon', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 0.5, minWidth: '100px' }}>Theme Color
+                      <input type="color" value={off.accentColor || '#3b82f6'} onChange={(e) => handleOfferingChange(idx, 'accentColor', e.target.value)} style={{ height: '42px', padding: '0', width: '100%', cursor: 'pointer' }} />
+                    </label>
+                  </div>
+                  
+                  <label>Banner Image URL
+                    <input value={off.image || ''} onChange={(e) => handleOfferingChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                  </label>
+                  
+                  <label>Tagline (Short Summary)
+                    <input value={off.tagline || ''} onChange={(e) => handleOfferingChange(idx, 'tagline', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                  </label>
+
+                  <label>Main Content Paragraphs (one paragraph per line)
+                    <textarea rows="5" value={(off.desc || []).join('\n')} onChange={(e) => handleOfferingChange(idx, 'desc', e.target.value.split('\n'))} placeholder="Enter paragraphs, separated by newlines..." style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                  </label>
+
+                  {/* PRODUCTS MANAGER SECTION */}
+                  <div style={{ marginTop: '1.5rem', background: 'rgba(29, 78, 216, 0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h5 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.05rem', fontWeight: '800' }}>Manage Products ({off.products ? off.products.length : 0})</h5>
+                      <button type="button" className="btn-outline" onClick={() => addProductToOffering(idx)} style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                        ➕ Add Product
+                      </button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                      {(off.products || []).map((prod, pIdx) => (
+                        <div key={pIdx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#ffffff', padding: '10px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Therapy / Category" 
+                            value={prod.therapy || ''} 
+                            onChange={(e) => handleProductChange(idx, pIdx, 'therapy', e.target.value)}
+                            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}
+                          />
+                          <input 
+                            type="text" 
+                            placeholder="Generic Name" 
+                            value={prod.genericName || ''} 
+                            onChange={(e) => handleProductChange(idx, pIdx, 'genericName', e.target.value)}
+                            style={{ flex: 1.5, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}
+                          />
+                          <input 
+                            type="text" 
+                            placeholder="Our Molecule Name" 
+                            value={prod.moleculeName || ''} 
+                            onChange={(e) => handleProductChange(idx, pIdx, 'moleculeName', e.target.value)}
+                            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => deleteProductFromOffering(idx, pIdx)}
+                            title="Remove Product"
+                            style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 5px' }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {(!off.products || off.products.length === 0) && (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>No products added yet. Click "Add Product" to begin.</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-              <button className="btn" onClick={saveOfferings} disabled={savingOfferings} style={{ minWidth: '180px' }}>
+              <button className="btn" onClick={saveOfferings} disabled={savingOfferings} style={{ minWidth: '180px', padding: '14px 28px', fontSize: '1rem' }}>
                 {savingOfferings ? 'Saving...' : '💾 Save Offerings'}
               </button>
             </div>
@@ -1361,6 +1537,62 @@ function Admin() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
               <button className="btn" onClick={savePartners} disabled={savingPartners} style={{ minWidth: '180px' }}>
                 {savingPartners ? 'Saving...' : '💾 Save Logistic Partners'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Presence Markets Control */}
+        {activeTab === 'Markets' && (
+          <div className="admin-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1.2rem' }}>
+              <h3 style={{ margin: 0, border: 'none', padding: 0 }}>Presence Map Locations</h3>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn-outline" onClick={addMarket}>➕ Add Market</button>
+                <button type="button" className="btn" onClick={saveMarketsAdmin} disabled={savingMarkets}>
+                  {savingMarkets ? 'Saving Changes...' : '💾 Save Markets'}
+                </button>
+              </div>
+            </div>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Add exact GPS coordinates for your markets. These will automatically render as custom 3D fluttering flags on the interactive Business Presence Map.</p>
+            <div className="admin-form" style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {editedMarkets?.map((m, idx) => (
+                <div key={idx} className="glass" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => deleteMarket(idx)} 
+                    style={{ position: 'absolute', right: '2rem', top: '2rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', padding: '5px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    🗑️ Delete Market
+                  </button>
+                  <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', width: '70%', fontSize: '1.15rem' }}>
+                    Market #{idx + 1}: {m.name || 'New Market'}
+                  </h4>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                    <label style={{ flex: 1, minWidth: '250px' }}>City / Market Name
+                      <input value={m.name || ''} onChange={(e) => handleMarketChange(idx, 'name', e.target.value)} placeholder="e.g. Mumbai" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 1, minWidth: '200px' }}>Status
+                      <select value={m.status || 'Active'} onChange={(e) => handleMarketChange(idx, 'status', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', padding: '12px', width: '100%', borderRadius: '8px' }}>
+                        <option value="Active">Active (Show Flag)</option>
+                        <option value="Upcoming">Upcoming (Hide Flag)</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <label style={{ flex: 1, minWidth: '250px' }}>Latitude (Y-axis)
+                      <input value={m.lat || ''} onChange={(e) => handleMarketChange(idx, 'lat', e.target.value)} placeholder="e.g. 19.0760" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 1, minWidth: '250px' }}>Longitude (X-axis)
+                      <input value={m.lng || ''} onChange={(e) => handleMarketChange(idx, 'lng', e.target.value)} placeholder="e.g. 72.8777" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button type="button" className="btn" onClick={saveMarketsAdmin} disabled={savingMarkets} style={{ minWidth: '180px' }}>
+                {savingMarkets ? 'Saving Changes...' : '💾 Save Markets'}
               </button>
             </div>
           </div>
