@@ -273,13 +273,7 @@ function Admin() {
         setLoginError(data.message || 'Invalid Credentials');
       }
     } catch (err) {
-      // Offline fallback login check
-      if (adminCreds.adminId === 'EMYRIS' && adminCreds.password === 'Omrutam@1306') {
-        setIsLoggedIn(true);
-        sessionStorage.setItem('emyrisAdminLoggedIn', 'true');
-      } else {
-        setLoginError('Incorrect credentials or connection failed.');
-      }
+      setLoginError('Incorrect credentials or connection failed.');
     }
   };
 

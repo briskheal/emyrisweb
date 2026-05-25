@@ -383,10 +383,10 @@ initDb();
 // Admin Login
 app.post('/api/admin/login', (req, res) => {
   const { adminId, password } = req.body;
-  const correctId = process.env.ADMIN_ID || 'EMYRIS';
-  const correctPass = process.env.ADMIN_PASSWORD || 'Omrutam@1306';
+  const correctId = process.env.ADMIN_ID;
+  const correctPass = process.env.ADMIN_PASSWORD;
 
-  if (adminId === correctId && password === correctPass) {
+  if (correctId && correctPass && adminId === correctId && password === correctPass) {
     res.json({ success: true, message: 'Welcome Admin' });
   } else {
     res.status(401).json({ success: false, message: 'Invalid Admin Credentials' });
