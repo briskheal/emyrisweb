@@ -147,6 +147,7 @@ function Admin() {
   // File uploading states
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSlideIdx, setUploadingSlideIdx] = useState(null);
+  const [uploadingOfferingIdx, setUploadingOfferingIdx] = useState(null);
 
   // Social links save state
   const [savingSocials, setSavingSocials] = useState(false);
@@ -842,6 +843,33 @@ function Admin() {
     }
   };
 
+  // Offering Banner Image Upload
+  const handleOfferingImageUpload = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingOfferingIdx(index);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        handleOfferingChange(index, 'image', data.url);
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      alert('Error uploading banner image.');
+    } finally {
+      setUploadingOfferingIdx(null);
+    }
+  };
+
   // Actions for Inquiry/Careers
   const deleteInquiry = async (id) => {
     if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
@@ -1363,9 +1391,16 @@ function Admin() {
                     </label>
                   </div>
                   
-                  <label>Banner Image URL
-                    <input value={off.image || ''} onChange={(e) => handleOfferingChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
-                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label>Banner Image URL (or upload below)
+                      <input value={off.image || ''} onChange={(e) => handleOfferingChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      Upload Banner Image (Cloudinary)
+                      <input type="file" accept="image/*" onChange={(e) => handleOfferingImageUpload(e, idx)} disabled={uploadingOfferingIdx !== null} style={{ marginTop: '0.25rem' }} />
+                    </label>
+                    {uploadingOfferingIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading banner to Cloudinary...</span>}
+                  </div>
                   
                   <label>Tagline (Short Summary)
                     <input value={off.tagline || ''} onChange={(e) => handleOfferingChange(idx, 'tagline', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
