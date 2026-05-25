@@ -310,10 +310,17 @@ const defaultPages = {
 async function initDb() {
   if (!dbEnabled || !sequelize) return;
   try {
+    // Attempt to authenticate connection
     await sequelize.authenticate();
     console.log('✅ Connected to Neon PostgreSQL Database.');
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database models synchronized.');
+
+    // Only run schema sync automatically if in local development to avoid Neon locks on Netlify Serverless
+    if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
+      await sequelize.sync({ alter: true });
+      console.log('✅ Database models synchronized locally.');
+    } else {
+      console.log('✅ Bypassing automated schema sync for Serverless environment.');
+    }
 
     // Seed Config if empty
     const brandRecord = await ConfigRecord.findByPk('branding');

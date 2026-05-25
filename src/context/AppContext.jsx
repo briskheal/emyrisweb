@@ -220,12 +220,14 @@ export const AppProvider = ({ children }) => {
     fetchConfig();
   }, []);
 
-  const updateSiteData = async (newData) => {
-    // Optimistic UI update
+  const updateSiteData = (newData) => {
+    // Optimistic UI update only (does NOT hit the server)
     const updated = { ...siteData, ...newData };
     setSiteData(updated);
     localStorage.setItem('emyrisSiteData', JSON.stringify(updated));
+  };
 
+  const saveConfigToServer = async (newDataToSave = siteData) => {
     // Partition keys to synchronize to the database
     const brandingKeys = [
       'logo', 'companyName', 'contactNumber', 'email', 'address', 'tollFree',
@@ -236,7 +238,7 @@ export const AppProvider = ({ children }) => {
     let hasBranding = false;
     let hasPages = false;
 
-    Object.keys(newData).forEach(key => {
+    Object.keys(newDataToSave).forEach(key => {
       if (brandingKeys.includes(key)) {
         hasBranding = true;
       }
@@ -248,7 +250,7 @@ export const AppProvider = ({ children }) => {
     try {
       if (hasBranding) {
         const brandingData = {};
-        brandingKeys.forEach(k => { brandingData[k] = updated[k]; });
+        brandingKeys.forEach(k => { brandingData[k] = newDataToSave[k]; });
         await fetch('/api/admin/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -258,20 +260,23 @@ export const AppProvider = ({ children }) => {
 
       if (hasPages) {
         const pagesData = {};
-        pagesKeys.forEach(k => { pagesData[k] = updated[k]; });
+        pagesKeys.forEach(k => { pagesData[k] = newDataToSave[k]; });
         await fetch('/api/admin/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'pages', data: pagesData })
         });
       }
+      console.log("✅ Successfully saved configuration to server.");
+      return true;
     } catch (err) {
       console.warn("Server synchronization failed, saved locally:", err);
+      return false;
     }
   };
 
   return (
-    <AppContext.Provider value={{ siteData, updateSiteData }}>
+    <AppContext.Provider value={{ siteData, updateSiteData, saveConfigToServer }}>
       {children}
     </AppContext.Provider>
   );

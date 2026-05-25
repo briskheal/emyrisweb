@@ -133,7 +133,7 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
 }
 
 function Admin() {
-  const { siteData, updateSiteData } = useContext(AppContext);
+  const { siteData, updateSiteData, saveConfigToServer } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Profile');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminCreds, setAdminCreds] = useState({ adminId: '', password: '' });
@@ -152,11 +152,83 @@ function Admin() {
   const [savingSocials, setSavingSocials] = useState(false);
   const [socialSaved, setSocialSaved] = useState(false);
 
+  // --- NEW SAVE FUNCTIONS ---
+  const [savingProfile, setSavingProfile] = useState(false);
+  const saveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Profile settings saved successfully!");
+    } catch (err) { alert("❌ Failed to save profile settings."); }
+    setSavingProfile(false);
+  };
+
+  const [savingBranding, setSavingBranding] = useState(false);
+  const saveBranding = async () => {
+    setSavingBranding(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Branding colors saved successfully!");
+    } catch (err) { alert("❌ Failed to save branding colors."); }
+    setSavingBranding(false);
+  };
+
+  const [savingDiscover, setSavingDiscover] = useState(false);
+  const saveDiscover = async () => {
+    setSavingDiscover(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Discover page content saved successfully!");
+    } catch (err) { alert("❌ Failed to save discover page content."); }
+    setSavingDiscover(false);
+  };
+
+  const [savingOfferings, setSavingOfferings] = useState(false);
+  const saveOfferings = async () => {
+    setSavingOfferings(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Offerings saved successfully!");
+    } catch (err) { alert("❌ Failed to save offerings."); }
+    setSavingOfferings(false);
+  };
+
+  const [savingServices, setSavingServices] = useState(false);
+  const saveServices = async () => {
+    setSavingServices(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Services saved successfully!");
+    } catch (err) { alert("❌ Failed to save services."); }
+    setSavingServices(false);
+  };
+
+  const [savingTestimonials, setSavingTestimonials] = useState(false);
+  const saveTestimonials = async () => {
+    setSavingTestimonials(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Testimonials saved successfully!");
+    } catch (err) { alert("❌ Failed to save testimonials."); }
+    setSavingTestimonials(false);
+  };
+
+  const [savingPartners, setSavingPartners] = useState(false);
+  const savePartners = async () => {
+    setSavingPartners(true);
+    try {
+      await saveConfigToServer(siteData);
+      alert("✅ Logistic partners saved successfully!");
+    } catch (err) { alert("❌ Failed to save partners."); }
+    setSavingPartners(false);
+  };
+
   const saveSocials = async () => {
     setSavingSocials(true);
     setSocialSaved(false);
     try {
-      await updateSiteData({ socialLinks: siteData.socialLinks });
+      updateSiteData({ socialLinks: siteData.socialLinks });
+      await saveConfigToServer({ ...siteData, socialLinks: siteData.socialLinks });
       setSocialSaved(true);
       setTimeout(() => setSocialSaved(false), 3000);
     } catch (err) {
@@ -370,7 +442,8 @@ function Admin() {
   const saveSlides = async () => {
     setSavingSlides(true);
     try {
-      await updateSiteData({ slides: editedSlides });
+      updateSiteData({ slides: editedSlides });
+      await saveConfigToServer({ ...siteData, slides: editedSlides });
       alert("✅ Slide configuration saved successfully!");
     } catch (err) {
       console.error(err);
@@ -391,7 +464,8 @@ function Admin() {
   const saveAdvisors = async () => {
     setSavingAdvisors(true);
     try {
-      await updateSiteData({ advisors: editedAdvisors });
+      updateSiteData({ advisors: editedAdvisors });
+      await saveConfigToServer({ ...siteData, advisors: editedAdvisors });
       alert("✅ Advisors team saved successfully!");
     } catch (err) {
       console.error(err);
@@ -451,7 +525,8 @@ function Admin() {
   const saveDoctors = async () => {
     setSavingDoctors(true);
     try {
-      await updateSiteData({ doctors: editedDoctors });
+      updateSiteData({ doctors: editedDoctors });
+      await saveConfigToServer({ ...siteData, doctors: editedDoctors });
       alert("✅ Doctors team saved successfully!");
     } catch (err) {
       console.error(err);
@@ -511,7 +586,8 @@ function Admin() {
   const saveEnhancers = async () => {
     setSavingEnhancers(true);
     try {
-      await updateSiteData({ enhancers: editedEnhancers });
+      updateSiteData({ enhancers: editedEnhancers });
+      await saveConfigToServer({ ...siteData, enhancers: editedEnhancers });
       alert("✅ Business Enhancers saved successfully!");
     } catch (err) {
       console.error(err);
@@ -882,6 +958,11 @@ function Admin() {
                 <input name="email" value={siteData.email || ''} onChange={handleProfileChange} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
               </label>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={saveProfile} disabled={savingProfile} style={{ minWidth: '180px' }}>
+                {savingProfile ? 'Saving...' : '💾 Save Profile Settings'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -960,6 +1041,11 @@ function Admin() {
                 </label>
               </div>
 
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={saveBranding} disabled={savingBranding} style={{ minWidth: '180px' }}>
+                {savingBranding ? 'Saving...' : '💾 Save Branding Colors'}
+              </button>
             </div>
           </div>
         )}
@@ -1144,6 +1230,11 @@ function Admin() {
                 </label>
               ))}
             </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={saveDiscover} disabled={savingDiscover} style={{ minWidth: '180px' }}>
+                {savingDiscover ? 'Saving...' : '💾 Save Discover Content'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -1160,6 +1251,11 @@ function Admin() {
                 </div>
               ))}
             </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={saveOfferings} disabled={savingOfferings} style={{ minWidth: '180px' }}>
+                {savingOfferings ? 'Saving...' : '💾 Save Offerings'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -1175,6 +1271,11 @@ function Admin() {
                   <label>Description <textarea rows="3" value={srv.desc} onChange={(e) => handleServiceChange(idx, 'desc', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} /></label>
                 </div>
               ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={saveServices} disabled={savingServices} style={{ minWidth: '180px' }}>
+                {savingServices ? 'Saving...' : '💾 Save Services'}
+              </button>
             </div>
           </div>
         )}
@@ -1215,6 +1316,11 @@ function Admin() {
                 </div>
               ))}
             </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={saveTestimonials} disabled={savingTestimonials} style={{ minWidth: '180px' }}>
+                {savingTestimonials ? 'Saving...' : '💾 Save Testimonials'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -1251,6 +1357,11 @@ function Admin() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+              <button className="btn" onClick={savePartners} disabled={savingPartners} style={{ minWidth: '180px' }}>
+                {savingPartners ? 'Saving...' : '💾 Save Logistic Partners'}
+              </button>
             </div>
           </div>
         )}
