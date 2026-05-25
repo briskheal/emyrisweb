@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
@@ -24,11 +25,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configure local uploads directory for multer temp files
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure temp directory for multer temp files (Serverless compatible)
+const uploadDir = os.tmpdir();
 
 // Multer Storage Configuration
 const storage = multer.diskStorage({
@@ -679,7 +677,11 @@ if (fs.existsSync(distPath)) {
 }
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 EmyrisWeb backend running on http://localhost:${PORT}`);
-  console.log(`📡 Backend health endpoint: http://localhost:${PORT}/api/health`);
-});
+if (process.env.NODE_ENV !== 'production' || process.env.RUN_LOCAL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 EmyrisWeb backend running on http://localhost:${PORT}`);
+    console.log(`📡 Backend health endpoint: http://localhost:${PORT}/api/health`);
+  });
+}
+
+export default app;
