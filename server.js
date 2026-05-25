@@ -188,7 +188,7 @@ const defaultPages = {
         {
             "title": "Anti-Infective",
             "slug": "anti-infective",
-            "image": "https://emyrisbio.com/Content/images/backgrond-image-07.jpg",
+            "image": "/images/banners/anti-infective.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Anti-Infective formulations.",
@@ -262,7 +262,7 @@ const defaultPages = {
         {
             "title": "Oncology",
             "slug": "oncology",
-            "image": "https://emyrisbio.com/Content/images/backgrond-image-10.jpg",
+            "image": "/images/banners/oncology.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Oncology formulations.",
@@ -313,7 +313,7 @@ const defaultPages = {
         {
             "title": "Enteral Nutrition",
             "slug": "enteral-nutrition",
-            "image": "https://emyrisbio.com/Content/images/backgrond-image-05.jpg",
+            "image": "/images/banners/enteral-nutrition.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Enteral Nutrition formulations.",
@@ -418,7 +418,7 @@ const defaultPages = {
         {
             "title": "Nutraceuticals",
             "slug": "nutraceuticals",
-            "image": "https://emyrisbio.com/Content/images/backgrond-image-06.jpg",
+            "image": "/images/banners/nutraceuticals.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Nutraceuticals formulations.",
@@ -504,7 +504,7 @@ const defaultPages = {
         {
             "title": "Anasthetics",
             "slug": "anasthetics",
-            "image": "https://emyrisbio.com/Content/images/backgrond-image-08.jpg",
+            "image": "/images/banners/anasthetics.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Anasthetics formulations.",
@@ -571,7 +571,7 @@ const defaultPages = {
         {
             "title": "HIV",
             "slug": "hiv",
-            "image": "https://emyrisbio.com/Content/images/backgrond-image-09.jpg",
+            "image": "/images/banners/hiv.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized HIV formulations.",
