@@ -22,6 +22,9 @@ function DiscoverSubpage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [faqQuery, setFaqQuery] = useState('');
 
+  // Interactive Hub state for Presence
+  const [selectedHubId, setSelectedHubId] = useState('hyderabad');
+
   const toggleFaq = (idx) => {
     setOpenFaq(openFaq === idx ? null : idx);
   };
@@ -241,69 +244,271 @@ function DiscoverSubpage() {
         );
 
       case 'presence':
+        const regionalHubs = [
+          {
+            id: 'hyderabad',
+            name: 'Hyderabad (Headquarters)',
+            cityName: 'Hyderabad',
+            scope: 'Administrative, Global R&D, and Southern Distribution Hub',
+            contact: 'hyd@emyrisbio.com',
+            type: 'Headquarters',
+            icon: '🏢',
+            address: 'Plot No. 12, Secunderabad, Telangana, India'
+          },
+          {
+            id: 'vadodara',
+            name: 'Vadodara Hub',
+            cityName: 'Vadodara',
+            scope: 'Manufacturing Logistics and Western States Supply operations',
+            contact: 'west@emyrisbio.com',
+            type: 'Manufacturing & Supply',
+            icon: '🏭',
+            address: 'GIDC Industrial Estate, Vadodara, Gujarat, India'
+          },
+          {
+            id: 'bhubaneswar',
+            name: 'Bhubaneswar Desk',
+            cityName: 'Bhubaneswar',
+            scope: 'Eastern Region Warehouse and Government Supply Coordination network',
+            contact: 'east@emyrisbio.com',
+            type: 'Regional Warehouse & Desk',
+            icon: '📦',
+            address: 'Mancheswar Industrial Estate, Bhubaneswar, Odisha, India'
+          },
+          {
+            id: 'guwahati',
+            name: 'Guwahati Hub',
+            cityName: 'Guwahati',
+            scope: 'Northeastern States Logistics and Distribution Center operations',
+            contact: 'ne@emyrisbio.com',
+            type: 'Logistics Hub',
+            icon: '🚚',
+            address: 'NH-37, Sarutari, Guwahati, Assam, India'
+          },
+          {
+            id: 'jaipur',
+            name: 'Jaipur Desk',
+            cityName: 'Jaipur',
+            scope: 'Northern Region Inventory Management & Hospital Support desk',
+            contact: 'north@emyrisbio.com',
+            type: 'Inventory & Support Desk',
+            icon: '🏥',
+            address: 'Sitapura Industrial Area, Jaipur, Rajasthan, India'
+          }
+        ];
+
+        const activeHub = regionalHubs.find(h => h.id === selectedHubId) || regionalHubs[0];
+
         return (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'center', marginBottom: '4rem' }}>
-              <div>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', marginBottom: '1.2rem' }}>
-                  EMYRIS BIOLIFESCIENCES's rapid expansion across India's major cities reflects our unwavering commitment to providing high-quality healthcare solutions nationwide. As we prepare to extend our operations into neighbouring countries, our team of seasoned advisors plays a pivotal role in guiding our strategic initiatives.
-                </p>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', marginBottom: '1.2rem' }}>
-                  Comprised of esteemed professionals with extensive experience in the medical and healthcare sectors, our advisors bring a wealth of knowledge and expertise to the table. Their strategic counsel informs our decision-making processes, ensuring alignment with industry standards and best practices.
-                </p>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', marginBottom: '1.2rem' }}>
-                  Each advisor offers a unique perspective and specialized skill set, enriching our approach to pharmaceutical research, regulatory compliance, and market expansion. Their collective wisdom and leadership are instrumental as we navigate the complexities of international markets and forge successful partnerships abroad.
-                </p>
-                <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', marginBottom: '2rem' }}>
-                  EMYRIS BIOLIFESCIENCES values the collaborative partnership with our advisors, recognizing their pivotal role in driving innovation, fostering growth, and advancing our mission of delivering exceptional healthcare solutions. Together, we are poised to make a meaningful impact on the healthcare landscape, both domestically and internationally.
-                </p>
-                <Link to="/contact" className="btn">Connect with Us</Link>
-              </div>
-              <div style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--glass-border)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', background: 'white' }}>
-                <IndiaMap markets={siteData.markets || []} />
-              </div>
+            {/* Page Introduction Text */}
+            <div className="glass" style={{ padding: '2rem', borderRadius: '16px', marginBottom: '3rem', border: '1px solid var(--glass-border)' }}>
+              <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: '1.8', margin: 0, textAlign: 'justify' }}>
+                EMYRIS BIOLIFESCIENCES's rapid expansion across India's major cities reflects our unwavering commitment to providing high-quality healthcare solutions nationwide. As we prepare to extend our operations into neighbouring countries, our team of seasoned advisors plays a pivotal role in guiding our strategic initiatives. Comprised of esteemed professionals with extensive experience in the medical and healthcare sectors, our advisors bring a wealth of knowledge and expertise to the table, ensuring our operations align with global industry standards.
+              </p>
             </div>
 
-            <div className="glass" style={{ padding: '2.5rem', borderRadius: '16px' }}>
-              <h3 style={{ color: 'var(--primary)', marginBottom: '1.5rem', fontWeight: '800', fontSize: '1.5rem' }}>Our Regional Logistic Hubs</h3>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid var(--glass-border)' }}>
-                      <th style={{ padding: '15px', fontWeight: '700', color: 'var(--primary)' }}>Region Hub</th>
-                      <th style={{ padding: '15px', fontWeight: '700', color: 'var(--primary)' }}>Operational Scope</th>
-                      <th style={{ padding: '15px', fontWeight: '700', color: 'var(--primary)' }}>Contact Desk</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '15px', fontWeight: 'bold' }}>Hyderabad (Headquarters)</td>
-                      <td style={{ padding: '15px', color: 'var(--text-muted)' }}>Administrative, Global R&D, and Southern Distribution</td>
-                      <td style={{ padding: '15px', color: 'var(--secondary)', fontWeight: 'bold' }}>hyd@emyrisbio.com</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '15px', fontWeight: 'bold' }}>Vadodara Hub</td>
-                      <td style={{ padding: '15px', color: 'var(--text-muted)' }}>Manufacturing Logistics and Western States Supply</td>
-                      <td style={{ padding: '15px', color: 'var(--secondary)', fontWeight: 'bold' }}>west@emyrisbio.com</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '15px', fontWeight: 'bold' }}>Bhubaneswar Desk</td>
-                      <td style={{ padding: '15px', color: 'var(--text-muted)' }}>Eastern Region Warehouse and Government Supply Coordination</td>
-                      <td style={{ padding: '15px', color: 'var(--secondary)', fontWeight: 'bold' }}>east@emyrisbio.com</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '15px', fontWeight: 'bold' }}>Guwahati Hub</td>
-                      <td style={{ padding: '15px', color: 'var(--text-muted)' }}>Northeastern States Logistics and Distribution Center</td>
-                      <td style={{ padding: '15px', color: 'var(--secondary)', fontWeight: 'bold' }}>ne@emyrisbio.com</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '15px', fontWeight: 'bold' }}>Jaipur Desk</td>
-                      <td style={{ padding: '15px', color: 'var(--text-muted)' }}>Northern Region Inventory Management & Hospital Support</td>
-                      <td style={{ padding: '15px', color: 'var(--secondary)', fontWeight: 'bold' }}>north@emyrisbio.com</td>
-                    </tr>
-                  </tbody>
-                </table>
+            {/* Dashboard Grid Layout */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
+              gap: '2.5rem', 
+              alignItems: 'stretch',
+              marginBottom: '3rem'
+            }}>
+              
+              {/* Left Column: Interactive Selector & Details Inspector */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                
+                {/* Selector Card */}
+                <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <h3 style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '1.25rem', margin: 0 }}>
+                    Select Regional Operations Center
+                  </h3>
+                  
+                  {/* Selector List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {regionalHubs.map(hub => {
+                      const isSelected = hub.id === selectedHubId;
+                      return (
+                        <button
+                          key={hub.id}
+                          onClick={() => setSelectedHubId(hub.id)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            padding: '0.75rem 1.2rem',
+                            borderRadius: '12px',
+                            border: isSelected ? '2px solid var(--secondary)' : '1px solid var(--glass-border)',
+                            background: isSelected ? 'rgba(29, 78, 216, 0.05)' : 'rgba(255, 255, 255, 0.6)',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            boxShadow: isSelected ? '0 4px 15px rgba(29, 78, 216, 0.08)' : 'none'
+                          }}
+                        >
+                          <span style={{ fontSize: '1.35rem' }}>{hub.icon}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: '800', color: isSelected ? 'var(--secondary)' : 'var(--primary)', fontSize: '0.95rem' }}>
+                              {hub.cityName}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              {hub.type}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <span style={{ color: 'var(--secondary)', fontWeight: 'bold', fontSize: '1.1rem' }}>✓</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Inspector Details Card */}
+                <div className="glass" style={{ 
+                  padding: '2.5rem 2rem', 
+                  borderRadius: '20px', 
+                  border: '1px solid var(--glass-border)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.5rem',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {/* Decorative faint background icon */}
+                  <div style={{ position: 'absolute', right: '-15px', bottom: '-15px', fontSize: '8rem', opacity: 0.04, pointerEvents: 'none' }}>
+                    {activeHub.icon}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ 
+                      width: '48px', 
+                      height: '48px', 
+                      borderRadius: '12px', 
+                      background: 'rgba(29,78,216,0.08)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      fontSize: '1.6rem',
+                      border: '1px solid rgba(29,78,216,0.15)'
+                    }}>
+                      {activeHub.icon}
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.3rem', fontWeight: '800' }}>
+                        {activeHub.name}
+                      </h4>
+                      <span className="btn" style={{ 
+                        padding: '0.2rem 0.6rem', 
+                        fontSize: '0.75rem', 
+                        borderRadius: '6px', 
+                        background: 'rgba(217, 119, 6, 0.1)', 
+                        color: 'var(--secondary)',
+                        border: '1px solid rgba(217, 119, 6, 0.2)',
+                        display: 'inline-block',
+                        marginTop: '0.3rem',
+                        fontWeight: '700',
+                        letterSpacing: '0.5px'
+                      }}>
+                        {activeHub.type.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: 0 }} />
+
+                  <div>
+                    <div style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+                      Operational Scope
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0, textAlign: 'justify' }}>
+                      {activeHub.scope}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+                      Regional Address
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.5', margin: 0 }}>
+                      📍 {activeHub.address}
+                    </p>
+                  </div>
+
+                  <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+                    <div style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '0.6rem' }}>
+                      Contact Desk
+                    </div>
+                    <a 
+                      href={`mailto:${activeHub.contact}`} 
+                      className="btn" 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '0.5rem',
+                        padding: '0.75rem 1.5rem',
+                        fontSize: '0.9rem',
+                        width: '100%',
+                        textAlign: 'center',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, #1e3b8a 100%)',
+                        boxShadow: '0 4px 12px rgba(29, 78, 216, 0.2)'
+                      }}
+                    >
+                      ✉️ Email Desk ({activeHub.contact})
+                    </a>
+                  </div>
+                </div>
+
               </div>
+
+              {/* Right Column: Live Interactive Map & Legend */}
+              <div className="glass" style={{ 
+                borderRadius: '24px', 
+                overflow: 'hidden', 
+                border: '1px solid var(--glass-border)', 
+                boxShadow: '0 15px 45px rgba(0,0,0,0.05)', 
+                background: 'white',
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
+                {/* Map Title Bar */}
+                <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, color: 'var(--primary)', fontWeight: '800', fontSize: '1.2rem' }}>
+                      Live Coverage & Distribution Map
+                    </h3>
+                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                      Interact with markers to explore regional logistics
+                    </p>
+                  </div>
+                  
+                  {/* Map Legend */}
+                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', fontWeight: '700' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--secondary)' }}>
+                      <span>★</span> Regional Hub
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#94a3b8' }}>
+                      <span style={{ fontSize: '0.9rem', lineHeight: 1 }}>●</span> Active Market
+                    </div>
+                  </div>
+                </div>
+
+                {/* Map Render Frame */}
+                <div style={{ padding: '1rem', background: '#f8fafc', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <IndiaMap 
+                    markets={siteData.markets || []} 
+                    selectedHubId={selectedHubId}
+                    onSelectHub={setSelectedHubId}
+                  />
+                </div>
+              </div>
+
             </div>
           </div>
         );

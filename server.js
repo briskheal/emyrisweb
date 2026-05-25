@@ -731,7 +731,8 @@ const defaultPages = {
     { id: 10, name: "Rajkot", lat: 22.3039, lng: 70.8022, status: "Active" },
     { id: 11, name: "Vadodara", lat: 22.3072, lng: 73.1812, status: "Active" },
     { id: 12, name: "Mumbai", lat: 19.0760, lng: 72.8777, status: "Active" },
-    { id: 13, name: "Pune", lat: 18.5204, lng: 73.8567, status: "Active" }
+    { id: 13, name: "Pune", lat: 18.5204, lng: 73.8567, status: "Active" },
+    { id: 14, name: "Jaipur", lat: 26.9124, lng: 75.7873, status: "Active" }
   ]
 };
 
@@ -795,6 +796,12 @@ async function initDb() {
           if (!currentPages.markets) {
             currentPages.markets = defaultPages.markets;
             modified = true;
+          } else {
+            const hasJaipur = currentPages.markets.some(m => m.name === 'Jaipur');
+            if (!hasJaipur) {
+              currentPages.markets.push({ id: 14, name: "Jaipur", lat: 26.9124, lng: 75.7873, status: "Active" });
+              modified = true;
+            }
           }
                     if (!currentPages.offerings || currentPages.offerings.length <= 2 || !currentPages.offerings[0].slug) {
             currentPages.offerings = defaultPages.offerings;

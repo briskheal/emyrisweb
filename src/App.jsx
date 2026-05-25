@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AppContext } from './context/AppContext';
 import Discover from './pages/Discover';
 import DiscoverSubpage from './pages/DiscoverSubpage';
@@ -7,12 +7,16 @@ import Services from './pages/Services';
 import Offerings from './pages/Offerings';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
-import GenericPage from './pages/GenericPage';
+import Blog from './pages/Blog';
+import BlogSubpage from './pages/BlogSubpage';
 import ServiceSubpage from './pages/ServiceSubpage';
 import OfferingSubpage from './pages/OfferingSubpage';
 import Career from './pages/Career';
 import SliderDetails from './pages/SliderDetails';
 import Footer from './components/Footer';
+import Terms from './pages/Terms';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Disclaimer from './pages/Disclaimer';
 
 function Home() {
   const { siteData } = useContext(AppContext);
@@ -192,7 +196,18 @@ function Home() {
                 <h3 style={{ color: 'var(--primary)', marginBottom: '0.8rem', fontSize: '1.4rem', fontWeight: '800' }}>
                   {off.title}
                 </h3>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flexGrow: 1, fontSize: '0.95rem', lineHeight: '1.6' }}>
+                <p style={{ 
+                  color: 'var(--text-muted)', 
+                  marginBottom: '1.5rem', 
+                  flexGrow: 1, 
+                  fontSize: '0.95rem', 
+                  lineHeight: '1.6',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 6,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
                   {off.desc}
                 </p>
                 <Link 
@@ -200,7 +215,7 @@ function Home() {
                   className="btn-outline" 
                   style={{ textDecoration: 'none', textAlign: 'center', width: 'fit-content' }}
                 >
-                  Explore Segment
+                  Read More
                 </Link>
               </div>
             ))}
@@ -415,7 +430,7 @@ function App() {
           <Link to="/" style={linkStyle} onClick={closeMenu}>Home</Link>
           
           <div className="dropdown">
-            <Link to="/discover" className="dropbtn" style={linkStyle} onClick={closeMenu}>Discover ▾</Link>
+            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }}>Discover ▾</span>
             <div className="dropdown-content">
               <Link to="/discover" onClick={closeMenu}>About Us</Link>
               <Link to="/discover/advisors" onClick={closeMenu}>Our Advisors</Link>
@@ -427,7 +442,7 @@ function App() {
           </div>
           
           <div className="dropdown">
-            <Link to="/offerings" className="dropbtn" style={linkStyle} onClick={closeMenu}>Offerings ▾</Link>
+            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }}>Offerings ▾</span>
             <div className="dropdown-content">
               <Link to="/offerings/anti-infective" onClick={closeMenu}>Anti-Infective</Link>
               <Link to="/offerings/oncology" onClick={closeMenu}>Oncology</Link>
@@ -439,7 +454,7 @@ function App() {
           </div>
           
           <div className="dropdown">
-            <Link to="/services" className="dropbtn" style={linkStyle} onClick={closeMenu}>Services ▾</Link>
+            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }}>Services ▾</span>
             <div className="dropdown-content">
               <Link to="/services/second-opinion" onClick={closeMenu}>Second Opinion</Link>
               <Link to="/services/diagnostic-support" onClick={closeMenu}>Diagnostic Support</Link>
@@ -455,8 +470,8 @@ function App() {
           {/* Mobile contact info inside drawer */}
           <div className="mobile-nav-contact">
             <div style={{ fontSize: '0.8rem', color: '#52cbcb', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.3rem' }}>📞 Call 24×7</div>
-            <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#ffffff' }}>{siteData.contactNumber || '+91 7993163300'}</div>
-            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.15rem' }}>{siteData.email || 'contact@emyrisbio.com'}</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#ffffff' }}><a href={`tel:${siteData.contactNumber || '+917993163300'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.contactNumber || '+91 7993163300'}</a></div>
+            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.15rem' }}><a href={`mailto:${siteData.email || 'contact@emyrisbio.com'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.email || 'contact@emyrisbio.com'}</a></div>
           </div>
         </div>
 
@@ -466,8 +481,8 @@ function App() {
         {/* Right-side 24x7 Contact Widget — Desktop only */}
         <div className="header-contact-widget">
           <div className="header-contact-label">📞 Call 24×7</div>
-          <div className="header-contact-phone">{siteData.contactNumber || '+91 7993163300'}</div>
-          <div className="header-contact-email">{siteData.email || 'contact@emyrisbio.com'}</div>
+          <div className="header-contact-phone"><a href={`tel:${siteData.contactNumber || '+917993163300'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.contactNumber || '+91 7993163300'}</a></div>
+          <div className="header-contact-email"><a href={`mailto:${siteData.email || 'contact@emyrisbio.com'}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.email || 'contact@emyrisbio.com'}</a></div>
         </div>
 
         {/* Hamburger Button — Mobile only */}
@@ -487,15 +502,19 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/discover/:pageId" element={<DiscoverSubpage />} />
-        <Route path="/offerings" element={<Offerings />} />
+        <Route path="/offerings" element={<Navigate to="/offerings/anti-infective" replace />} />
         <Route path="/offerings/:pageId" element={<OfferingSubpage />} />
         <Route path="/services" element={<Services />} />
         <Route path="/services/:pageId" element={<ServiceSubpage />} />
         <Route path="/career" element={<Career />} />
-        <Route path="/blog" element={<GenericPage />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:blogSlug" element={<BlogSubpage />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/slider-details/:index" element={<SliderDetails />} />
+        <Route path="/terms-and-conditions" element={<Terms />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
       </Routes>
 
       <Footer />

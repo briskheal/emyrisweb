@@ -286,12 +286,25 @@ function Admin() {
   // Markets local buffering states
   const [editedMarkets, setEditedMarkets] = useState([]);
   const [savingMarkets, setSavingMarkets] = useState(false);
+  const [showMarketsList, setShowMarketsList] = useState(false);
 
   useEffect(() => {
     if (siteData.markets) {
       setEditedMarkets(siteData.markets);
     }
   }, [siteData.markets]);
+
+  // Blogs local buffering states
+  const [editedBlogs, setEditedBlogs] = useState([]);
+  const [savingBlogs, setSavingBlogs] = useState(false);
+  const [uploadingBlogIdx, setUploadingBlogIdx] = useState(null);
+  const [editingBlogIdx, setEditingBlogIdx] = useState(null);
+
+  useEffect(() => {
+    if (siteData.blogs) {
+      setEditedBlogs(siteData.blogs);
+    }
+  }, [siteData.blogs]);
 
 
   // Check login on mount
@@ -657,8 +670,13 @@ function Admin() {
   const saveMarketsAdmin = async () => {
     setSavingMarkets(true);
     try {
-      updateSiteData({ markets: editedMarkets });
-      await saveConfigToServer({ ...siteData, markets: editedMarkets });
+      const cleanedMarkets = editedMarkets.map(m => {
+        const { isNew, ...rest } = m;
+        return rest;
+      });
+      updateSiteData({ markets: cleanedMarkets });
+      await saveConfigToServer({ ...siteData, markets: cleanedMarkets });
+      setEditedMarkets(cleanedMarkets);
       alert("✅ Markets saved successfully!");
     } catch (err) {
       alert("❌ Failed to save markets.");
@@ -667,10 +685,35 @@ function Admin() {
     }
   };
 
+  const fetchCoordinatesForMarket = async (index) => {
+    const market = editedMarkets[index];
+    if (!market.name) return alert('Please enter a City / Market name first.');
+    
+    const isDuplicate = editedMarkets.some((m, i) => i !== index && m.name.toLowerCase().trim() === market.name.toLowerCase().trim());
+    if (isDuplicate) {
+      alert(`A market with the name "${market.name}" already exists!`);
+      return;
+    }
+
+    try {
+      const query = `${market.name}${market.state ? `, ${market.state}` : ''}, India`;
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        handleMarketChange(index, 'lat', data[0].lat);
+        handleMarketChange(index, 'lng', data[0].lon);
+      } else {
+        alert('❌ Could not find coordinates for this location. Please enter manually.');
+      }
+    } catch (err) {
+      alert('❌ Error fetching coordinates.');
+    }
+  };
+
   const addMarket = () => {
     setEditedMarkets(prev => [
-      ...(prev || []),
-      { id: Date.now(), name: '', lat: '', lng: '', status: 'Active' }
+      { id: Date.now(), name: '', state: '', lat: '', lng: '', status: 'Active', isNew: true },
+      ...(prev || [])
     ]);
   };
 
@@ -716,6 +759,102 @@ function Admin() {
   const deleteEnhancer = (index) => {
     if (window.confirm("Are you sure you want to remove this business enhancer?")) {
       setEditedEnhancers(prev => prev.filter((_, idx) => idx !== index));
+    }
+  };
+
+  const handleBlogChange = (index, field, val) => {
+    setEditedBlogs(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: val };
+      return next;
+    });
+  };
+
+  const handleBlogContentChange = (bIdx, pIdx, val) => {
+    setEditedBlogs(prev => {
+      const next = [...prev];
+      const newContent = [...(next[bIdx].content || [])];
+      newContent[pIdx] = val;
+      next[bIdx] = { ...next[bIdx], content: newContent };
+      return next;
+    });
+  };
+
+  const addBlogContentParagraph = (bIdx) => {
+    setEditedBlogs(prev => {
+      const next = [...prev];
+      const newContent = [...(next[bIdx].content || []), ''];
+      next[bIdx] = { ...next[bIdx], content: newContent };
+      return next;
+    });
+  };
+
+  const deleteBlogContentParagraph = (bIdx, pIdx) => {
+    setEditedBlogs(prev => {
+      const next = [...prev];
+      const newContent = (next[bIdx].content || []).filter((_, idx) => idx !== pIdx);
+      next[bIdx] = { ...next[bIdx], content: newContent };
+      return next;
+    });
+  };
+
+  const addBlog = () => {
+    setEditedBlogs(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        title: 'New Blog Post',
+        slug: `new-blog-${Date.now()}`,
+        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        author: 'Admin',
+        category: 'General',
+        image: '',
+        content: [''],
+        status: 'draft',
+        publishDate: ''
+      }
+    ]);
+  };
+
+  const deleteBlog = (index) => {
+    if (window.confirm("Are you sure you want to delete this blog post?")) {
+      setEditedBlogs(prev => prev.filter((_, idx) => idx !== index));
+    }
+  };
+
+  const saveBlogs = async () => {
+    setSavingBlogs(true);
+    try {
+      await saveConfigToServer({ ...siteData, blogs: editedBlogs });
+      alert("✅ Blog posts saved successfully!");
+    } catch (err) {
+      alert("❌ Failed to save blog posts.");
+    }
+    setSavingBlogs(false);
+  };
+
+  const handleBlogImageUpload = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingBlogIdx(index);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        handleBlogChange(index, 'image', data.url);
+      } else {
+        alert("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading image");
+    } finally {
+      setUploadingBlogIdx(null);
     }
   };
 
@@ -1012,6 +1151,7 @@ function Admin() {
           <li className={activeTab === 'Advisors' ? 'active' : ''} onClick={() => setActiveTab('Advisors')}>Our Advisors</li>
           <li className={activeTab === 'Doctors' ? 'active' : ''} onClick={() => setActiveTab('Doctors')}>Our Doctors</li>
           <li className={activeTab === 'Enhancers' ? 'active' : ''} onClick={() => setActiveTab('Enhancers')}>Business Enhancers</li>
+          <li className={activeTab === 'Blogs' ? 'active' : ''} onClick={() => setActiveTab('Blogs')}>Blog Posts</li>
           <li className={activeTab === 'Inquiries' ? 'active' : ''} onClick={() => setActiveTab('Inquiries')}>
             Inquiries Inbox ({inquiries.length})
           </li>
@@ -1583,6 +1723,9 @@ function Admin() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1.2rem' }}>
               <h3 style={{ margin: 0, border: 'none', padding: 0 }}>Presence Map Locations</h3>
               <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn-outline" onClick={() => setShowMarketsList(!showMarketsList)}>
+                  {showMarketsList ? '🙈 Hide Markets' : '👁️ Show All Markets'}
+                </button>
                 <button type="button" className="btn-outline" onClick={addMarket}>➕ Add Market</button>
                 <button type="button" className="btn" onClick={saveMarketsAdmin} disabled={savingMarkets}>
                   {savingMarkets ? 'Saving Changes...' : '💾 Save Markets'}
@@ -1591,7 +1734,9 @@ function Admin() {
             </div>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Add exact GPS coordinates for your markets. These will automatically render as custom 3D fluttering flags on the interactive Business Presence Map.</p>
             <div className="admin-form" style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              {editedMarkets?.map((m, idx) => (
+              {editedMarkets?.map((m, idx) => {
+                if (!showMarketsList && !m.isNew) return null;
+                return (
                 <div key={idx} className="glass" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
                   <button 
                     type="button" 
@@ -1604,26 +1749,82 @@ function Admin() {
                     Market #{idx + 1}: {m.name || 'New Market'}
                   </h4>
                   <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-                    <label style={{ flex: 1, minWidth: '250px' }}>City / Market Name
-                      <input value={m.name || ''} onChange={(e) => handleMarketChange(idx, 'name', e.target.value)} placeholder="e.g. Mumbai" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    <label style={{ flex: 1, minWidth: '200px' }}>City / Market Name
+                      <input value={m.name || ''} onChange={(e) => handleMarketChange(idx, 'name', e.target.value)} placeholder="e.g. Mumbai" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', padding: '12px', width: '100%', borderRadius: '8px', marginTop: '0.5rem' }} />
+                    </label>
+                    <label style={{ flex: 1, minWidth: '200px' }}>State
+                      <select value={m.state || ''} onChange={(e) => handleMarketChange(idx, 'state', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', padding: '12px', width: '100%', borderRadius: '8px', marginTop: '0.5rem', backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                        <option value="" style={{ color: '#000' }}>Select State (Optional)</option>
+                        <option value="Andhra Pradesh" style={{ color: '#000' }}>Andhra Pradesh</option>
+                        <option value="Arunachal Pradesh" style={{ color: '#000' }}>Arunachal Pradesh</option>
+                        <option value="Assam" style={{ color: '#000' }}>Assam</option>
+                        <option value="Bihar" style={{ color: '#000' }}>Bihar</option>
+                        <option value="Chhattisgarh" style={{ color: '#000' }}>Chhattisgarh</option>
+                        <option value="Goa" style={{ color: '#000' }}>Goa</option>
+                        <option value="Gujarat" style={{ color: '#000' }}>Gujarat</option>
+                        <option value="Haryana" style={{ color: '#000' }}>Haryana</option>
+                        <option value="Himachal Pradesh" style={{ color: '#000' }}>Himachal Pradesh</option>
+                        <option value="Jharkhand" style={{ color: '#000' }}>Jharkhand</option>
+                        <option value="Karnataka" style={{ color: '#000' }}>Karnataka</option>
+                        <option value="Kerala" style={{ color: '#000' }}>Kerala</option>
+                        <option value="Madhya Pradesh" style={{ color: '#000' }}>Madhya Pradesh</option>
+                        <option value="Maharashtra" style={{ color: '#000' }}>Maharashtra</option>
+                        <option value="Manipur" style={{ color: '#000' }}>Manipur</option>
+                        <option value="Meghalaya" style={{ color: '#000' }}>Meghalaya</option>
+                        <option value="Mizoram" style={{ color: '#000' }}>Mizoram</option>
+                        <option value="Nagaland" style={{ color: '#000' }}>Nagaland</option>
+                        <option value="Odisha" style={{ color: '#000' }}>Odisha</option>
+                        <option value="Punjab" style={{ color: '#000' }}>Punjab</option>
+                        <option value="Rajasthan" style={{ color: '#000' }}>Rajasthan</option>
+                        <option value="Sikkim" style={{ color: '#000' }}>Sikkim</option>
+                        <option value="Tamil Nadu" style={{ color: '#000' }}>Tamil Nadu</option>
+                        <option value="Telangana" style={{ color: '#000' }}>Telangana</option>
+                        <option value="Tripura" style={{ color: '#000' }}>Tripura</option>
+                        <option value="Uttar Pradesh" style={{ color: '#000' }}>Uttar Pradesh</option>
+                        <option value="Uttarakhand" style={{ color: '#000' }}>Uttarakhand</option>
+                        <option value="West Bengal" style={{ color: '#000' }}>West Bengal</option>
+                        <option value="Andaman and Nicobar Islands" style={{ color: '#000' }}>Andaman and Nicobar Islands</option>
+                        <option value="Chandigarh" style={{ color: '#000' }}>Chandigarh</option>
+                        <option value="Dadra and Nagar Haveli and Daman and Diu" style={{ color: '#000' }}>Dadra and Nagar Haveli</option>
+                        <option value="Delhi" style={{ color: '#000' }}>Delhi</option>
+                        <option value="Jammu and Kashmir" style={{ color: '#000' }}>Jammu and Kashmir</option>
+                        <option value="Ladakh" style={{ color: '#000' }}>Ladakh</option>
+                        <option value="Lakshadweep" style={{ color: '#000' }}>Lakshadweep</option>
+                        <option value="Puducherry" style={{ color: '#000' }}>Puducherry</option>
+                      </select>
                     </label>
                     <label style={{ flex: 1, minWidth: '200px' }}>Status
-                      <select value={m.status || 'Active'} onChange={(e) => handleMarketChange(idx, 'status', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', padding: '12px', width: '100%', borderRadius: '8px' }}>
+                      <select value={m.status || 'Active'} onChange={(e) => handleMarketChange(idx, 'status', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', padding: '12px', width: '100%', borderRadius: '8px', marginTop: '0.5rem' }}>
                         <option value="Active">Active (Show Flag)</option>
                         <option value="Upcoming">Upcoming (Hide Flag)</option>
                       </select>
                     </label>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <label style={{ flex: 1, minWidth: '250px' }}>Latitude (Y-axis)
+                  
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem', alignItems: 'flex-end' }}>
+                    <label style={{ flex: 1, minWidth: '200px' }}>Latitude (Y-axis)
                       <input value={m.lat || ''} onChange={(e) => handleMarketChange(idx, 'lat', e.target.value)} placeholder="e.g. 19.0760" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
-                    <label style={{ flex: 1, minWidth: '250px' }}>Longitude (X-axis)
+                    <label style={{ flex: 1, minWidth: '200px' }}>Longitude (X-axis)
                       <input value={m.lng || ''} onChange={(e) => handleMarketChange(idx, 'lng', e.target.value)} placeholder="e.g. 72.8777" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <button type="button" className="btn-outline" onClick={() => fetchCoordinatesForMarket(idx)} style={{ padding: '12px 20px', borderRadius: '8px', flexShrink: 0, height: '48px', marginTop: '0.5rem' }}>
+                      📍 Auto-Fetch
+                    </button>
+                  </div>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <label style={{ width: '100%', display: 'block' }}>Operational Scope
+                      <textarea value={m.scope || ''} onChange={(e) => handleMarketChange(idx, 'scope', e.target.value)} placeholder="e.g. Administrative, Global R&D, and Southern Distribution Hub" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', marginTop: '0.5rem', minHeight: '60px', padding: '12px', borderRadius: '8px' }} />
+                    </label>
+                  </div>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <label style={{ width: '100%', display: 'block' }}>Regional Address
+                      <input value={m.address || ''} onChange={(e) => handleMarketChange(idx, 'address', e.target.value)} placeholder="e.g. Plot No. 12, Secunderabad, Telangana, India" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', marginTop: '0.5rem' }} />
                     </label>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
               <button type="button" className="btn" onClick={saveMarketsAdmin} disabled={savingMarkets} style={{ minWidth: '180px' }}>
@@ -1834,6 +2035,296 @@ function Admin() {
                 {savingEnhancers ? 'Saving Changes...' : '💾 Save Enhancers'}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Blogs Manager Pane */}
+        {activeTab === 'Blogs' && (
+          <div className="admin-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1.2rem' }}>
+              <h3 style={{ margin: 0, border: 'none', padding: 0 }}>Blog Posts Manager</h3>
+              {editingBlogIdx === null ? (
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button type="button" className="btn-outline" onClick={addBlog}>➕ Add New Blog Post</button>
+                  <button type="button" className="btn" onClick={saveBlogs} disabled={savingBlogs}>
+                    {savingBlogs ? 'Saving...' : '💾 Save Blogs'}
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="btn-outline" onClick={() => setEditingBlogIdx(null)}>
+                  &larr; Back to List
+                </button>
+              )}
+            </div>
+
+            {editingBlogIdx === null ? (
+              /* LIST VIEW */
+              <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--glass-border)', textAlign: 'left' }}>
+                      <th style={{ padding: '12px', width: '80px' }}>Image</th>
+                      <th style={{ padding: '12px' }}>Title</th>
+                      <th style={{ padding: '12px' }}>Category</th>
+                      <th style={{ padding: '12px' }}>Author & Date</th>
+                      <th style={{ padding: '12px' }}>Status</th>
+                      <th style={{ padding: '12px', width: '200px' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {editedBlogs.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                          No blog posts found. Click "Add New Blog Post" to create one.
+                        </td>
+                      </tr>
+                    ) : (
+                      editedBlogs.map((blog, idx) => (
+                        <tr key={blog.id || idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                          <td style={{ padding: '12px' }}>
+                            <img 
+                              src={blog.image || 'https://via.placeholder.com/80x50?text=No+Image'} 
+                              alt="" 
+                              style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '6px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--primary)' }}>
+                            {blog.title}
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            <span className="glass" style={{ padding: '4px 8px', fontSize: '0.8rem', borderRadius: '30px' }}>
+                              {blog.category || 'General'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px', fontSize: '0.85rem' }}>
+                            <div>✍️ {blog.author || 'Admin'}</div>
+                            <div style={{ color: 'var(--text-muted)' }}>📅 {blog.date}</div>
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            {blog.status === 'published' && (
+                              <span style={{ background: '#d1fae5', color: '#065f46', padding: '4px 10px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                Published
+                              </span>
+                            )}
+                            {blog.status === 'draft' && (
+                              <span style={{ background: '#e2e8f0', color: '#475569', padding: '4px 10px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                Draft
+                              </span>
+                            )}
+                            {blog.status === 'scheduled' && (
+                              <span style={{ background: '#dbeafe', color: '#1e40af', padding: '4px 10px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                Scheduled {blog.publishDate ? `(${new Date(blog.publishDate).toLocaleDateString()})` : ''}
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                            <button 
+                              type="button" 
+                              className="btn-outline" 
+                              onClick={() => setEditingBlogIdx(idx)}
+                              style={{ padding: '4px 10px', fontSize: '0.85rem' }}
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => deleteBlog(idx)}
+                              style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '4px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* DETAIL / EDIT FORM VIEW */
+              (() => {
+                const blog = editedBlogs[editingBlogIdx];
+                return (
+                  <div className="admin-form glass" style={{ padding: '2rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <label style={{ flex: 2, minWidth: '250px' }}>Post Title
+                        <input 
+                          value={blog.title || ''} 
+                          onChange={(e) => {
+                            handleBlogChange(editingBlogIdx, 'title', e.target.value);
+                            // Auto-generate slug from title
+                            const slugified = e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9]+/g, '-')
+                              .replace(/(^-|-$)+/g, '');
+                            handleBlogChange(editingBlogIdx, 'slug', slugified);
+                          }} 
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                        />
+                      </label>
+                      <label style={{ flex: 1, minWidth: '150px' }}>Category
+                        <input 
+                          value={blog.category || ''} 
+                          onChange={(e) => handleBlogChange(editingBlogIdx, 'category', e.target.value)} 
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                        />
+                      </label>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                      <label style={{ flex: 1, minWidth: '200px' }}>Slug (URL path)
+                        <input 
+                          value={blog.slug || ''} 
+                          onChange={(e) => handleBlogChange(editingBlogIdx, 'slug', e.target.value)} 
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                        />
+                      </label>
+                      <label style={{ flex: 1, minWidth: '150px' }}>Author
+                        <input 
+                          value={blog.author || ''} 
+                          onChange={(e) => handleBlogChange(editingBlogIdx, 'author', e.target.value)} 
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                        />
+                      </label>
+                      <label style={{ flex: 1, minWidth: '150px' }}>Display Date
+                        <input 
+                          value={blog.date || ''} 
+                          onChange={(e) => handleBlogChange(editingBlogIdx, 'date', e.target.value)} 
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                        />
+                      </label>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.5rem' }}>
+                      <label>Featured Image URL (or upload below)
+                        <input 
+                          value={blog.image || ''} 
+                          onChange={(e) => handleBlogChange(editingBlogIdx, 'image', e.target.value)} 
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                        />
+                      </label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        Upload Featured Image (Cloudinary)
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleBlogImageUpload(e, editingBlogIdx)} 
+                          disabled={uploadingBlogIdx !== null} 
+                          style={{ marginTop: '0.25rem' }} 
+                        />
+                      </label>
+                      {uploadingBlogIdx === editingBlogIdx && (
+                        <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to Cloudinary...</span>
+                      )}
+                    </div>
+
+                    {/* Scheduling Section */}
+                    <div className="glass" style={{ marginTop: '2rem', padding: '1.5rem', borderRadius: '12px', background: 'rgba(29, 78, 216, 0.02)' }}>
+                      <h4 style={{ margin: '0 0 1rem 0', color: 'var(--primary)', fontSize: '1rem', fontWeight: 'bold' }}>Publication & Scheduling</h4>
+                      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <label style={{ flex: 1, minWidth: '200px', margin: 0 }}>Publish Status
+                          <select
+                            value={blog.status || 'draft'}
+                            onChange={(e) => handleBlogChange(editingBlogIdx, 'status', e.target.value)}
+                            style={{ 
+                              width: '100%', 
+                              padding: '10px', 
+                              borderRadius: '8px', 
+                              border: '1px solid var(--glass-border)',
+                              background: '#ffffff',
+                              color: 'var(--text-light)',
+                              fontWeight: '600',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="draft">Draft (Hidden)</option>
+                            <option value="published">Published (Visible Immediately)</option>
+                            <option value="scheduled">Scheduled (Release at Date/Time)</option>
+                          </select>
+                        </label>
+                        
+                        {blog.status === 'scheduled' && (
+                          <label style={{ flex: 1.5, minWidth: '250px', margin: 0 }}>Release Date & Time
+                            <input
+                              type="datetime-local"
+                              value={
+                                blog.publishDate 
+                                  ? new Date(new Date(blog.publishDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+                                  : ''
+                              }
+                              onChange={(e) => {
+                                const localTime = e.target.value;
+                                const isoTime = localTime ? new Date(localTime).toISOString() : '';
+                                handleBlogChange(editingBlogIdx, 'publishDate', isoTime);
+                              }}
+                              style={{ 
+                                color: 'var(--text-light)', 
+                                border: '1px solid var(--glass-border)', 
+                                padding: '8px 10px',
+                                borderRadius: '8px'
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Paragraph Editor */}
+                    <div style={{ marginTop: '2rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '1rem', fontWeight: 'bold' }}>Article Content (Paragraphs)</h4>
+                        <button type="button" className="btn-outline" onClick={() => addBlogContentParagraph(editingBlogIdx)} style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+                          ➕ Add Paragraph
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {(blog.content || []).map((para, pIdx) => (
+                          <div key={pIdx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-muted)', paddingTop: '12px', width: '30px' }}>
+                              #{pIdx + 1}
+                            </span>
+                            <textarea
+                              rows="4"
+                              value={para}
+                              onChange={(e) => handleBlogContentChange(editingBlogIdx, pIdx, e.target.value)}
+                              placeholder={`Enter paragraph #${pIdx + 1}...`}
+                              style={{ flex: 1, color: 'var(--text-light)', border: '1px solid var(--glass-border)' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => deleteBlogContentParagraph(editingBlogIdx, pIdx)}
+                              style={{ 
+                                background: 'rgba(239, 68, 68, 0.1)', 
+                                color: '#ef4444', 
+                                border: 'none', 
+                                padding: '8px 12px', 
+                                borderRadius: '6px', 
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                marginTop: '10px'
+                              }}
+                              title="Delete Paragraph"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+                      <button type="button" className="btn-outline" onClick={() => setEditingBlogIdx(null)}>
+                        Cancel & Return
+                      </button>
+                      <button type="button" className="btn" onClick={saveBlogs} disabled={savingBlogs} style={{ minWidth: '150px' }}>
+                        {savingBlogs ? 'Saving...' : '💾 Save Blogs'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()
+            )}
           </div>
         )}
 

@@ -36,27 +36,29 @@ function Footer() {
     paddingBottom: '0.5rem'
   };
 
+  const getSlug = (title) => title.toLowerCase().replace(/ /g, '-').replace(/[()]/g, '');
+
   return (
     <footer style={footerStyle}>
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: '2rem',
         marginBottom: '1.5rem'
       }}>
         
         {/* Company Info */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: '1.5' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img 
               src={siteData.logo || '/vite.svg'} 
-              alt="Logo" 
-              width="45" 
-              style={{ filter: siteData.footerTextColor === '#ffffff' ? 'brightness(0) invert(1)' : 'none' }} 
+              alt="Emyris Biolifesciences Logo" 
+              width="140"
+              style={{ height: 'auto', objectFit: 'contain' }}
             />
-            <span style={{ fontWeight: '800', fontSize: '1.3rem', letterSpacing: '0.5px' }}>
+            <span style={{ fontWeight: '800', fontSize: '1.3rem', letterSpacing: '0.5px', display: 'none' }}>
               {siteData.companyName}
             </span>
           </div>
@@ -166,10 +168,10 @@ function Footer() {
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: 0 }}>
             <li><Link to="/" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Home</Link></li>
             <li><Link to="/discover" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>About Us</Link></li>
-            <li><Link to="/offerings" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Product Offerings</Link></li>
-            <li><Link to="/services" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Our Services</Link></li>
-            <li><Link to="/career" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Careers</Link></li>
             <li><Link to="/contact" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Contact Us</Link></li>
+            <li><Link to="/terms-and-conditions" target="_blank" rel="noreferrer" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Terms & Conditions</Link></li>
+            <li><Link to="/privacy-policy" target="_blank" rel="noreferrer" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Privacy Policy</Link></li>
+            <li><Link to="/disclaimer" target="_blank" rel="noreferrer" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Disclaimer</Link></li>
           </ul>
         </div>
 
@@ -188,7 +190,7 @@ function Footer() {
           </ul>
           <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
             <span style={{ fontSize: '0.9rem', display: 'block' }}>📞 24/7 Helpline:</span>
-            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>{siteData.contactNumber}</span>
+            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}><a href={`tel:${siteData.contactNumber}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.contactNumber}</a></span>
           </div>
         </div>
 
@@ -201,11 +203,11 @@ function Footer() {
           </p>
           <p style={{ ...textMutedStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>📞</span>
-            <span>Toll-Free: {siteData.tollFree}</span>
+            <span>Toll-Free: <a href={`tel:${siteData.tollFree}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.tollFree}</a></span>
           </p>
           <p style={{ ...textMutedStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>✉️</span>
-            <span>{siteData.email}</span>
+            <span><a href={`mailto:${siteData.email}`} style={{ color: 'inherit', textDecoration: 'none' }}>{siteData.email}</a></span>
           </p>
         </div>
 

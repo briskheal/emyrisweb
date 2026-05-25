@@ -22,7 +22,7 @@ function Offerings() {
 
       <div className="offerings-grid">
         {offerings.map((off, idx) => (
-          <div key={idx} className="offering-card glass" style={{ borderTop: `4px solid ${off.color.replace('0.2', '1')}` }}>
+          <div key={idx} className="offering-card glass" style={{ borderTop: `4px solid ${off.color ? off.color.replace('0.2', '1') : 'var(--primary)'}` }}>
             <h3>{off.title}</h3>
             <p>{off.desc}</p>
             <Link 

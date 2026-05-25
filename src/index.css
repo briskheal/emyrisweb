@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   --bg-dark: #ffffff;
@@ -18,7 +18,7 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-light);
   line-height: 1.6;
@@ -400,14 +400,21 @@ body {
 /* Contact Info */
 .contact-info {
   padding: 2rem;
-  background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9));
   border-left: 4px solid var(--primary);
+}
+
+.contact-info strong {
+  color: var(--primary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
 }
 
 .info-item h2 {
   color: var(--text-light);
   font-weight: 800;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 select option {
