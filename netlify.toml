@@ -1,6 +1,8 @@
 [build]
-  command = "npm install && CI=false npm run build"
+  command = "npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_ENV = "production"
+  NODE_VERSION = "20"
+  CI = "false"
