@@ -188,7 +188,7 @@ const defaultPages = {
         {
             "title": "Anti-Infective",
             "slug": "anti-infective",
-            "image": "https://images.unsplash.com/photo-1584308666744-24d5e4a8b79d?auto=format&fit=crop&w=1920&q=80",
+            "image": "https://emyrisbio.com/Content/images/backgrond-image-07.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Anti-Infective formulations.",
@@ -262,7 +262,7 @@ const defaultPages = {
         {
             "title": "Oncology",
             "slug": "oncology",
-            "image": "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=1920&q=80",
+            "image": "https://emyrisbio.com/Content/images/backgrond-image-10.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Oncology formulations.",
@@ -313,7 +313,7 @@ const defaultPages = {
         {
             "title": "Enteral Nutrition",
             "slug": "enteral-nutrition",
-            "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1920&q=80",
+            "image": "https://emyrisbio.com/Content/images/backgrond-image-05.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Enteral Nutrition formulations.",
@@ -418,7 +418,7 @@ const defaultPages = {
         {
             "title": "Nutraceuticals",
             "slug": "nutraceuticals",
-            "image": "https://images.unsplash.com/photo-1550572017-edb799988ff8?auto=format&fit=crop&w=1920&q=80",
+            "image": "https://emyrisbio.com/Content/images/backgrond-image-06.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Nutraceuticals formulations.",
@@ -504,7 +504,7 @@ const defaultPages = {
         {
             "title": "Anasthetics",
             "slug": "anasthetics",
-            "image": "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1920&q=80",
+            "image": "https://emyrisbio.com/Content/images/backgrond-image-08.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized Anasthetics formulations.",
@@ -571,7 +571,7 @@ const defaultPages = {
         {
             "title": "HIV",
             "slug": "hiv",
-            "image": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1920&q=80",
+            "image": "https://emyrisbio.com/Content/images/backgrond-image-09.jpg",
             "icon": "✨",
             "accentColor": "#1d4ed8",
             "tagline": "Explore our specialized HIV formulations.",
