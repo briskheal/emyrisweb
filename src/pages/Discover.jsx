@@ -32,7 +32,7 @@ function Discover() {
       <div 
         className="glass" 
         style={{ 
-          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), url('https://cms.emyrisbio.com//Files/12042024084808.jpg')`,
+          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), url('/images/assets/discover-bg.jpg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           height: '250px',

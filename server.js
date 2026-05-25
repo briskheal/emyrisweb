@@ -130,7 +130,7 @@ if (dbEnabled && sequelize) {
 
 // Default settings for seeding
 const defaultBranding = {
-  logo: 'https://emyrisbio.com/Files/25032025070135.png',
+  logo: '/images/assets/logo.png',
   companyName: 'EMYRIS BIOLIFESCIENCES',
   youtubeVideoId: 'ysz5S6PUM-U',
   contactNumber: '+91 7993163300',
@@ -154,25 +154,25 @@ const defaultPages = {
     {
       title: 'Committed to Innovation',
       subtitle: 'At Emyris Biolifesciences, our dedication to innovation is woven into the fabric of our organization. We recognize that in the dynamic landscape of healthcare, innovation is not just a choice but a necessity.',
-      image: 'https://cms.emyrisbio.com//Files/30042024124445.jpg',
+      image: '/images/assets/slide1.jpg',
       details: 'We invest heavily in state-of-the-art research facilities, partnering with leading scientific experts to develop next-generation formulations that offer superior efficacy and safety. Our primary R&D focuses are:\n- **Advanced Anti-Infective Formulations**: Combatting highly resistant pathogens.\n- **Targeted Oncology Therapies**: Cytotoxic and supportive oncology formulations.\n- **Enteral Clinical Nutrition**: Advanced dietary supplements for patient recovery.\n\nThrough continuous innovation, Emyris Biolifesciences aims to deliver affordable and accessible healthcare solutions to patients across the nation.'
     },
     {
       title: 'Committed to Society',
       subtitle: 'At Emyris Biolifesciences, our commitment to society extends far beyond the boundaries of our business. We believe that as a leading pharmaceutical company, we have a fundamental responsibility to positively impact the communities we serve and contribute to the betterment of society as a whole.',
-      image: 'https://cms.emyrisbio.com//Files/30042024124507.jpg',
+      image: '/images/assets/slide2.jpg',
       details: 'We believe that as a leading pharmaceutical company, we have a fundamental responsibility to positively impact the communities we serve and contribute to the betterment of society. Our social responsibility programs focus on:\n- **Free Diagnostic Camps**: Regular screening camps in remote rural areas.\n- **Essential Drug Supply**: Supplying medicines to underserved clinics.\n- **Green Manufacturing Operations**: Adopting eco-friendly production methods to minimize waste.\n\nBy aligning our corporate values with societal well-being, we strive to build a sustainable future where every individual has access to high-quality healthcare.'
     },
     {
       title: 'Emyris Biolifesciences',
       subtitle: 'Emyris Biolifesciences is one of the fastest growing pharmaceutical companies in India. Over the past few years, we have been developing and manufacturing affordable medicines for patients across country',
-      image: 'https://cms.emyrisbio.com//Files/30042024124533.jpg',
+      image: '/images/assets/slide3.jpg',
       details: 'Emyris Biolifesciences has established itself as one of the fastest growing pharmaceutical leaders in India, driven by our dedication to medical reliability and excellence. Key growth highlights include:\n- **Wide Distribution Reach**: Ensuring critical medicines reach rural and urban pharmacies alike.\n- **WHO-GMP Manufacturing Compliance**: Batch formulations made in sterile, certified facility blocks.\n- **Professional Sales Force**: Providing scientific details and visual aids to medical consultants.\n\nOur operations combine clinical science with logistical excellence, ensuring Emyris remains a trusted partner for healthcare professionals and patient families across the nation.'
     },
     {
       title: 'Committed to Healthcare',
       subtitle: 'At Emyris Biolifesciences, our dedication to healthcare is at the core of everything we do. Since our inception, we have remained steadfast in our commitment to improving the well-being of individuals and communities worldwide.',
-      image: 'https://cms.emyrisbio.com//Files/30042024124554.jpg',
+      image: '/images/assets/slide4.jpg',
       details: 'Our dedication to healthcare is at the core of everything we do. Emyris provides round-the-clock assistance for critical medical requirements. Our patient care desk is structured around:\n- **Emergency Hotline Channels**: Immediate access for hospital connect and stock procurement.\n- **Doctor Collaboration Panel**: Consultations with specialists regarding critical care drug applications.\n- **Specialized Therapy Support**: Priority logistics for high-stakes treatments like anesthetics and enteral feeds.\n\nOur medical teams are available 24/7, working tirelessly to support hospitals, clinics, and pharmacies in delivering compassionate, safe, and effective patient care.'
     }
   ],
@@ -622,28 +622,28 @@ const defaultPages = {
       id: 1,
       name: 'Shabbirhusen Akhai',
       role: 'Legal Affairs Advisor',
-      image: 'https://cms.emyrisbio.com//Files/02052024015259.jpg',
+      image: '/images/assets/advisor-shabbirhusen.jpg',
       bio: 'Mr. Shabir carrying a vast experience in company legal affairs and we are immensely proud to have him in our board of advisors. In Emyris we not only believe in doing things, but also believes in doing same correctly as advised by our esteemed advisors.'
     },
     {
       id: 2,
       name: 'Dr. Bachaspati Dash',
       role: 'Medical Advisor',
-      image: 'https://cms.emyrisbio.com//Files/30042024051357.jpg',
+      image: '/images/assets/advisor-bachaspati.jpg',
       bio: 'Dr. Bachaspati Dash, esteemed advisor at Emyris Biolifesciences, enriches the company with profound medical insights and strategic guidance, advancing its mission to revolutionize healthcare solutions and improve patient outcomes.'
     },
     {
       id: 3,
       name: 'Mr. Shishir Ranjan Mishra',
       role: 'Strategic Advisor',
-      image: 'https://cms.emyrisbio.com//Files/30042024051457.jpg',
+      image: '/images/assets/advisor-shishir.jpg',
       bio: 'Mr. Shishir Ranjan Mishra, an esteemed advisor at Emyris Biolifesciences, brings expertise and strategic insight, driving the company\'s mission to advance healthcare solutions and improve patient outcomes through innovation and excellence.'
     },
     {
       id: 4,
       name: 'Mr. Jayanta Kumar Bhutia',
       role: 'Operations & Logistics Advisor',
-      image: 'https://cms.emyrisbio.com//Files/30042024051523.jpg',
+      image: '/images/assets/advisor-jayanta.jpg',
       bio: 'Mr. Jayanta Kumar Bhutia, an esteemed advisor at Emyris Biolifesciences, contributes invaluable guidance and leadership, steering the company towards achieving its goals in delivering innovative healthcare solutions and enhancing patient care.'
     }
   ],
@@ -675,14 +675,14 @@ const defaultPages = {
       id: 1,
       name: 'Silla Padhi',
       role: 'Executive Director',
-      image: 'https://cms.emyrisbio.com//Files/03092024125723.jpg',
+      image: '/images/assets/enhancer-silla.jpg',
       bio: 'Silla Padhi is a marketing expert in Biotechnology, Healthcare, and FMCG with an MBA in Marketing and Biotechnology. She excels in strategic product marketing across Asian and European markets and is currently pursuing Impact Measurement & Management for the SDGs from Duke University. As Executive Director of EMYRIS BIOLIFESCIENCES, Silla drives the company\'s vision and business development, focusing on delivering high-quality, accessible medicines globally. Her leadership is key to advancing healthcare, expanding market reach, and fostering sustainable growth through innovative, research-driven solutions.'
     },
     {
       id: 2,
       name: 'J.Ranjan Dash',
       role: 'Business Operation Head, India',
-      image: 'https://cms.emyrisbio.com//Files/03092024125703.jpg',
+      image: '/images/assets/enhancer-jranjan.jpg',
       bio: 'Mr. J. Ranjan Dash is a veteran in industry with MBA in Marketing, having 3 decades of Industry experiences, being associated with National and Multination companies, engaged as Business Operation Head, India. Mr. Dash focuses on Critical Care , Nutrition & Herbo-Nutraceuticals business by improving productivity, streamlining operational issues and eliminating bottlenecks and bringing newer marketing concept into Emyris Biolifesciences Business. His unwavering passion for creativity and relentless pursuit to find best and economical products for consumer benefits, continue to drive Emyris Biotech business to a newer height. His mantra of success is “Build a Team, invest in cultivating their strength to make them challenge-ready”.'
     }
   ],

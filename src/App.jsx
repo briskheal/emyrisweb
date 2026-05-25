@@ -401,14 +401,14 @@ function App() {
       <ScrollToTop />
       <nav className="navbar" style={navStyle}>
         <Link to="/" className="logo" style={linkStyle} onClick={closeMenu}>
-          <img src={siteData.logo || 'https://emyrisbio.com/Files/25032025070135.png'} alt="Emyris Logo" width="210" style={{ height: 'auto', objectFit: 'contain' }} />
+          <img src={siteData.logo || '/images/assets/logo.png'} alt="Emyris Logo" width="210" style={{ height: 'auto', objectFit: 'contain' }} />
         </Link>
 
         {/* Desktop Nav Links */}
         <div className={`nav-links ${menuOpen ? 'nav-links-open' : ''}`}>
           {/* Mobile header inside drawer */}
           <div className="mobile-nav-header">
-            <img src={siteData.logo || 'https://emyrisbio.com/Files/25032025070135.png'} alt="Emyris Logo" width="160" style={{ height: 'auto', objectFit: 'contain' }} />
+            <img src={siteData.logo || '/images/assets/logo.png'} alt="Emyris Logo" width="160" style={{ height: 'auto', objectFit: 'contain' }} />
             <button className="mobile-close-btn" onClick={closeMenu} aria-label="Close menu">✕</button>
           </div>
 
