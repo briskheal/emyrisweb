@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { Sequelize, DataTypes } from 'sequelize';
+import pg from 'pg'; // Force Vercel to bundle pg
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ if (isPlaceholderDb) {
   try {
     sequelize = new Sequelize(process.env.DATABASE_URL, {
       dialect: 'postgres',
+      dialectModule: pg,
       logging: false,
       dialectOptions: {
         ssl: {
