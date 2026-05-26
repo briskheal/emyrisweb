@@ -49,11 +49,11 @@ const OfferingSubpage = () => {
           background: '#ffffff', 
           borderRadius: '20px', 
           boxShadow: '0 15px 50px rgba(0,0,0,0.08)',
-          border: '1px solid rgba(29, 78, 216, 0.05)',
+          border: '1px solid rgba(82, 203, 203, 0.1)',
           overflow: 'hidden'
         }}>
           <div style={{ 
-            background: offering.accentColor || 'var(--primary)', 
+            background: 'var(--primary)', 
             padding: '2rem', 
             color: '#fff',
             display: 'flex',
@@ -107,12 +107,12 @@ const OfferingSubpage = () => {
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <div style={{ color: 'var(--text-muted)', fontWeight: '700', fontSize: '1.05rem' }}>
-                    <span style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(29,78,216,0.05)', borderRadius: '6px' }}>
+                    <span style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(82, 203, 203, 0.05)', borderRadius: '6px' }}>
                       {prod.therapy}
                     </span>
                   </div>
                   <div style={{ color: 'var(--text-dark)', fontSize: '1.05rem', fontWeight: '500' }}>{prod.genericName}</div>
-                  <div style={{ color: offering.accentColor || 'var(--secondary)', fontWeight: '800', fontSize: '1.1rem' }}>
+                  <div style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '1.1rem' }}>
                     {prod.moleculeName || <span style={{ opacity: 0.5, fontStyle: 'italic', fontWeight: 'normal' }}>TBA</span>}
                   </div>
                 </div>

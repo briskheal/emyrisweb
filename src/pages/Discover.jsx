@@ -56,7 +56,7 @@ function Discover() {
         <div className="discover-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', marginBottom: '4rem' }}>
           
           {/* Experience card */}
-          <div className="glass" style={{ padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', background: 'linear-gradient(135deg, rgba(29, 78, 216, 0.05), rgba(14, 165, 233, 0.05))', border: '1px solid rgba(29, 78, 216, 0.15)', borderRadius: '24px' }}>
+          <div className="glass" style={{ padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', background: 'linear-gradient(135deg, rgba(82, 203, 203, 0.05), rgba(14, 165, 233, 0.05))', border: '1px solid rgba(82, 203, 203, 0.15)', borderRadius: '24px' }}>
             <span style={{ fontSize: '6rem', fontWeight: '800', color: 'var(--primary)', lineHeight: '1' }}>5+</span>
             <span style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-light)', marginTop: '0.5rem', display: 'block' }}>Years of Experience</span>
             <span style={{ fontSize: '1rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Delivering affordable and high-quality healthcare formulations in India.</span>

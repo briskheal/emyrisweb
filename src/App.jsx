@@ -272,7 +272,7 @@ function Home() {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 background: '#ffffff',
-                border: '1px solid rgba(29, 78, 216, 0.05)',
+                border: '1px solid rgba(82, 203, 203, 0.05)',
                 borderRadius: '20px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
                 transition: 'var(--transition)'

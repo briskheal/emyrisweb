@@ -197,7 +197,7 @@ function Career() {
               borderRadius: '24px', 
               backgroundColor: '#ffffff', 
               boxShadow: '0 20px 50px rgba(0,0,0,0.08)',
-              border: '1px solid rgba(29, 78, 216, 0.05)'
+              border: '1px solid rgba(82, 203, 203, 0.05)'
             }}>
               <h3 style={{ color: 'var(--primary)', marginBottom: '2rem', fontWeight: '800', fontSize: '1.8rem', textAlign: 'center' }}>Submit Your Details</h3>
               

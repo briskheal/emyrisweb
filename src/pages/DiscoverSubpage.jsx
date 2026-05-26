@@ -160,7 +160,7 @@ function DiscoverSubpage() {
               padding: '3rem', 
               borderRadius: '20px', 
               textAlign: 'center', 
-              background: 'linear-gradient(135deg, rgba(29,78,216,0.05) 0%, rgba(30,58,138,0.08) 100%)',
+              background: 'linear-gradient(135deg, rgba(82, 203, 203,0.05) 0%, rgba(30,58,138,0.08) 100%)',
               border: '1px solid var(--primary)',
               display: 'flex',
               flexDirection: 'column',
@@ -341,11 +341,11 @@ function DiscoverSubpage() {
                             padding: '0.75rem 1.2rem',
                             borderRadius: '12px',
                             border: isSelected ? '2px solid var(--secondary)' : '1px solid var(--glass-border)',
-                            background: isSelected ? 'rgba(29, 78, 216, 0.05)' : 'rgba(255, 255, 255, 0.6)',
+                            background: isSelected ? 'rgba(82, 203, 203, 0.05)' : 'rgba(255, 255, 255, 0.6)',
                             textAlign: 'left',
                             cursor: 'pointer',
                             transition: 'all 0.3s ease',
-                            boxShadow: isSelected ? '0 4px 15px rgba(29, 78, 216, 0.08)' : 'none'
+                            boxShadow: isSelected ? '0 4px 15px rgba(82, 203, 203, 0.08)' : 'none'
                           }}
                         >
                           <span style={{ fontSize: '1.35rem' }}>{hub.icon}</span>
@@ -390,12 +390,12 @@ function DiscoverSubpage() {
                       width: '48px', 
                       height: '48px', 
                       borderRadius: '12px', 
-                      background: 'rgba(29,78,216,0.08)', 
+                      background: 'rgba(82, 203, 203,0.08)', 
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
                       fontSize: '1.6rem',
-                      border: '1px solid rgba(29,78,216,0.15)'
+                      border: '1px solid rgba(82, 203, 203,0.15)'
                     }}>
                       {activeHub.icon}
                     </div>
@@ -457,7 +457,7 @@ function DiscoverSubpage() {
                         width: '100%',
                         textAlign: 'center',
                         background: 'linear-gradient(135deg, var(--primary) 0%, #1e3b8a 100%)',
-                        boxShadow: '0 4px 12px rgba(29, 78, 216, 0.2)'
+                        boxShadow: '0 4px 12px rgba(82, 203, 203, 0.2)'
                       }}
                     >
                       ✉️ Email Desk ({activeHub.contact})
@@ -598,7 +598,7 @@ function DiscoverSubpage() {
                       transition: 'all 0.3s ease',
                       borderRadius: '16px',
                       border: openFaq === idx ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
-                      background: openFaq === idx ? 'rgba(29, 78, 216, 0.02)' : 'rgba(255, 255, 255, 0.5)'
+                      background: openFaq === idx ? 'rgba(82, 203, 203, 0.02)' : 'rgba(255, 255, 255, 0.5)'
                     }}
                     onClick={() => toggleFaq(idx)}
                   >

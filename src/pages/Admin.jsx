@@ -1340,7 +1340,7 @@ function Admin() {
             </div>
 
             {/* Preview strip */}
-            <div style={{ marginTop: '2rem', padding: '1.2rem 1.5rem', background: 'rgba(29,78,216,0.04)', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+            <div style={{ marginTop: '2rem', padding: '1.2rem 1.5rem', background: 'rgba(82, 203, 203,0.04)', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Link Preview</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                 {siteData.socialLinks?.facebook && (
@@ -1439,9 +1439,9 @@ function Admin() {
                     />
 
                     {/* Live Preview Box */}
-                    <div style={{ marginTop: '1.5rem', background: 'rgba(29, 78, 216, 0.02)', padding: '1.5rem', borderRadius: '8px', border: '1px dashed var(--glass-border)' }}>
+                    <div style={{ marginTop: '1.5rem', background: 'rgba(82, 203, 203, 0.02)', padding: '1.5rem', borderRadius: '8px', border: '1px dashed var(--glass-border)' }}>
                       <strong style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.8rem' }}>LIVE PREVIEW (Styled & Justified)</strong>
-                      <div className="glass" style={{ padding: '1.5rem', background: 'white', border: '1px solid rgba(29, 78, 216, 0.1)', minHeight: '80px', borderRadius: '8px' }}>
+                      <div className="glass" style={{ padding: '1.5rem', background: 'white', border: '1px solid rgba(82, 203, 203, 0.1)', minHeight: '80px', borderRadius: '8px' }}>
                         {renderPreview(slide.details)}
                       </div>
                     </div>
@@ -1551,7 +1551,7 @@ function Admin() {
                   </label>
 
                   {/* PRODUCTS MANAGER SECTION */}
-                  <div style={{ marginTop: '1.5rem', background: 'rgba(29, 78, 216, 0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+                  <div style={{ marginTop: '1.5rem', background: 'rgba(82, 203, 203, 0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                       <h5 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.05rem', fontWeight: '800' }}>Manage Products ({off.products ? off.products.length : 0})</h5>
                       <button type="button" className="btn-outline" onClick={() => addProductToOffering(idx)} style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
@@ -2219,7 +2219,7 @@ function Admin() {
                     </div>
 
                     {/* Scheduling Section */}
-                    <div className="glass" style={{ marginTop: '2rem', padding: '1.5rem', borderRadius: '12px', background: 'rgba(29, 78, 216, 0.02)' }}>
+                    <div className="glass" style={{ marginTop: '2rem', padding: '1.5rem', borderRadius: '12px', background: 'rgba(82, 203, 203, 0.02)' }}>
                       <h4 style={{ margin: '0 0 1rem 0', color: 'var(--primary)', fontSize: '1rem', fontWeight: 'bold' }}>Publication & Scheduling</h4>
                       <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <label style={{ flex: 1, minWidth: '200px', margin: 0 }}>Publish Status
@@ -2419,7 +2419,7 @@ function Admin() {
                       <th style={{ padding: '12px' }}>Applicant</th>
                       <th style={{ padding: '12px' }}>Position & Exp</th>
                       <th style={{ padding: '12px' }}>Resume / CV</th>
-                      <th style={{ padding: '12px' }}>Cover Letter</th>
+                      <th style={{ padding: '12px' }}>Address</th>
                       <th style={{ padding: '12px' }}>Status</th>
                       <th style={{ padding: '12px' }}>Actions</th>
                     </tr>
@@ -2434,19 +2434,19 @@ function Admin() {
                           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{appRecord.phone}</div>
                         </td>
                         <td style={{ padding: '12px' }}>
-                          <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{appRecord.position}</div>
+                          <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{appRecord.qualification || appRecord.position}</div>
                           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Exp: {appRecord.experience || 'N/A'}</div>
                         </td>
                         <td style={{ padding: '12px' }}>
                           {appRecord.resumeFileName ? (
-                            <a href={`/api/admin/careers/${appRecord.id}/cv`} download style={{ color: 'var(--secondary)', fontWeight: 'bold', textDecoration: 'underline' }}>
+                            <a href={`data:application/octet-stream;base64,${appRecord.resumeData}`} download={appRecord.resumeFileName} style={{ color: 'var(--secondary)', fontWeight: 'bold', textDecoration: 'underline' }}>
                               📥 Download {appRecord.resumeFileName}
                             </a>
                           ) : (
                             <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No file uploaded</span>
                           )}
                         </td>
-                        <td style={{ padding: '12px', fontSize: '0.9rem', maxWidth: '200px' }}>{appRecord.message || '-'}</td>
+                        <td style={{ padding: '12px', fontSize: '0.9rem', maxWidth: '200px' }}>{appRecord.address || appRecord.message || '-'}</td>
                         <td style={{ padding: '12px' }}>
                           <select 
                             value={appRecord.status} 
