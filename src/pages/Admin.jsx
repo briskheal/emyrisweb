@@ -1822,6 +1822,11 @@ function Admin() {
                       <input value={m.address || ''} onChange={(e) => handleMarketChange(idx, 'address', e.target.value)} placeholder="e.g. Plot No. 12, Secunderabad, Telangana, India" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', marginTop: '0.5rem' }} />
                     </label>
                   </div>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <label style={{ width: '100%', display: 'block' }}>Contact Email
+                      <input type="email" value={m.email || ''} onChange={(e) => handleMarketChange(idx, 'email', e.target.value)} placeholder="e.g. contact@emyrisbio.com" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', marginTop: '0.5rem' }} />
+                    </label>
+                  </div>
                 </div>
                 );
               })}

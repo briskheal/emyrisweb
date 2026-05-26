@@ -257,7 +257,8 @@ function DiscoverSubpage() {
           return {
             ...hub,
             scope: marketData?.scope || 'Regional Operations',
-            address: marketData?.address || `${hub.cityName}, India`
+            address: marketData?.address || `${hub.cityName}, India`,
+            contact: marketData?.email || hub.contact
           };
         });
 
