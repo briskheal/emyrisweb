@@ -2030,7 +2030,7 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
 
   .dropdown { width: 100%; }
   .dropdown-content {
-    display: block;
+    display: none;
     position: static;
     background: rgba(0,0,0,0.2);
     min-width: unset;
@@ -2039,6 +2039,9 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
     border: none;
     padding: 0.3rem 0;
     animation: none;
+  }
+  .dropdown.open .dropdown-content {
+    display: block;
   }
 
   .dropdown-content a {

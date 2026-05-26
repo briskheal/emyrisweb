@@ -390,6 +390,7 @@ function ScrollToTop() {
 function App() {
   const { siteData } = useContext(AppContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -397,7 +398,14 @@ function App() {
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
-  const closeMenu = () => setMenuOpen(false);
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setOpenDropdown(null);
+  };
+
+  const toggleDropdown = (menuName) => {
+    setOpenDropdown(prev => prev === menuName ? null : menuName);
+  };
 
   const navStyle = {
     backgroundColor: siteData.headerColor || '#002345',
@@ -429,8 +437,8 @@ function App() {
 
           <Link to="/" style={linkStyle} onClick={closeMenu}>Home</Link>
           
-          <div className="dropdown">
-            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }}>Discover ▾</span>
+          <div className={`dropdown ${openDropdown === 'discover' ? 'open' : ''}`}>
+            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }} onClick={() => toggleDropdown('discover')}>Discover ▾</span>
             <div className="dropdown-content">
               <Link to="/discover" onClick={closeMenu}>About Us</Link>
               <Link to="/discover/advisors" onClick={closeMenu}>Our Advisors</Link>
@@ -441,8 +449,8 @@ function App() {
             </div>
           </div>
           
-          <div className="dropdown">
-            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }}>Offerings ▾</span>
+          <div className={`dropdown ${openDropdown === 'offerings' ? 'open' : ''}`}>
+            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }} onClick={() => toggleDropdown('offerings')}>Offerings ▾</span>
             <div className="dropdown-content">
               <Link to="/offerings/anti-infective" onClick={closeMenu}>Anti-Infective</Link>
               <Link to="/offerings/oncology" onClick={closeMenu}>Oncology</Link>
@@ -453,8 +461,8 @@ function App() {
             </div>
           </div>
           
-          <div className="dropdown">
-            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }}>Services ▾</span>
+          <div className={`dropdown ${openDropdown === 'services' ? 'open' : ''}`}>
+            <span className="dropbtn" style={{ ...linkStyle, cursor: 'pointer' }} onClick={() => toggleDropdown('services')}>Services ▾</span>
             <div className="dropdown-content">
               <Link to="/services/second-opinion" onClick={closeMenu}>Second Opinion</Link>
               <Link to="/services/diagnostic-support" onClick={closeMenu}>Diagnostic Support</Link>
