@@ -244,58 +244,22 @@ function DiscoverSubpage() {
         );
 
       case 'presence':
-        const regionalHubs = [
-          {
-            id: 'hyderabad',
-            name: 'Hyderabad (Headquarters)',
-            cityName: 'Hyderabad',
-            scope: 'Administrative, Global R&D, and Southern Distribution Hub',
-            contact: 'hyd@emyrisbio.com',
-            type: 'Headquarters',
-            icon: '🏢',
-            address: 'Plot No. 12, Secunderabad, Telangana, India'
-          },
-          {
-            id: 'vadodara',
-            name: 'Vadodara Hub',
-            cityName: 'Vadodara',
-            scope: 'Manufacturing Logistics and Western States Supply operations',
-            contact: 'west@emyrisbio.com',
-            type: 'Manufacturing & Supply',
-            icon: '🏭',
-            address: 'GIDC Industrial Estate, Vadodara, Gujarat, India'
-          },
-          {
-            id: 'bhubaneswar',
-            name: 'Bhubaneswar Desk',
-            cityName: 'Bhubaneswar',
-            scope: 'Eastern Region Warehouse and Government Supply Coordination network',
-            contact: 'east@emyrisbio.com',
-            type: 'Regional Warehouse & Desk',
-            icon: '📦',
-            address: 'Mancheswar Industrial Estate, Bhubaneswar, Odisha, India'
-          },
-          {
-            id: 'guwahati',
-            name: 'Guwahati Hub',
-            cityName: 'Guwahati',
-            scope: 'Northeastern States Logistics and Distribution Center operations',
-            contact: 'ne@emyrisbio.com',
-            type: 'Logistics Hub',
-            icon: '🚚',
-            address: 'NH-37, Sarutari, Guwahati, Assam, India'
-          },
-          {
-            id: 'jaipur',
-            name: 'Jaipur Desk',
-            cityName: 'Jaipur',
-            scope: 'Northern Region Inventory Management & Hospital Support desk',
-            contact: 'north@emyrisbio.com',
-            type: 'Inventory & Support Desk',
-            icon: '🏥',
-            address: 'Sitapura Industrial Area, Jaipur, Rajasthan, India'
-          }
+        const defaultHubs = [
+          { id: 'hyderabad', name: 'Hyderabad (Headquarters)', cityName: 'Hyderabad', contact: 'hyd@emyrisbio.com', type: 'Headquarters', icon: '🏢' },
+          { id: 'vadodara', name: 'Vadodara Hub', cityName: 'Vadodara', contact: 'west@emyrisbio.com', type: 'Manufacturing & Supply', icon: '🏭' },
+          { id: 'bhubaneswar', name: 'Bhubaneswar Desk', cityName: 'Bhubaneswar', contact: 'east@emyrisbio.com', type: 'Regional Warehouse & Desk', icon: '📦' },
+          { id: 'guwahati', name: 'Guwahati Hub', cityName: 'Guwahati', contact: 'ne@emyrisbio.com', type: 'Logistics Hub', icon: '🚚' },
+          { id: 'jaipur', name: 'Jaipur Desk', cityName: 'Jaipur', contact: 'north@emyrisbio.com', type: 'Inventory & Support Desk', icon: '🏥' }
         ];
+
+        const regionalHubs = defaultHubs.map(hub => {
+          const marketData = (siteData.markets || []).find(m => m.name.toLowerCase().includes(hub.cityName.toLowerCase()));
+          return {
+            ...hub,
+            scope: marketData?.scope || 'Regional Operations',
+            address: marketData?.address || `${hub.cityName}, India`
+          };
+        });
 
         const activeHub = regionalHubs.find(h => h.id === selectedHubId) || regionalHubs[0];
 

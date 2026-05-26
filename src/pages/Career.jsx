@@ -80,29 +80,35 @@ function Career() {
     setSubmitting(true);
     setError('');
 
-    // Local fallback for demo or backend integration
+    const submitData = new FormData();
+    submitData.append('name', formData.name);
+    submitData.append('email', formData.email);
+    submitData.append('phone', formData.phone);
+    // Backend expects 'position' and 'message'
+    submitData.append('position', formData.qualification); 
+    submitData.append('experience', formData.experience);
+    submitData.append('message', formData.address); 
+    
+    if (cvFile) {
+      submitData.append('resume', cvFile);
+    }
+
     try {
-      const savedApps = JSON.parse(localStorage.getItem('emyrisCareers') || '[]');
-      if (cvFile) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          savedApps.push({ ...formData, id: Date.now(), status: 'pending', resumeFileName: cvFile.name, resumeData: reader.result.split(',')[1], createdAt: new Date().toISOString() });
-          localStorage.setItem('emyrisCareers', JSON.stringify(savedApps));
-          setSubmitted(true);
-          setSubmitting(false);
-        };
-        reader.readAsDataURL(cvFile);
-      } else {
-        savedApps.push({ ...formData, id: Date.now(), status: 'pending', resumeFileName: null, createdAt: new Date().toISOString() });
-        localStorage.setItem('emyrisCareers', JSON.stringify(savedApps));
+      const res = await fetch('/api/careers', {
+        method: 'POST',
+        body: submitData
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
         setSubmitted(true);
-        setSubmitting(false);
+      } else {
+        setError(data.error || 'Failed to submit application.');
       }
     } catch (err) {
-      setTimeout(() => {
-        setSubmitted(true);
-        setSubmitting(false);
-      }, 1500);
+      setError('An error occurred. Please try again later.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
