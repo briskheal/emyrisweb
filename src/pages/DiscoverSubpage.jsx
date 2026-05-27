@@ -32,7 +32,11 @@ function DiscoverSubpage() {
   const renderContent = () => {
     switch(pageId) {
       case 'advisors':
-        const advisorsList = siteData.advisors || [];
+        const advisorsList = [...(siteData.advisors || [])].sort((a, b) => {
+          const seqA = a.sequence !== undefined && a.sequence !== '' ? Number(a.sequence) : 999;
+          const seqB = b.sequence !== undefined && b.sequence !== '' ? Number(b.sequence) : 999;
+          return seqA - seqB;
+        });
         return (
           <div>
             <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', marginBottom: '3rem', lineHeight: '1.8', textAlign: 'justify' }}>
@@ -96,7 +100,11 @@ function DiscoverSubpage() {
         );
 
       case 'doctors':
-        const doctorsList = siteData.doctors || [];
+        const doctorsList = [...(siteData.doctors || [])].sort((a, b) => {
+          const seqA = a.sequence !== undefined && a.sequence !== '' ? Number(a.sequence) : 999;
+          const seqB = b.sequence !== undefined && b.sequence !== '' ? Number(b.sequence) : 999;
+          return seqA - seqB;
+        });
         return (
           <div>
             <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', marginBottom: '3rem', lineHeight: '1.8', textAlign: 'justify' }}>
@@ -182,7 +190,11 @@ function DiscoverSubpage() {
         );
 
       case 'enhancers':
-        const enhancersList = siteData.enhancers || [];
+        const enhancersList = [...(siteData.enhancers || [])].sort((a, b) => {
+          const seqA = a.sequence !== undefined && a.sequence !== '' ? Number(a.sequence) : 999;
+          const seqB = b.sequence !== undefined && b.sequence !== '' ? Number(b.sequence) : 999;
+          return seqA - seqB;
+        });
         return (
           <div>
             <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', marginBottom: '3rem', lineHeight: '1.8', textAlign: 'justify' }}>

@@ -1892,6 +1892,9 @@ function Admin() {
                     <label style={{ flex: 1, minWidth: '250px' }}>Advisor Role / Title
                       <input value={adv.role || ''} onChange={(e) => handleAdvisorChange(idx, 'role', e.target.value)} placeholder="e.g. Legal Affairs Advisor" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
+                    <label style={{ flex: 0.5, minWidth: '100px' }}>Display Order
+                      <input type="number" value={adv.sequence || ''} onChange={(e) => handleAdvisorChange(idx, 'sequence', e.target.value)} placeholder="e.g. 1" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
                   </div>
                   <label style={{ margin: 0 }}>Biography & Narration
                     <textarea rows="4" value={adv.bio || ''} onChange={(e) => handleAdvisorChange(idx, 'bio', e.target.value)} placeholder="Enter biography details..." style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -1960,6 +1963,9 @@ function Admin() {
                     <label style={{ flex: 1, minWidth: '250px' }}>Doctor Role / Title
                       <input value={doc.role || ''} onChange={(e) => handleDoctorChange(idx, 'role', e.target.value)} placeholder="e.g. Consultant Oncologist" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
+                    <label style={{ flex: 0.5, minWidth: '100px' }}>Display Order
+                      <input type="number" value={doc.sequence || ''} onChange={(e) => handleDoctorChange(idx, 'sequence', e.target.value)} placeholder="e.g. 1" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
                   </div>
                   <label style={{ margin: 0 }}>Biography & Narration
                     <textarea rows="4" value={doc.bio || ''} onChange={(e) => handleDoctorChange(idx, 'bio', e.target.value)} placeholder="Enter biography details..." style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -2027,6 +2033,9 @@ function Admin() {
                     </label>
                     <label style={{ flex: 1, minWidth: '250px' }}>Role / Title
                       <input value={enh.role || ''} onChange={(e) => handleEnhancerChange(idx, 'role', e.target.value)} placeholder="e.g. Executive Director" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 0.5, minWidth: '100px' }}>Display Order
+                      <input type="number" value={enh.sequence || ''} onChange={(e) => handleEnhancerChange(idx, 'sequence', e.target.value)} placeholder="e.g. 1" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
                   </div>
                   <label style={{ margin: 0 }}>Biography & Narration
