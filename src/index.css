@@ -2011,7 +2011,7 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
   .nav-links.nav-links-open { right: 0; }
 
   .nav-links > a,
-  .nav-links > .dropdown > a.dropbtn {
+  .nav-links > .dropdown > .dropbtn {
     display: block;
     width: 100%;
     padding: 1rem 1.5rem;
@@ -2021,7 +2021,7 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
   }
 
   .nav-links > a:hover,
-  .nav-links > .dropdown > a.dropbtn:hover {
+  .nav-links > .dropdown > .dropbtn:hover {
     background: rgba(255,255,255,0.07);
     color: #52cbcb !important;
   }
