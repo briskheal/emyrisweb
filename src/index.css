@@ -156,9 +156,11 @@ h1, h2, h3, h4, h5, h6, .section-subtitle {
   padding-left: 24px; /* subtle shift on hover */
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
-  animation: fadeIn 0.3s ease-in-out;
+@media (min-width: 993px) {
+  .dropdown:hover .dropdown-content {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+  }
 }
 
 /* Hero Section & Slider */
