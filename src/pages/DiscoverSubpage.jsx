@@ -88,7 +88,7 @@ function DiscoverSubpage() {
                     <h4 style={{ color: 'var(--secondary)', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', margin: '0' }}>
                       {adv.role}
                     </h4>
-                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', margin: '0.5rem 0 0 0' }}>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', margin: '0.5rem 0 0 0', minHeight: '260px', maxHeight: '260px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                       {adv.bio}
                     </p>
                   </div>
@@ -154,7 +154,7 @@ function DiscoverSubpage() {
                     <h4 style={{ color: 'var(--secondary)', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', margin: '0' }}>
                       {doc.role}
                     </h4>
-                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', margin: '0.5rem 0 0 0' }}>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', margin: '0.5rem 0 0 0', minHeight: '260px', maxHeight: '260px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                       {doc.bio}
                     </p>
                   </div>
@@ -244,7 +244,7 @@ function DiscoverSubpage() {
                     <h4 style={{ color: 'var(--secondary)', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', margin: '0' }}>
                       {enh.role}
                     </h4>
-                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', margin: '0.5rem 0 0 0' }}>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', textAlign: 'justify', margin: '0.5rem 0 0 0', minHeight: '260px', maxHeight: '260px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                       {enh.bio}
                     </p>
                   </div>
