@@ -1128,7 +1128,8 @@ app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
 
     if (cloudinaryConfigured) {
       const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'emyrisweb/branding'
+        folder: 'emyrisweb/branding',
+        format: 'webp'
       });
 
       // Cleanup local file synchronously
