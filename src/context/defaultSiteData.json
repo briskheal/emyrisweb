@@ -381,75 +381,9 @@
       "icon": "🛠️"
     }
   ],
-  "advisors": [
-    {
-      "id": 1,
-      "name": "Shabbirhusen Akhai",
-      "role": "Legal Affairs Advisor",
-      "image": "/images/assets/advisor-shabbirhusen.jpg",
-      "bio": "Mr. Shabir carrying a vast experience in company legal affairs and we are immensely proud to have him in our board of advisors. In Emyris we not only believe in doing things, but also believes in doing same correctly as advised by our esteemed advisors."
-    },
-    {
-      "id": 2,
-      "name": "Dr. Bachaspati Dash",
-      "role": "Medical Advisor",
-      "image": "/images/assets/advisor-bachaspati.jpg",
-      "bio": "Dr. Bachaspati Dash, esteemed advisor at Emyris Biolifesciences, enriches the company with profound medical insights and strategic guidance, advancing its mission to revolutionize healthcare solutions and improve patient outcomes."
-    },
-    {
-      "id": 3,
-      "name": "Mr. Shishir Ranjan Mishra",
-      "role": "Strategic Advisor",
-      "image": "/images/assets/advisor-shishir.jpg",
-      "bio": "Mr. Shishir Ranjan Mishra, an esteemed advisor at Emyris Biolifesciences, brings expertise and strategic insight, driving the company's mission to advance healthcare solutions and improve patient outcomes through innovation and excellence."
-    },
-    {
-      "id": 4,
-      "name": "Mr. Jayanta Kumar Bhutia",
-      "role": "Operations & Logistics Advisor",
-      "image": "/images/assets/advisor-jayanta.jpg",
-      "bio": "Mr. Jayanta Kumar Bhutia, an esteemed advisor at Emyris Biolifesciences, contributes invaluable guidance and leadership, steering the company towards achieving its goals in delivering innovative healthcare solutions and enhancing patient care."
-    }
-  ],
-  "doctors": [
-    {
-      "id": 1,
-      "name": "Dr. Rajesh Khanna",
-      "role": "Consultant Oncologist",
-      "image": "https://via.placeholder.com/370x380?text=Dr.+Rajesh+Khanna",
-      "bio": "Dr. Khanna is a prominent oncologist with 15+ years of practice in tertiary care hospitals. He advises Emyris on our specialized chemotherapy drugs, patient-centric oncology support structures, and nutritional requirements during critical cancer treatments."
-    },
-    {
-      "id": 2,
-      "name": "Dr. Sneha Reddy",
-      "role": "Critical Care Specialist",
-      "image": "https://via.placeholder.com/370x380?text=Dr.+Sneha+Reddy",
-      "bio": "An expert in emergency medicine and clinical nutrition, Dr. Reddy helps Emyris design enteral nutrition solutions, ensuring intensive-care patients receive precise dietary support matching their metabolic profiles."
-    },
-    {
-      "id": 3,
-      "name": "Dr. Amit Patel",
-      "role": "Pediatric Nutritionist",
-      "image": "https://via.placeholder.com/370x380?text=Dr.+Amit+Patel",
-      "bio": "Dr. Patel consults on our pediatric nutraceutical and wellness formulations. His research on childhood micro-nutrient deficiencies guides our developers in crafting safe, highly bio-available supplements."
-    }
-  ],
-  "enhancers": [
-    {
-      "id": 1,
-      "name": "Silla Padhi",
-      "role": "Executive Director",
-      "image": "/images/assets/enhancer-silla.jpg",
-      "bio": "Silla Padhi is a marketing expert in Biotechnology, Healthcare, and FMCG with an MBA in Marketing and Biotechnology. She excels in strategic product marketing across Asian and European markets and is currently pursuing Impact Measurement & Management for the SDGs from Duke University. As Executive Director of EMYRIS BIOLIFESCIENCES, Silla drives the company's vision and business development, focusing on delivering high-quality, accessible medicines globally. Her leadership is key to advancing healthcare, expanding market reach, and fostering sustainable growth through innovative, research-driven solutions."
-    },
-    {
-      "id": 2,
-      "name": "J.Ranjan Dash",
-      "role": "Business Operation Head, India",
-      "image": "/images/assets/enhancer-jranjan.jpg",
-      "bio": "Mr. J. Ranjan Dash is a veteran in industry with MBA in Marketing, having 3 decades of Industry experiences, being associated with National and Multination companies, engaged as Business Operation Head, India. Mr. Dash focuses on Critical Care , Nutrition & Herbo-Nutraceuticals business by improving productivity, streamlining operational issues and eliminating bottlenecks and bringing newer marketing concept into Emyris Biolifesciences Business. His unwavering passion for creativity and relentless pursuit to find best and economical products for consumer benefits, continue to drive Emyris Biotech business to a newer height. His mantra of success is “Build a Team, invest in cultivating their strength to make them challenge-ready”."
-    }
-  ],
+  "advisors": [],
+  "doctors": [],
+  "enhancers": [],
   "testimonials": [
     {
       "id": 1,
