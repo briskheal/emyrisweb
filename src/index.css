@@ -2473,3 +2473,14 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
 
 
 
+
+@media (max-width: 768px) {
+  .discover-toggles-container {
+    padding: 1.5rem !important;
+  }
+  .discover-toggle-content {
+    padding: 1.5rem !important;
+    gap: 1.5rem !important;
+  }
+}
+

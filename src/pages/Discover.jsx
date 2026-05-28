@@ -84,7 +84,7 @@ function Discover() {
         </div>
 
         {/* Accordion Toggles */}
-        <div className="glass" style={{ padding: '3rem', borderRadius: '24px', marginBottom: '5rem' }}>
+        <div className="glass discover-toggles-container" style={{ padding: '3rem', borderRadius: '24px', marginBottom: '5rem' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', textAlign: 'center' }}>
             Our Strategic Vision & Core Values
           </h2>
@@ -114,7 +114,7 @@ function Discover() {
 
             {/* Toggle Content Box */}
             <div 
-              className="glass" 
+              className="glass discover-toggle-content" 
               style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
