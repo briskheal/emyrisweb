@@ -2484,3 +2484,10 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
   }
 }
 
+
+@media (max-width: 768px) {
+  .contact-form {
+    padding: 1.5rem !important;
+  }
+}
+

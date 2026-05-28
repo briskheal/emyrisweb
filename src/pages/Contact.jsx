@@ -61,7 +61,7 @@ function Contact() {
 
   return (
     <div className="page-container fade-in" style={{ display: 'flex', gap: '4rem', alignItems: 'center', flexWrap: 'wrap' }}>
-      <div style={{ flex: '1 1 400px' }}>
+      <div style={{ flex: '1 1 300px', minWidth: '280px' }}>
         <h3 style={{ color: 'var(--primary)' }}>Connect Us Today!</h3>
         <h1 style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>We are available 24/7 for your service.</h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
@@ -86,7 +86,7 @@ function Contact() {
         </div>
       </div>
 
-      <div className="contact-form glass" style={{ flex: '1 1 400px', padding: '3rem' }}>
+      <div className="contact-form glass" style={{ flex: '1 1 300px', minWidth: '280px', padding: '3rem' }}>
         <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Send a Message</h2>
         {submitted ? (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -142,7 +142,7 @@ function Contact() {
                 <option value="HIV">HIV</option>
               </select>
             </label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <label style={{ flex: 1 }}>
                 Phone
                 <input 
