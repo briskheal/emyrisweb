@@ -1895,6 +1895,9 @@ function Admin() {
                     <label style={{ flex: 0.5, minWidth: '100px' }}>Display Order
                       <input type="number" value={adv.sequence || ''} onChange={(e) => handleAdvisorChange(idx, 'sequence', e.target.value)} placeholder="e.g. 1" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
+                    <label style={{ flex: 0.5, minWidth: '120px' }}>DOB (DD-MM)
+                      <input type="text" value={adv.dob || ''} onChange={(e) => handleAdvisorChange(idx, 'dob', e.target.value)} placeholder="e.g. 15-08" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
                   </div>
                   <label style={{ margin: 0 }}>Biography & Narration
                     <textarea rows="4" value={adv.bio || ''} onChange={(e) => handleAdvisorChange(idx, 'bio', e.target.value)} placeholder="Enter biography details..." style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -1966,6 +1969,9 @@ function Admin() {
                     <label style={{ flex: 0.5, minWidth: '100px' }}>Display Order
                       <input type="number" value={doc.sequence || ''} onChange={(e) => handleDoctorChange(idx, 'sequence', e.target.value)} placeholder="e.g. 1" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
+                    <label style={{ flex: 0.5, minWidth: '120px' }}>DOB (DD-MM)
+                      <input type="text" value={doc.dob || ''} onChange={(e) => handleDoctorChange(idx, 'dob', e.target.value)} placeholder="e.g. 15-08" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
                   </div>
                   <label style={{ margin: 0 }}>Biography & Narration
                     <textarea rows="4" value={doc.bio || ''} onChange={(e) => handleDoctorChange(idx, 'bio', e.target.value)} placeholder="Enter biography details..." style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -2036,6 +2042,9 @@ function Admin() {
                     </label>
                     <label style={{ flex: 0.5, minWidth: '100px' }}>Display Order
                       <input type="number" value={enh.sequence || ''} onChange={(e) => handleEnhancerChange(idx, 'sequence', e.target.value)} placeholder="e.g. 1" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
+                    </label>
+                    <label style={{ flex: 0.5, minWidth: '120px' }}>DOB (DD-MM)
+                      <input type="text" value={enh.dob || ''} onChange={(e) => handleEnhancerChange(idx, 'dob', e.target.value)} placeholder="e.g. 15-08" style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
                   </div>
                   <label style={{ margin: 0 }}>Biography & Narration

@@ -21,6 +21,34 @@ import Disclaimer from './pages/Disclaimer';
 function Home() {
   const { siteData } = useContext(AppContext);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [birthdayPerson, setBirthdayPerson] = useState(null);
+
+  useEffect(() => {
+    // Check for birthdays
+    const dismissed = sessionStorage.getItem('birthdaySeen');
+    if (!dismissed && siteData) {
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const todayStr = `${dd}-${mm}`;
+
+      const allPeople = [
+        ...(siteData.advisors || []),
+        ...(siteData.doctors || []),
+        ...(siteData.enhancers || [])
+      ];
+      
+      const bdayPerson = allPeople.find(p => p.dob && p.dob.trim() === todayStr);
+      if (bdayPerson) {
+        setBirthdayPerson(bdayPerson);
+      }
+    }
+  }, [siteData]);
+
+  const dismissBirthday = () => {
+    sessionStorage.setItem('birthdaySeen', 'true');
+    setBirthdayPerson(null);
+  };
 
   useEffect(() => {
     if (!siteData.slides || siteData.slides.length === 0) return;
@@ -58,6 +86,48 @@ function Home() {
 
   return (
     <div className="homepage-wrapper fade-in">
+      {/* Birthday Greeting Modal */}
+      {birthdayPerson && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)',
+          zIndex: 999, /* Under the header */
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }} onClick={dismissBirthday}>
+          <div className="glass fade-in" style={{
+            width: '100%', maxWidth: '380px', aspectRatio: '1/1',
+            background: 'linear-gradient(135deg, rgba(82, 203, 203, 0.95), rgba(14, 165, 233, 0.95))',
+            borderRadius: '24px',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            position: 'relative',
+            textAlign: 'center', padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            border: '2px solid rgba(255,255,255,0.4)',
+            color: 'white'
+          }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={dismissBirthday} style={{
+              position: 'absolute', top: '15px', right: '15px',
+              background: 'rgba(0,0,0,0.2)', border: 'none', color: 'white',
+              width: '30px', height: '30px', borderRadius: '50%',
+              cursor: 'pointer', fontWeight: 'bold'
+            }}>✕</button>
+            <img src={birthdayPerson.image} alt={birthdayPerson.name} style={{
+              width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover',
+              border: '4px solid white', marginBottom: '1rem',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            }} />
+            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: '800', fontFamily: "'Outfit', sans-serif" }}>Happy Birthday!</h2>
+            <h3 style={{ margin: '0.5rem 0', fontSize: '1.4rem', color: '#ffefcc' }}>{birthdayPerson.name}</h3>
+            <p style={{ margin: 0, fontSize: '1.05rem', opacity: 0.9 }}>Wishing you a wonderful day from the Emyris team!</p>
+          </div>
+        </div>
+      )}
+
       {/* Hero Slider */}
       <div className="hero slider" style={{ backgroundImage: `url(${slide.image})` }}>
         <div className="slider-overlay">
