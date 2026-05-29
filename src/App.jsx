@@ -38,7 +38,16 @@ function Home() {
         ...(siteData.enhancers || [])
       ];
       
-      const bdayPerson = allPeople.find(p => p.dob && p.dob.trim() === todayStr);
+      const bdayPerson = allPeople.find(p => {
+        if (!p.dob) return false;
+        const match = p.dob.match(/(\d+)[^\d]+(\d+)/);
+        if (match) {
+          const d = String(parseInt(match[1])).padStart(2, '0');
+          const m = String(parseInt(match[2])).padStart(2, '0');
+          return `${d}-${m}` === todayStr;
+        }
+        return false;
+      });
       if (bdayPerson) {
         setBirthdayPerson(bdayPerson);
       }
@@ -97,7 +106,7 @@ function Home() {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '1rem'
-        }} onClick={dismissBirthday}>
+        }}>
           <div className="glass fade-in" style={{
             width: '100%', maxWidth: '380px', aspectRatio: '1/1',
             background: 'linear-gradient(135deg, rgba(82, 203, 203, 0.95), rgba(14, 165, 233, 0.95))',
