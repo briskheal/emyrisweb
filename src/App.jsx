@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AppContext } from './context/AppContext';
 import Discover from './pages/Discover';
@@ -96,7 +97,7 @@ function Home() {
   return (
     <div className="homepage-wrapper fade-in">
       {/* Birthday Greeting Modal */}
-      {birthdayPerson && (
+      {birthdayPerson && createPortal(
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -134,7 +135,8 @@ function Home() {
             <h3 style={{ margin: '0.5rem 0', fontSize: '1.4rem', color: '#ffefcc' }}>{birthdayPerson.name}</h3>
             <p style={{ margin: 0, fontSize: '1.05rem', opacity: 0.9 }}>Wishing you a wonderful day from the Emyris team!</p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Hero Slider */}
