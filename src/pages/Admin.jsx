@@ -516,9 +516,16 @@ function Admin() {
   };
 
   const handleAdvisorChange = (index, field, val) => {
+    let finalVal = val;
+    if (field === 'dob' && finalVal) {
+      let cleaned = finalVal.replace(/[^\d-]/g, '');
+      if (cleaned.length === 2 && !cleaned.includes('-')) cleaned += '-';
+      else if (cleaned.length > 2 && !cleaned.includes('-')) cleaned = cleaned.substring(0, 2) + '-' + cleaned.substring(2);
+      finalVal = cleaned.substring(0, 5);
+    }
     setEditedAdvisors(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], [field]: val };
+      next[index] = { ...next[index], [field]: finalVal };
       return next;
     });
   };
@@ -577,9 +584,16 @@ function Admin() {
   };
 
   const handleDoctorChange = (index, field, val) => {
+    let finalVal = val;
+    if (field === 'dob' && finalVal) {
+      let cleaned = finalVal.replace(/[^\d-]/g, '');
+      if (cleaned.length === 2 && !cleaned.includes('-')) cleaned += '-';
+      else if (cleaned.length > 2 && !cleaned.includes('-')) cleaned = cleaned.substring(0, 2) + '-' + cleaned.substring(2);
+      finalVal = cleaned.substring(0, 5);
+    }
     setEditedDoctors(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], [field]: val };
+      next[index] = { ...next[index], [field]: finalVal };
       return next;
     });
   };
@@ -638,9 +652,16 @@ function Admin() {
   };
 
   const handleEnhancerChange = (index, field, val) => {
+    let finalVal = val;
+    if (field === 'dob' && finalVal) {
+      let cleaned = finalVal.replace(/[^\d-]/g, '');
+      if (cleaned.length === 2 && !cleaned.includes('-')) cleaned += '-';
+      else if (cleaned.length > 2 && !cleaned.includes('-')) cleaned = cleaned.substring(0, 2) + '-' + cleaned.substring(2);
+      finalVal = cleaned.substring(0, 5);
+    }
     setEditedEnhancers(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], [field]: val };
+      next[index] = { ...next[index], [field]: finalVal };
       return next;
     });
   };
