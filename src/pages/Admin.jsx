@@ -132,6 +132,45 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
   );
 }
 
+// Image compression utility to bypass Vercel limits & speed up loading
+const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
+            type: 'image/webp',
+            lastModified: Date.now(),
+          });
+          resolve(newFile);
+        }, 'image/webp', quality);
+      };
+    };
+  });
+};
+
 function Admin() {
   const { siteData, updateSiteData, saveConfigToServer } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Profile');
@@ -549,10 +588,11 @@ function Admin() {
     if (!file) return;
 
     setUploadingAdvisorIdx(index);
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const compressedFile = await compressImage(file);
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData
@@ -617,10 +657,11 @@ function Admin() {
     if (!file) return;
 
     setUploadingDoctorIdx(index);
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const compressedFile = await compressImage(file);
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData
@@ -749,10 +790,11 @@ function Admin() {
     if (!file) return;
 
     setUploadingEnhancerIdx(index);
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const compressedFile = await compressImage(file);
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData
