@@ -850,6 +850,9 @@ app.post('/api/admin/login', (req, res) => {
 // Get Config (Public)
 app.get('/api/config', async (req, res) => {
   try {
+    // Vercel Edge Caching to drastically reduce Fast Origin Transfer
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=3600');
+
     if (dbEnabled) {
       const brandRecord = await ConfigRecord.findByPk('branding');
       const pagesRecord = await ConfigRecord.findByPk('pages');
