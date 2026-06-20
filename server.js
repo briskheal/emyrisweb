@@ -1170,6 +1170,17 @@ app.get('/api/health', (req, res) => {
 
 
 
+// --- COOLIFY STANDALONE HOSTING CONFIGURATION ---
+// Serve the built React frontend static files from the 'dist' directory
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Wildcard catch-all: If it's not an API route, send back the React index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+// ------------------------------------------------
+
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production' || process.env.RUN_LOCAL) {
   app.listen(PORT, () => {
