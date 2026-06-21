@@ -933,6 +933,14 @@ app.post('/api/inquiries', async (req, res) => {
         subject: `New Inquiry from ${name}`,
         text: `You have received a new inquiry.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nOffering: ${offering || 'N/A'}\n\nMessage:\n${message}`
       });
+
+      // Send auto-responder to the user
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `Thank you for contacting Emyris Biolifesciences`,
+        text: `Dear ${name},\n\nThank you for reaching out to Emyris Biolifesciences. We have received your inquiry and our team will get back to you shortly.\n\nBest regards,\nEmyris Biolifesciences Team`
+      });
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
     }
@@ -1041,6 +1049,14 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
     }
     try {
       await transporter.sendMail(mailOptions);
+
+      // Send auto-responder to the applicant
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `Application Received - Emyris Biolifesciences`,
+        text: `Dear ${name},\n\nThank you for applying for the ${position} position at Emyris Biolifesciences. We have successfully received your application and resume. Our HR team will review your profile and contact you if your qualifications match our requirements.\n\nBest regards,\nEmyris Biolifesciences HR Team`
+      });
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
     }
@@ -1100,6 +1116,14 @@ app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
     }
     try {
       await transporter.sendMail(mailOptions);
+
+      // Send auto-responder to the user
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `Thank you for contacting Emyris Biolifesciences`,
+        text: `Dear ${name},\n\nThank you for your message regarding ${servicePage || 'our services'}. We have received your submission and one of our representatives will contact you shortly.\n\nBest regards,\nEmyris Biolifesciences Team`
+      });
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
     }
