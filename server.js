@@ -9,10 +9,19 @@ import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { Sequelize, DataTypes } from 'sequelize';
 import pg from 'pg'; // Force Vercel to bundle pg
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
-
+const transporter = nodemailer.createTransport({
+  host: 'smtp.zoho.in',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 const app = express();
 app.use(cors());
@@ -916,6 +925,17 @@ app.post('/api/inquiries', async (req, res) => {
       inMemoryInquiries.push(newInquiry);
       res.json({ success: true, inquiry: newInquiry });
     }
+
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: 'info@emyrisbio.com',
+        subject: `New Inquiry from ${name}`,
+        text: `You have received a new inquiry.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nOffering: ${offering || 'N/A'}\n\nMessage:\n${message}`
+      });
+    } catch (emailErr) {
+      console.error("Email sending failed:", emailErr);
+    }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
@@ -1005,6 +1025,25 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
       inMemoryCareers.push(newApp);
       res.json({ success: true, application: { id: newApp.id, name: newApp.name, email: newApp.email, position: newApp.position, resumeFileName } });
     }
+
+    let mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: 'career@emyrisbio.com',
+      subject: `New Career Application from ${name}`,
+      text: `You have received a new career application.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nPosition: ${position}\nExperience: ${experience || 'N/A'}\n\nMessage:\n${message || 'N/A'}`
+    };
+    if (resumeData) {
+      mailOptions.attachments = [{
+        filename: resumeFileName,
+        content: Buffer.from(resumeData, 'base64'),
+        contentType: resumeFileType
+      }];
+    }
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      console.error("Email sending failed:", emailErr);
+    }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
@@ -1044,6 +1083,25 @@ app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
       const newSubmission = { id: Date.now(), name, email, subject, phone, message, servicePage, attachmentData, attachmentFileName, attachmentFileType, status: 'pending', createdAt: new Date() };
       inMemorySubmissions.push(newSubmission);
       res.json({ success: true, submission: { id: newSubmission.id, name: newSubmission.name, email: newSubmission.email } });
+    }
+
+    let mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: 'info@emyrisbio.com',
+      subject: `New Contact Submission from ${name}: ${subject || 'No Subject'}`,
+      text: `You have received a new contact submission.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nService Area: ${servicePage || 'N/A'}\n\nMessage:\n${message}`
+    };
+    if (attachmentData) {
+      mailOptions.attachments = [{
+        filename: attachmentFileName,
+        content: Buffer.from(attachmentData, 'base64'),
+        contentType: attachmentFileType
+      }];
+    }
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      console.error("Email sending failed:", emailErr);
     }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
