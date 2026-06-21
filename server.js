@@ -910,6 +910,21 @@ app.post('/api/admin/config', async (req, res) => {
 });
 
 // Submit Contact Inquiry
+app.get('/api/test-email', async (req, res) => {
+  try {
+    await transporter.verify();
+    let info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: "SMTP Test",
+      text: "If you see this, SMTP is working."
+    });
+    res.json({ success: true, message: "Email sent successfully", info });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message, stack: err.stack, code: err.code });
+  }
+});
+
 app.post('/api/inquiries', async (req, res) => {
   const { name, email, phone, offering, message } = req.body;
   if (!name || !email || !message) {
