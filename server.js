@@ -1182,7 +1182,8 @@ app.get('*', (req, res) => {
 // ------------------------------------------------
 
 const PORT = process.env.PORT || 5000;
-if (process.env.NODE_ENV !== 'production' || process.env.RUN_LOCAL) {
+// Vercel Serverless handles listening automatically. For all other environments (like Coolify), we must manually start the server.
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`🚀 EmyrisWeb backend running on http://localhost:${PORT}`);
     console.log(`📡 Backend health endpoint: http://localhost:${PORT}/api/health`);
