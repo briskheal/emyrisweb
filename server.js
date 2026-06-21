@@ -929,7 +929,7 @@ app.post('/api/inquiries', async (req, res) => {
     try {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
-        to: 'info@emyrisbio.com',
+        to: 'contact@emyrisbio.com',
         subject: `New Inquiry from ${name}`,
         text: `You have received a new inquiry.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nOffering: ${offering || 'N/A'}\n\nMessage:\n${message}`
       });
@@ -1028,7 +1028,7 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
 
     let mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'career@emyrisbio.com',
+      to: 'contact@emyrisbio.com',
       subject: `New Career Application from ${name}`,
       text: `You have received a new career application.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nPosition: ${position}\nExperience: ${experience || 'N/A'}\n\nMessage:\n${message || 'N/A'}`
     };
@@ -1087,7 +1087,7 @@ app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
 
     let mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'info@emyrisbio.com',
+      to: 'contact@emyrisbio.com',
       subject: `New Contact Submission from ${name}: ${subject || 'No Subject'}`,
       text: `You have received a new contact submission.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nService Area: ${servicePage || 'N/A'}\n\nMessage:\n${message}`
     };
