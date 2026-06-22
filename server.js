@@ -14,8 +14,8 @@ import nodemailer from 'nodemailer';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.zoho.in',
-  port: 587,
+  host: 'smtp.sendgrid.net',
+  port: 2525,
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
