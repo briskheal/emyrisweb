@@ -914,8 +914,8 @@ app.get('/api/test-email', async (req, res) => {
   try {
     await transporter.verify();
     let info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+      from: 'contact@emyrisbio.com',
+      to: 'contact@emyrisbio.com',
       subject: "SMTP Test",
       text: "If you see this, SMTP is working."
     });
@@ -943,7 +943,7 @@ app.post('/api/inquiries', async (req, res) => {
 
     try {
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: 'contact@emyrisbio.com',
         to: 'contact@emyrisbio.com',
         subject: `New Inquiry from ${name}`,
         text: `You have received a new inquiry.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nOffering: ${offering || 'N/A'}\n\nMessage:\n${message}`
@@ -951,7 +951,7 @@ app.post('/api/inquiries', async (req, res) => {
 
       // Send auto-responder to the user
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: 'contact@emyrisbio.com',
         to: email,
         subject: `Thank you for contacting Emyris Biolifesciences`,
         text: `Dear ${name},\n\nThank you for reaching out to Emyris Biolifesciences. We have received your inquiry and our team will get back to you shortly.\n\nBest regards,\nEmyris Biolifesciences Team`
@@ -1050,7 +1050,7 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
     }
 
     let mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: 'contact@emyrisbio.com',
       to: 'contact@emyrisbio.com',
       subject: `New Career Application from ${name}`,
       text: `You have received a new career application.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nPosition: ${position}\nExperience: ${experience || 'N/A'}\n\nMessage:\n${message || 'N/A'}`
@@ -1067,7 +1067,7 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
 
       // Send auto-responder to the applicant
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: 'contact@emyrisbio.com',
         to: email,
         subject: `Application Received - Emyris Biolifesciences`,
         text: `Dear ${name},\n\nThank you for applying for the ${position} position at Emyris Biolifesciences. We have successfully received your application and resume. Our HR team will review your profile and contact you if your qualifications match our requirements.\n\nBest regards,\nEmyris Biolifesciences HR Team`
@@ -1117,7 +1117,7 @@ app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
     }
 
     let mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: 'contact@emyrisbio.com',
       to: 'contact@emyrisbio.com',
       subject: `New Contact Submission from ${name}: ${subject || 'No Subject'}`,
       text: `You have received a new contact submission.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nService Area: ${servicePage || 'N/A'}\n\nMessage:\n${message}`
@@ -1134,7 +1134,7 @@ app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
 
       // Send auto-responder to the user
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: 'contact@emyrisbio.com',
         to: email,
         subject: `Thank you for contacting Emyris Biolifesciences`,
         text: `Dear ${name},\n\nThank you for your message regarding ${servicePage || 'our services'}. We have received your submission and one of our representatives will contact you shortly.\n\nBest regards,\nEmyris Biolifesciences Team`
