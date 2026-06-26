@@ -14,11 +14,11 @@ import nodemailer from 'nodemailer';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net',
-  port: 2525,
-  secure: false,
+  host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.in',
+  port: parseInt(process.env.ZOHO_SMTP_PORT || '465', 10),
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER,
+    user: process.env.EMAIL_USER || 'contact@emyrisbio.com',
     pass: process.env.EMAIL_PASS
   }
 });
