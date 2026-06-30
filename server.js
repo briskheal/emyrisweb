@@ -820,7 +820,36 @@ async function initDb() {
           if (!currentPages.markets) { currentPages.markets = seedPages.markets || defaultPages.markets; modified = true; }
           if (!currentPages.offerings || currentPages.offerings.length <= 2) { currentPages.offerings = seedPages.offerings || defaultPages.offerings; modified = true; }
           if (!currentPages.services || currentPages.services.length < 6) { currentPages.services = seedPages.services || defaultPages.services; modified = true; }
-          if (!currentPages.blogs || currentPages.blogs.length === 0) { currentPages.blogs = seedPages.blogs || []; modified = true; }
+          if (!currentPages.blogs || currentPages.blogs.length === 0) { 
+            currentPages.blogs = seedPages.blogs || []; 
+            modified = true; 
+          } else {
+            const catMap = {
+              'Easy Ways To Detox Every Room In Home': 'Healthier Living',
+              'Antibiotics & Its Role': 'Educational',
+              'Enteral nutrition in ICU patients.': 'Educational',
+              'Dengue Awareness': 'Health Awareness',
+              'What is an ICU ?': 'Educational',
+              'Importance of Blood Donation.': 'Health Awareness',
+              'Global Wind Day': 'Health Awareness',
+              'A good lifestyle': 'Healthier Living',
+              'Ventilator "The Life Saviour"': 'Educational',
+              'Understanding Organ Donation': 'Health Awareness',
+              'Organ donation legalities in India': 'Educational',
+              'Know you Kidney': 'Health Awareness',
+              'MonkeyPox-Mpox': 'Health Awareness',
+              'Maltrodextrin Vs Resistant Maltrodextrin': 'Educational'
+            };
+            currentPages.blogs.forEach(b => {
+              if (b.title && b.title.includes('Global Wind Day') && b.category === 'Latest News') {
+                b.category = 'Health Awareness';
+                modified = true;
+              } else if (b.category === b.title || !b.category || b.category === 'General') {
+                b.category = catMap[b.title ? b.title.trim() : ''] || 'Educational';
+                modified = true;
+              }
+            });
+          }
 
           if (modified) {
             await pagesRecord.update({ value: JSON.stringify(currentPages) });

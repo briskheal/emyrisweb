@@ -23,7 +23,7 @@ function Blog() {
     'Dengue Awareness': 'Health Awareness',
     'What is an ICU ?': 'Educational',
     'Importance of Blood Donation.': 'Health Awareness',
-    'Global Wind Day': 'Latest News',
+    'Global Wind Day': 'Health Awareness',
     'A good lifestyle': 'Healthier Living',
     'Ventilator "The Life Saviour"': 'Educational',
     'Understanding Organ Donation': 'Health Awareness',
@@ -61,14 +61,19 @@ function Blog() {
   };
 
   // Filter and sort blogs: newest first, then by title
-  const filteredBlogs = (selectedCategory === 'All' 
-    ? activeBlogs 
-    : activeBlogs.filter(b => b.category === selectedCategory))
-    .sort((a, b) => {
-      const timeDiff = parseBlogDate(b) - parseBlogDate(a);
-      if (timeDiff !== 0) return timeDiff;
-      return (a.title || '').localeCompare(b.title || '');
-    });
+  const filteredBlogs = activeBlogs.filter(b => {
+    if (selectedCategory === 'All') return true;
+    if (selectedCategory === 'Latest News') {
+      const pubTime = parseBlogDate(b);
+      const daysDiff = (Date.now() - pubTime) / (1000 * 3600 * 24);
+      return daysDiff >= 0 && daysDiff <= 15;
+    }
+    return b.category === selectedCategory;
+  }).sort((a, b) => {
+    const timeDiff = parseBlogDate(b) - parseBlogDate(a);
+    if (timeDiff !== 0) return timeDiff;
+    return (a.title || '').localeCompare(b.title || '');
+  });
 
   // Helper to get text excerpt from string or array
   const getExcerpt = (content, maxLength = 130) => {
@@ -281,8 +286,8 @@ function Blog() {
       {/* Blog Grid */}
       {filteredBlogs.length === 0 ? (
         <div className="no-blogs glass">
-          <h2>No articles found</h2>
-          <p>Check back later for new updates and releases.</p>
+          <h2>{selectedCategory === 'Latest News' ? 'No news articles in the last 15 days' : 'No articles found'}</h2>
+          <p>{selectedCategory === 'Latest News' ? 'We regularly publish new research and announcements. Please check out our Educational or Health Awareness articles above!' : 'Check back later for new updates and releases.'}</p>
         </div>
       ) : (
         <div className="blog-grid">
