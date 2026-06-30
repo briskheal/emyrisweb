@@ -18,6 +18,7 @@ import Footer from './components/Footer';
 import Terms from './pages/Terms';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Disclaimer from './pages/Disclaimer';
+import CopyProofShield from './components/CopyProofShield';
 
 function Home() {
   const { siteData } = useContext(AppContext);
@@ -503,6 +504,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <CopyProofShield />
       <nav className="navbar" style={navStyle}>
         <Link to="/" className="logo" style={linkStyle} onClick={closeMenu}>
           <img src={siteData.logo || '/images/assets/logo.png'} alt="Emyris Logo" width="210" style={{ height: 'auto', objectFit: 'contain' }} />

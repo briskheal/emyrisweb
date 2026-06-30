@@ -2491,3 +2491,57 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
   }
 }
 
+/* =========================================================
+   GLOBAL COPY-PROOF & SECURITY PROTECTION RULES
+   ========================================================= */
+
+/* Prevent text highlighting and selection across non-admin pages */
+body:not(.admin-mode) {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Allow text selection inside input fields and textareas even on non-admin pages */
+body:not(.admin-mode) input,
+body:not(.admin-mode) textarea,
+body:not(.admin-mode) [contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Prevent image dragging and saving */
+body:not(.admin-mode) img {
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+}
+
+/* Completely blank out website on Print Screen / Ctrl+P / Print Preview */
+@media print {
+  body:not(.admin-mode) * {
+    visibility: hidden !important;
+    display: none !important;
+  }
+  body:not(.admin-mode)::after {
+    content: "⚠️ COPYRIGHT PROTECTION ACTIVE: Printing, capturing, or unauthorized duplication of EMYRIS BIOLIFESCIENCES content is strictly prohibited by intellectual property laws.";
+    visibility: visible !important;
+    display: block !important;
+    position: fixed;
+    top: 30%;
+    left: 10%;
+    right: 10%;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.6;
+    color: #002345;
+    text-align: center;
+    border: 3px solid #002345;
+    padding: 40px;
+    border-radius: 12px;
+  }
+}
+
