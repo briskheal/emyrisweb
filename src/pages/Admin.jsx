@@ -8,16 +8,43 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
 
   // Sync value from parent prop to contentEditable innerHTML without losing cursor position
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value || '';
+    if (editorRef.current && !showHtml) {
+      if (editorRef.current.innerHTML !== (value || '')) {
+        editorRef.current.innerHTML = value || '';
+      }
     }
-  }, [value]);
+  }, [value, showHtml]);
 
   const handleInput = () => {
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
       if (html !== value) {
         onChange(html);
+      }
+    }
+  };
+
+  const toggleHtmlMode = () => {
+    if (!showHtml && editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+    }
+    setShowHtml(!showHtml);
+  };
+
+  const handleInsertImageTag = (imgUrl) => {
+    const imgHtml = `<p style="text-align: center;"><img src="${imgUrl}" style="max-width: 85%; border-radius: 12px; margin: 15px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" /></p>`;
+    if (showHtml) {
+      onChange((value || '') + '\n' + imgHtml);
+    } else {
+      if (editorRef.current) {
+        editorRef.current.focus();
+        const inserted = document.execCommand('insertHTML', false, imgHtml);
+        if (!inserted) {
+          editorRef.current.innerHTML += imgHtml;
+        }
+        handleInput();
+      } else {
+        onChange((value || '') + imgHtml);
       }
     }
   };
@@ -37,7 +64,7 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
   const handleImage = () => {
     const url = prompt("Enter Image URL:", "https://");
     if (url) {
-      execCmd("insertImage", url);
+      handleInsertImageTag(url);
     }
   };
 
@@ -110,7 +137,7 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
         <button type="button" className="toolbar-btn" onClick={handleImage} title="Insert Image Link">🖼️ Image Link</button>
         
         {onImageUpload && (
-          <button type="button" className="toolbar-btn upload" onClick={() => onImageUpload(idx, editorRef)} title="Upload Image & Insert">📤 Upload Photo</button>
+          <button type="button" className="toolbar-btn upload" onClick={() => onImageUpload(idx, handleInsertImageTag)} title="Upload Image & Insert">📤 Upload Photo</button>
         )}
         
         <button type="button" className="toolbar-btn" onClick={() => execCmd('removeFormat')} title="Clear Formatting">🧹 Clear</button>
@@ -119,7 +146,7 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
           type="button" 
           className="toolbar-btn mode-toggle" 
           style={{ marginLeft: 'auto', background: showHtml ? '#e2e8f0' : 'transparent', fontWeight: 'bold' }}
-          onClick={() => setShowHtml(!showHtml)}
+          onClick={toggleHtmlMode}
           title="Toggle HTML Source"
         >
           {showHtml ? '👁️ Rich Text' : '💻 HTML Code'}
@@ -986,7 +1013,7 @@ function Admin() {
   };
 
 
-  const handleEditorImageUpload = async (index, editorRef) => {
+  const handleEditorImageUpload = async (index, insertCallbackOrRef) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -1005,14 +1032,16 @@ function Admin() {
         const data = await res.json();
         if (data.success && (data.url || data.secure_url)) {
           const imgUrl = data.url || data.secure_url;
-          if (editorRef.current) {
-            editorRef.current.focus();
+          if (typeof insertCallbackOrRef === 'function') {
+            insertCallbackOrRef(imgUrl);
+          } else if (insertCallbackOrRef && insertCallbackOrRef.current) {
+            insertCallbackOrRef.current.focus();
             const inserted = document.execCommand('insertImage', false, imgUrl);
-            if (!inserted || !editorRef.current.innerHTML.includes(imgUrl)) {
+            if (!inserted || !insertCallbackOrRef.current.innerHTML.includes(imgUrl)) {
               const imgHtml = `<p style="text-align: center;"><img src="${imgUrl}" style="max-width: 85%; border-radius: 12px; margin: 15px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" /></p>`;
-              editorRef.current.innerHTML += imgHtml;
+              insertCallbackOrRef.current.innerHTML += imgHtml;
             }
-            handleSlideChange(index, 'details', editorRef.current.innerHTML);
+            handleSlideChange(index, 'details', insertCallbackOrRef.current.innerHTML);
           }
         } else {
           alert(data.error || 'Upload failed');
@@ -1024,7 +1053,7 @@ function Admin() {
     input.click();
   };
 
-  const handleBlogEditorImageUpload = async (index, editorRef) => {
+  const handleBlogEditorImageUpload = async (index, insertCallbackOrRef) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -1043,14 +1072,16 @@ function Admin() {
         const data = await res.json();
         if (data.success && (data.url || data.secure_url)) {
           const imgUrl = data.url || data.secure_url;
-          if (editorRef.current) {
-            editorRef.current.focus();
+          if (typeof insertCallbackOrRef === 'function') {
+            insertCallbackOrRef(imgUrl);
+          } else if (insertCallbackOrRef && insertCallbackOrRef.current) {
+            insertCallbackOrRef.current.focus();
             const inserted = document.execCommand('insertImage', false, imgUrl);
-            if (!inserted || !editorRef.current.innerHTML.includes(imgUrl)) {
+            if (!inserted || !insertCallbackOrRef.current.innerHTML.includes(imgUrl)) {
               const imgHtml = `<p style="text-align: center;"><img src="${imgUrl}" style="max-width: 85%; border-radius: 12px; margin: 15px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" /></p>`;
-              editorRef.current.innerHTML += imgHtml;
+              insertCallbackOrRef.current.innerHTML += imgHtml;
             }
-            handleBlogChange(index, 'content', editorRef.current.innerHTML);
+            handleBlogChange(index, 'content', insertCallbackOrRef.current.innerHTML);
           }
         } else {
           alert(data.error || 'Upload failed');
