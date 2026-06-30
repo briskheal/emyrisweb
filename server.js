@@ -771,72 +771,64 @@ async function initDb() {
       console.log('ℹ️ Bypassing automated schema sync for Serverless environment.');
     }
 
+    // Load local seed file if available (from Neon backup with local /uploads/ images)
+    let seedBranding = defaultBranding;
+    let seedPages = defaultPages;
+    try {
+      const seedPath = path.join(__dirname, 'src', 'data', 'neon_seed.json');
+      if (fs.existsSync(seedPath)) {
+        const seedData = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+        if (seedData.branding) seedBranding = seedData.branding;
+        if (seedData.pages) seedPages = seedData.pages;
+      }
+    } catch (err) {
+      console.error('Could not load neon_seed.json:', err);
+    }
+
     // Seed Config if empty
     const brandRecord = await ConfigRecord.findByPk('branding');
-    if (!brandRecord) {
-      await ConfigRecord.create({ key: 'branding', value: JSON.stringify(defaultBranding) });
-      await ConfigRecord.create({ key: 'pages', value: JSON.stringify(defaultPages) });
-      console.log('✅ Seeded default configurations into database.');
+    const pagesRecord = await ConfigRecord.findByPk('pages');
+
+    if (!brandRecord || !pagesRecord) {
+      if (!brandRecord) await ConfigRecord.create({ key: 'branding', value: JSON.stringify(seedBranding) });
+      if (!pagesRecord) await ConfigRecord.create({ key: 'pages', value: JSON.stringify(seedPages) });
+      console.log('✅ Seeded default configurations into database from neon_seed.json.');
     } else {
-      // Safe merge: ensure existing branding config is updated with the new header patch color
+      // Check if existing database only has placeholder enhancers (fewer than 3 or missing J.Ranjan Dash), upgrade it to full seed
       try {
-        const currentBranding = JSON.parse(brandRecord.value);
-        if (currentBranding.headerColor === '#ffffff' || currentBranding.headerColor === 'rgba(255, 255, 255, 0.8)' || currentBranding.headerColor === 'rgba(0, 35, 69, 0.85)') {
-          currentBranding.headerColor = '#002345';
-          currentBranding.headerTextColor = '#ffffff';
-          await brandRecord.update({ value: JSON.stringify(currentBranding) });
-          console.log('✅ Updated header patch color to #002345 in branding database.');
-        }
-      } catch (e) {
-        console.error('Failed to update brand color:', e);
-      }
-      // Safe merge: ensure existing pages config contains doctors and enhancers tables
-      const pagesRecord = await ConfigRecord.findByPk('pages');
-      if (pagesRecord) {
-        try {
-          const currentPages = JSON.parse(pagesRecord.value);
+        const currentPages = JSON.parse(pagesRecord.value);
+        const hasRealEnhancers = currentPages.enhancers && currentPages.enhancers.some(e => e.name && e.name.includes('Ranjan'));
+        if (!hasRealEnhancers && seedPages.enhancers && seedPages.enhancers.length > 2) {
+          await pagesRecord.update({ value: JSON.stringify(seedPages) });
+          await brandRecord.update({ value: JSON.stringify(seedBranding) });
+          console.log('✅ Upgraded database configuration from placeholders to full seed data!');
+        } else {
+          // Safe merge: ensure existing branding config is updated with the new header patch color
+          const currentBranding = JSON.parse(brandRecord.value);
+          if (currentBranding.headerColor === '#ffffff' || currentBranding.headerColor === 'rgba(255, 255, 255, 0.8)' || currentBranding.headerColor === 'rgba(0, 35, 69, 0.85)') {
+            currentBranding.headerColor = '#002345';
+            currentBranding.headerTextColor = '#ffffff';
+            await brandRecord.update({ value: JSON.stringify(currentBranding) });
+            console.log('✅ Updated header patch color to #002345 in branding database.');
+          }
+
           let modified = false;
-          if (!currentPages.doctors) {
-            currentPages.doctors = defaultPages.doctors;
-            modified = true;
-          }
-          if (!currentPages.enhancers) {
-            currentPages.enhancers = defaultPages.enhancers;
-            modified = true;
-          }
-          if (!currentPages.testimonials) {
-            currentPages.testimonials = defaultPages.testimonials;
-            modified = true;
-          }
-          if (!currentPages.logisticPartners) {
-            currentPages.logisticPartners = defaultPages.logisticPartners;
-            modified = true;
-          }
-          if (!currentPages.markets) {
-            currentPages.markets = defaultPages.markets;
-            modified = true;
-          } else {
-            const hasJaipur = currentPages.markets.some(m => m.name === 'Jaipur');
-            if (!hasJaipur) {
-              currentPages.markets.push({ id: 14, name: "Jaipur", lat: 26.9124, lng: 75.7873, status: "Active" });
-              modified = true;
-            }
-          }
-                    if (!currentPages.offerings || currentPages.offerings.length <= 2 || !currentPages.offerings[0].slug) {
-            currentPages.offerings = defaultPages.offerings;
-            modified = true;
-          }
-if (!currentPages.services || currentPages.services.length < 6) {
-            currentPages.services = defaultPages.services;
-            modified = true;
-          }
+          if (!currentPages.doctors) { currentPages.doctors = seedPages.doctors || defaultPages.doctors; modified = true; }
+          if (!currentPages.enhancers) { currentPages.enhancers = seedPages.enhancers || defaultPages.enhancers; modified = true; }
+          if (!currentPages.testimonials) { currentPages.testimonials = seedPages.testimonials || defaultPages.testimonials; modified = true; }
+          if (!currentPages.logisticPartners) { currentPages.logisticPartners = seedPages.logisticPartners || defaultPages.logisticPartners; modified = true; }
+          if (!currentPages.markets) { currentPages.markets = seedPages.markets || defaultPages.markets; modified = true; }
+          if (!currentPages.offerings || currentPages.offerings.length <= 2) { currentPages.offerings = seedPages.offerings || defaultPages.offerings; modified = true; }
+          if (!currentPages.services || currentPages.services.length < 6) { currentPages.services = seedPages.services || defaultPages.services; modified = true; }
+          if (!currentPages.blogs || currentPages.blogs.length === 0) { currentPages.blogs = seedPages.blogs || []; modified = true; }
+
           if (modified) {
             await pagesRecord.update({ value: JSON.stringify(currentPages) });
-            console.log('✅ Merged missing dynamic tables (doctors, enhancers, testimonials, logistics, services) into Config database.');
+            console.log('✅ Merged missing dynamic tables into Config database.');
           }
-        } catch (e) {
-          console.error('Failed to merge config tables:', e);
         }
+      } catch (e) {
+        console.error('Failed to merge config tables:', e);
       }
     }
   } catch (err) {
