@@ -1280,6 +1280,34 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// System Hardware & VPS Specs Inspection Endpoint
+app.get('/api/sysinfo', async (req, res) => {
+  const { execSync } = await import('child_process');
+  let freeOutput = '';
+  let dfOutput = '';
+  let cpuInfo = '';
+  try { freeOutput = execSync('free -m').toString(); } catch(e) {}
+  try { dfOutput = execSync('df -h').toString(); } catch(e) {}
+  try { cpuInfo = execSync('cat /proc/cpuinfo | grep -m 1 "model name"').toString(); } catch(e) {}
+
+  const totalMemMB = Math.round(os.totalmem() / 1024 / 1024);
+  const freeMemMB = Math.round(os.freemem() / 1024 / 1024);
+  const cpus = os.cpus();
+
+  res.json({
+    totalMemMB,
+    freeMemMB,
+    usedMemMB: totalMemMB - freeMemMB,
+    cpuCores: cpus.length,
+    cpuModel: cpus[0] ? cpus[0].model : (cpuInfo || 'Unknown Model'),
+    uptimeHours: (os.uptime() / 3600).toFixed(1),
+    loadAvg: os.loadavg(),
+    freeOutput,
+    dfOutput
+  });
+});
+
+
 
 
 // --- COOLIFY STANDALONE HOSTING CONFIGURATION ---
