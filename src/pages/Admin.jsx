@@ -975,11 +975,15 @@ function Admin() {
           body: formData
         });
         const data = await res.json();
-        if (data.success) {
+        if (data.success && (data.url || data.secure_url)) {
+          const imgUrl = data.url || data.secure_url;
           if (editorRef.current) {
             editorRef.current.focus();
-            // Insert image element at cursor position
-            document.execCommand('insertImage', false, data.url);
+            const inserted = document.execCommand('insertImage', false, imgUrl);
+            if (!inserted || !editorRef.current.innerHTML.includes(imgUrl)) {
+              const imgHtml = `<p style="text-align: center;"><img src="${imgUrl}" style="max-width: 85%; border-radius: 12px; margin: 15px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" /></p>`;
+              editorRef.current.innerHTML += imgHtml;
+            }
             handleSlideChange(index, 'details', editorRef.current.innerHTML);
           }
         } else {
@@ -1009,10 +1013,15 @@ function Admin() {
           body: formData
         });
         const data = await res.json();
-        if (data.success && data.url) {
+        if (data.success && (data.url || data.secure_url)) {
+          const imgUrl = data.url || data.secure_url;
           if (editorRef.current) {
             editorRef.current.focus();
-            document.execCommand('insertImage', false, data.url);
+            const inserted = document.execCommand('insertImage', false, imgUrl);
+            if (!inserted || !editorRef.current.innerHTML.includes(imgUrl)) {
+              const imgHtml = `<p style="text-align: center;"><img src="${imgUrl}" style="max-width: 85%; border-radius: 12px; margin: 15px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" /></p>`;
+              editorRef.current.innerHTML += imgHtml;
+            }
             handleBlogChange(index, 'content', editorRef.current.innerHTML);
           }
         } else {

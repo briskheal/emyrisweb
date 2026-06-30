@@ -16,7 +16,31 @@ function Blog() {
     return false;
   };
 
-  const activeBlogs = blogs.filter(isBlogActive);
+  const categoryMap = {
+    'Easy Ways To Detox Every Room In Home': 'Healthier Living',
+    'Antibiotics & Its Role': 'Educational',
+    'Enteral nutrition in ICU patients.': 'Educational',
+    'Dengue Awareness': 'Health Awareness',
+    'What is an ICU ?': 'Educational',
+    'Importance of Blood Donation.': 'Health Awareness',
+    'Global Wind Day': 'Latest News',
+    'A good lifestyle': 'Healthier Living',
+    'Ventilator "The Life Saviour"': 'Educational',
+    'Understanding Organ Donation': 'Health Awareness',
+    'Organ donation legalities in India': 'Educational',
+    'Know you Kidney': 'Health Awareness',
+    'MonkeyPox-Mpox': 'Health Awareness',
+    'Maltrodextrin Vs Resistant Maltrodextrin': 'Educational'
+  };
+
+  const normalizedBlogs = blogs.map(b => {
+    const cleanCat = (b.category && b.category !== b.title && b.category !== 'General')
+      ? b.category
+      : (categoryMap[b.title ? b.title.trim() : ''] || 'Educational');
+    return { ...b, category: cleanCat };
+  });
+
+  const activeBlogs = normalizedBlogs.filter(isBlogActive);
 
   // Standard category order + any extra custom categories
   const baseCategories = ['All', 'Latest News', 'Health Awareness', 'Educational', 'Healthier Living'];
