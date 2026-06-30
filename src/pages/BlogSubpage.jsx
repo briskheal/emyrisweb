@@ -91,16 +91,34 @@ function BlogSubpage() {
           padding: 3rem;
           border-radius: 24px;
           margin-bottom: 3rem;
+          overflow: hidden;
         }
-        .blog-paragraph {
+        .blog-rich-content {
           font-size: 1.15rem;
           color: var(--text-light, #334155);
           line-height: 1.8;
-          margin-bottom: 1.8rem;
           text-align: justify;
         }
-        .blog-paragraph:last-child {
-          margin-bottom: 0;
+        .blog-rich-content p {
+          margin-bottom: 1.6rem;
+        }
+        .blog-rich-content h1, .blog-rich-content h2, .blog-rich-content h3 {
+          color: var(--primary, #002345);
+          margin-top: 2.2rem;
+          margin-bottom: 1rem;
+          font-weight: 700;
+        }
+        .blog-rich-content ul, .blog-rich-content ol {
+          margin-left: 1.5rem;
+          margin-bottom: 1.6rem;
+        }
+        .blog-rich-content li {
+          margin-bottom: 0.5rem;
+        }
+        .blog-rich-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 14px;
         }
         @media (max-width: 768px) {
           .blog-detail-banner {
@@ -115,9 +133,16 @@ function BlogSubpage() {
           .blog-content-card {
             padding: 1.5rem;
           }
-          .blog-paragraph {
+          .blog-rich-content {
             font-size: 1.05rem;
             line-height: 1.7;
+          }
+          .blog-rich-content img[style*="float: left"],
+          .blog-rich-content img[style*="float: right"] {
+            float: none !important;
+            margin: 1.2rem auto !important;
+            display: block !important;
+            max-width: 100% !important;
           }
         }
       `}</style>
@@ -147,11 +172,15 @@ function BlogSubpage() {
 
         {/* Main Content */}
         <div className="blog-content-card glass">
-          {blog.content && blog.content.map((para, idx) => (
-            <p key={idx} className="blog-paragraph">
-              {para}
-            </p>
-          ))}
+          {typeof blog.content === 'string' ? (
+            <div className="blog-rich-content" dangerouslySetInnerHTML={{ __html: blog.content }} />
+          ) : Array.isArray(blog.content) ? (
+            <div className="blog-rich-content">
+              {blog.content.map((para, idx) => (
+                <p key={idx}>{para}</p>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

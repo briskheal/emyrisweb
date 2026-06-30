@@ -74,16 +74,24 @@ if (isPlaceholderDb) {
   dbError = 'DATABASE_URL is missing or contains placeholder values';
 } else {
   try {
+    const isRemoteSslDb = process.env.DATABASE_URL && (
+      process.env.DATABASE_URL.includes('sslmode=require') || 
+      process.env.DATABASE_URL.includes('.neon.tech') || 
+      process.env.DATABASE_URL.includes('.amazonaws.com') ||
+      process.env.DATABASE_URL.includes('.supabase.co') ||
+      process.env.DATABASE_URL.includes('.render.com')
+    );
+
     sequelize = new Sequelize(process.env.DATABASE_URL, {
       dialect: 'postgres',
       dialectModule: pg,
       logging: false,
-      dialectOptions: {
+      dialectOptions: isRemoteSslDb ? {
         ssl: {
           require: true,
           rejectUnauthorized: false
         }
-      }
+      } : {}
     });
     dbEnabled = true;
   } catch (err) {
@@ -1219,7 +1227,14 @@ app.get('/api/admin/careers/:id/cv', async (req, res) => {
   }
 });
 
-// Cloudinary File Upload Endpoint (Admin Only)
+// Cloudinary & Local VPS File Upload Endpoint (Admin Only)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const vpsUploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(vpsUploadsDir)) {
+  fs.mkdirSync(vpsUploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(vpsUploadsDir));
+
 app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -1241,10 +1256,18 @@ app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
 
       res.json({ success: true, url: result.secure_url });
     } else {
-      // Mock File Upload if Cloudinary is not configured
-      const filename = path.basename(req.file.path);
-      console.warn('⚠️ Cloudinary is offline. Returning mock URL.');
-      res.json({ success: true, url: `https://via.placeholder.com/150?text=${encodeURIComponent(filename)}` });
+      // Local HostyCare VPS Disk Storage Fallback
+      let filename = path.basename(req.file.path);
+      if (!filename.toLowerCase().endsWith('.webp')) {
+        filename = `${filename.replace(/\.[^/.]+$/, '')}.webp`;
+      }
+      const targetPath = path.join(vpsUploadsDir, filename);
+      fs.copyFileSync(req.file.path, targetPath);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {}
+      console.log(`✅ Stored image locally on VPS: /uploads/${filename}`);
+      res.json({ success: true, url: `/uploads/${filename}` });
     }
   } catch (e) {
     console.error('Upload Error:', e);
@@ -1269,7 +1292,6 @@ app.get('/api/health', (req, res) => {
 
 // --- COOLIFY STANDALONE HOSTING CONFIGURATION ---
 // Serve the built React frontend static files from the 'dist' directory
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Wildcard catch-all: If it's not an API route, send back the React index.html

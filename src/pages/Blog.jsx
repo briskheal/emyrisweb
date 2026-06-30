@@ -18,20 +18,45 @@ function Blog() {
 
   const activeBlogs = blogs.filter(isBlogActive);
 
-  // Extract unique categories from active blogs
-  const categories = ['All', ...new Set(activeBlogs.map(b => b.category).filter(Boolean))];
+  // Standard category order + any extra custom categories
+  const baseCategories = ['All', 'Latest News', 'Health Awareness', 'Educational', 'Healthier Living'];
+  const customCategories = activeBlogs.map(b => b.category).filter(c => c && !baseCategories.includes(c));
+  const categories = [...baseCategories, ...new Set(customCategories)];
 
-  // Filter blogs based on selected category
-  const filteredBlogs = selectedCategory === 'All' 
+  // Helper to parse date for sorting
+  const parseBlogDate = (b) => {
+    if (b.publishDate) {
+      const d = new Date(b.publishDate);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+    if (b.date) {
+      const d = new Date(b.date);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+    return b.id || 0;
+  };
+
+  // Filter and sort blogs: newest first, then by title
+  const filteredBlogs = (selectedCategory === 'All' 
     ? activeBlogs 
-    : activeBlogs.filter(b => b.category === selectedCategory);
+    : activeBlogs.filter(b => b.category === selectedCategory))
+    .sort((a, b) => {
+      const timeDiff = parseBlogDate(b) - parseBlogDate(a);
+      if (timeDiff !== 0) return timeDiff;
+      return (a.title || '').localeCompare(b.title || '');
+    });
 
-  // Helper to get text excerpt
-  const getExcerpt = (contentArray, maxLength = 130) => {
-    if (!contentArray || contentArray.length === 0) return '';
-    const firstParagraph = contentArray[0];
-    if (firstParagraph.length <= maxLength) return firstParagraph;
-    return firstParagraph.slice(0, maxLength).trim() + '...';
+  // Helper to get text excerpt from string or array
+  const getExcerpt = (content, maxLength = 130) => {
+    if (!content) return '';
+    let text = '';
+    if (Array.isArray(content)) {
+      text = content[0] || '';
+    } else if (typeof content === 'string') {
+      text = content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+    }
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength).trim() + '...';
   };
 
   return (

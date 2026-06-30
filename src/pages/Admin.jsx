@@ -41,6 +41,35 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
     }
   };
 
+  const handleImageAlign = (alignment) => {
+    const selection = window.getSelection();
+    let imgNode = null;
+    if (selection && selection.anchorNode) {
+      if (selection.anchorNode.nodeName === 'IMG') {
+        imgNode = selection.anchorNode;
+      } else if (selection.anchorNode.parentElement && selection.anchorNode.parentElement.nodeName === 'IMG') {
+        imgNode = selection.anchorNode.parentElement;
+      }
+    }
+    if (!imgNode && editorRef.current) {
+      const imgs = editorRef.current.querySelectorAll('img');
+      if (imgs.length > 0) imgNode = imgs[imgs.length - 1];
+    }
+
+    if (imgNode) {
+      if (alignment === 'left') {
+        imgNode.style.cssText = 'float: left; margin: 0 18px 18px 0; max-width: 48%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);';
+      } else if (alignment === 'right') {
+        imgNode.style.cssText = 'float: right; margin: 0 0 18px 18px; max-width: 48%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);';
+      } else if (alignment === 'center') {
+        imgNode.style.cssText = 'display: block; margin: 20px auto; max-width: 90%; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.1); float: none; clear: both;';
+      }
+      handleInput();
+    } else {
+      alert('Please select or insert an image first to format its alignment.');
+    }
+  };
+
   return (
     <div className="wysiwyg-editor-container" style={{ border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', background: '#f8fafc', marginTop: '0.8rem' }}>
       {/* Editor Toolbar */}
@@ -63,6 +92,12 @@ function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
         <button type="button" className="toolbar-btn" onClick={() => execCmd('justifyCenter')} title="Align Center">Align C</button>
         <button type="button" className="toolbar-btn" onClick={() => execCmd('justifyRight')} title="Align Right">Align R</button>
         <button type="button" className="toolbar-btn" onClick={() => execCmd('justifyFull')} title="Justify">Justify</button>
+        
+        <span style={{ width: '1px', height: '20px', background: '#cbd5e1', margin: '0 4px' }} />
+        
+        <button type="button" className="toolbar-btn" onClick={() => handleImageAlign('left')} title="Float Image Left">🖼️ Pic Left</button>
+        <button type="button" className="toolbar-btn" onClick={() => handleImageAlign('center')} title="Center Image">🖼️ Pic Center</button>
+        <button type="button" className="toolbar-btn" onClick={() => handleImageAlign('right')} title="Float Image Right">🖼️ Pic Right</button>
         
         <span style={{ width: '1px', height: '20px', background: '#cbd5e1', margin: '0 4px' }} />
         
@@ -897,9 +932,10 @@ function Admin() {
   };
 
   const handleBlogImageUpload = async (e, index) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const rawFile = e.target.files[0];
+    if (!rawFile) return;
     setUploadingBlogIdx(index);
+    const file = await compressImage(rawFile, 1200, 1200, 0.82);
     const formData = new FormData();
     formData.append('file', file);
     try {
@@ -951,6 +987,42 @@ function Admin() {
         }
       } catch (err) {
         alert('Error uploading image to Cloudinary.');
+      }
+    };
+    input.click();
+  };
+
+  const handleBlogEditorImageUpload = async (index, editorRef) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const rawFile = e.target.files[0];
+      if (!rawFile) return;
+      setUploadingBlogIdx(index);
+      const file = await compressImage(rawFile, 1200, 1200, 0.82);
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          if (editorRef.current) {
+            editorRef.current.focus();
+            document.execCommand('insertImage', false, data.url);
+            handleBlogChange(index, 'content', editorRef.current.innerHTML);
+          }
+        } else {
+          alert(data.error || 'Upload failed');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error uploading image.');
+      } finally {
+        setUploadingBlogIdx(null);
       }
     };
     input.click();
@@ -2250,10 +2322,18 @@ function Admin() {
                       </label>
                       <label style={{ flex: 1, minWidth: '150px' }}>Category
                         <input 
+                          list="blog-categories-datalist"
                           value={blog.category || ''} 
                           onChange={(e) => handleBlogChange(editingBlogIdx, 'category', e.target.value)} 
-                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} 
+                          placeholder="Select or enter category"
+                          style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%' }} 
                         />
+                        <datalist id="blog-categories-datalist">
+                          <option value="Latest News" />
+                          <option value="Health Awareness" />
+                          <option value="Educational" />
+                          <option value="Healthier Living" />
+                        </datalist>
                       </label>
                     </div>
 
@@ -2355,48 +2435,18 @@ function Admin() {
                       </div>
                     </div>
 
-                    {/* Paragraph Editor */}
+                    {/* Visual HTML Rich Text Editor */}
                     <div style={{ marginTop: '2rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '1rem', fontWeight: 'bold' }}>Article Content (Paragraphs)</h4>
-                        <button type="button" className="btn-outline" onClick={() => addBlogContentParagraph(editingBlogIdx)} style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-                          ➕ Add Paragraph
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary)', fontSize: '1rem', fontWeight: 'bold' }}>Article Content (Visual HTML Editor)</h4>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>💡 Images are converted to .webp & aligned with Pic Left / Center / Right</span>
                       </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                        {(blog.content || []).map((para, pIdx) => (
-                          <div key={pIdx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-muted)', paddingTop: '12px', width: '30px' }}>
-                              #{pIdx + 1}
-                            </span>
-                            <textarea
-                              rows="4"
-                              value={para}
-                              onChange={(e) => handleBlogContentChange(editingBlogIdx, pIdx, e.target.value)}
-                              placeholder={`Enter paragraph #${pIdx + 1}...`}
-                              style={{ flex: 1, color: 'var(--text-light)', border: '1px solid var(--glass-border)' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => deleteBlogContentParagraph(editingBlogIdx, pIdx)}
-                              style={{ 
-                                background: 'rgba(239, 68, 68, 0.1)', 
-                                color: '#ef4444', 
-                                border: 'none', 
-                                padding: '8px 12px', 
-                                borderRadius: '6px', 
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                marginTop: '10px'
-                              }}
-                              title="Delete Paragraph"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                      <WYSIWYGEditor
+                        value={Array.isArray(blog.content) ? blog.content.map(p => `<p>${p}</p>`).join('') : (blog.content || '')}
+                        onChange={(val) => handleBlogChange(editingBlogIdx, 'content', val)}
+                        idx={editingBlogIdx}
+                        onImageUpload={handleBlogEditorImageUpload}
+                      />
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
