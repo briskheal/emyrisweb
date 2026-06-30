@@ -761,14 +761,14 @@ async function initDb() {
   try {
     // Attempt to authenticate connection
     await sequelize.authenticate();
-    console.log('✅ Connected to Neon PostgreSQL Database.');
+    console.log('✅ Connected to PostgreSQL Database.');
 
-    // Only run schema sync automatically if in local development to avoid Neon locks on Netlify Serverless
-    if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
+    // Run schema sync automatically on standalone servers (Coolify/VPS)
+    if (!process.env.NETLIFY && !process.env.VERCEL) {
       await sequelize.sync({ alter: true });
-      console.log('✅ Database models synchronized locally.');
+      console.log('✅ Database tables synchronized on VPS/Coolify.');
     } else {
-      console.log('✅ Bypassing automated schema sync for Serverless environment.');
+      console.log('ℹ️ Bypassing automated schema sync for Serverless environment.');
     }
 
     // Seed Config if empty
