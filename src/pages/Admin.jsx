@@ -372,6 +372,7 @@ function Admin() {
   const [editedBlogs, setEditedBlogs] = useState([]);
   const [savingBlogs, setSavingBlogs] = useState(false);
   const [uploadingBlogIdx, setUploadingBlogIdx] = useState(null);
+  const [uploadingBlogPicIdx, setUploadingBlogPicIdx] = useState(null);
   const [editingBlogIdx, setEditingBlogIdx] = useState(null);
 
   useEffect(() => {
@@ -957,6 +958,33 @@ function Admin() {
     }
   };
 
+  const handleBlogPicUpload = async (e, index) => {
+    const rawFile = e.target.files[0];
+    if (!rawFile) return;
+    setUploadingBlogPicIdx(index);
+    const file = await compressImage(rawFile, 1200, 1200, 0.82);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && (data.url || data.secure_url)) {
+        handleBlogChange(index, 'blogpic', data.url || data.secure_url);
+        alert("✅ Uploaded blogpic! You can click '⚡ Paste Link into Editor' or '📋 Copy Link' below.");
+      } else {
+        alert("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading image");
+    } finally {
+      setUploadingBlogPicIdx(null);
+    }
+  };
+
 
   const handleEditorImageUpload = async (index, editorRef) => {
     const input = document.createElement('input');
@@ -990,7 +1018,7 @@ function Admin() {
           alert(data.error || 'Upload failed');
         }
       } catch (err) {
-        alert('Error uploading image to Cloudinary.');
+        alert('Error uploading image to local disk.');
       }
     };
     input.click();
@@ -1327,9 +1355,9 @@ function Admin() {
                   style={{ objectFit: 'contain', border: '1px dashed var(--glass-border)', padding: '10px', borderRadius: '8px' }} 
                 />
                 <label style={{ flex: 1, margin: 0 }}>
-                  Upload Logo (Cloudinary Upload)
+                  Upload Logo (Local Storage)
                   <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} />
-                  {uploadingLogo && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading new logo to Cloudinary...</span>}
+                  {uploadingLogo && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading new logo to local disk...</span>}
                 </label>
               </div>
               <label>Logo Image URL
@@ -1554,9 +1582,9 @@ function Admin() {
                       style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--glass-border)' }} 
                     />
                     <label style={{ flex: 1, margin: 0 }}>
-                      Change Slide Photo (Cloudinary)
+                      Change Slide Photo (Local Storage)
                       <input type="file" accept="image/*" onChange={(e) => handleSlideImageUpload(e, idx)} disabled={uploadingSlideIdx !== null} />
-                      {uploadingSlideIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to Cloudinary...</span>}
+                      {uploadingSlideIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to local disk...</span>}
                     </label>
                   </div>
                   
@@ -1680,10 +1708,10 @@ function Admin() {
                       <input value={off.image || ''} onChange={(e) => handleOfferingChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
                     </label>
                     <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      Upload Banner Image (Cloudinary)
+                      Upload Banner Image (Local Storage)
                       <input type="file" accept="image/*" onChange={(e) => handleOfferingImageUpload(e, idx)} disabled={uploadingOfferingIdx !== null} style={{ marginTop: '0.25rem' }} />
                     </label>
-                    {uploadingOfferingIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading banner to Cloudinary...</span>}
+                    {uploadingOfferingIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading banner to local disk...</span>}
                   </div>
                   
                   <label>Tagline (Short Summary)
@@ -2019,9 +2047,9 @@ function Admin() {
                     </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <label style={{ margin: 0 }}>
-                        Upload Advisor Photo (Cloudinary)
+                        Upload Advisor Photo (Local Storage)
                         <input type="file" accept="image/*" onChange={(e) => handleAdvisorImageUpload(e, idx)} disabled={uploadingAdvisorIdx !== null} />
-                        {uploadingAdvisorIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to Cloudinary...</span>}
+                        {uploadingAdvisorIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to local disk...</span>}
                       </label>
                       <label style={{ margin: 0 }}>Photo URL
                         <input value={adv.image || ''} onChange={(e) => handleAdvisorChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -2093,9 +2121,9 @@ function Admin() {
                     </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <label style={{ margin: 0 }}>
-                        Upload Doctor Photo (Cloudinary)
+                        Upload Doctor Photo (Local Storage)
                         <input type="file" accept="image/*" onChange={(e) => handleDoctorImageUpload(e, idx)} disabled={uploadingDoctorIdx !== null} />
-                        {uploadingDoctorIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to Cloudinary...</span>}
+                        {uploadingDoctorIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to local disk...</span>}
                       </label>
                       <label style={{ margin: 0 }}>Photo URL
                         <input value={doc.image || ''} onChange={(e) => handleDoctorChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -2167,9 +2195,9 @@ function Admin() {
                     </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <label style={{ margin: 0 }}>
-                        Upload Photo (Cloudinary)
+                        Upload Photo (Local Storage)
                         <input type="file" accept="image/*" onChange={(e) => handleEnhancerImageUpload(e, idx)} disabled={uploadingEnhancerIdx !== null} />
-                        {uploadingEnhancerIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to Cloudinary...</span>}
+                        {uploadingEnhancerIdx === idx && <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to local disk...</span>}
                       </label>
                       <label style={{ margin: 0 }}>Photo URL
                         <input value={enh.image || ''} onChange={(e) => handleEnhancerChange(idx, 'image', e.target.value)} style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }} />
@@ -2379,7 +2407,7 @@ function Admin() {
                         />
                       </label>
                       <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        Upload Featured Image (Cloudinary)
+                        Upload Featured Image (Local Storage)
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -2389,8 +2417,64 @@ function Admin() {
                         />
                       </label>
                       {uploadingBlogIdx === editingBlogIdx && (
-                        <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to Cloudinary...</span>
+                        <span style={{ color: 'var(--primary)', fontSize: '0.85rem' }}>Uploading image to local server disk...</span>
                       )}
+                    </div>
+
+                    {/* Dedicated blogpic Upload Section */}
+                    <div className="glass" style={{ marginTop: '1.5rem', padding: '1.25rem', borderRadius: '12px', background: 'rgba(82, 203, 203, 0.04)', border: '1px solid rgba(82, 203, 203, 0.2)' }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--primary)', fontSize: '0.95rem', fontWeight: 'bold' }}>📸 Extra Article Picture (blogpic field)</h4>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.8rem 0' }}>Upload any image below. It will save directly onto your VPS disk and store its URL in the <code>blogpic</code> database field. You can then click paste to instantly insert it into your HTML article editor below!</p>
+                      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <label style={{ flex: 1, minWidth: '220px', margin: 0 }}>blogpic URL
+                          <input 
+                            value={blog.blogpic || ''} 
+                            onChange={(e) => handleBlogChange(editingBlogIdx, 'blogpic', e.target.value)} 
+                            placeholder="/uploads/my-article-pic.webp"
+                            style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', padding: '8px', borderRadius: '6px', background: '#fff', marginTop: '4px' }} 
+                          />
+                        </label>
+                        <div>
+                          <label className="btn-outline" style={{ display: 'inline-block', cursor: 'pointer', padding: '8px 14px', fontSize: '0.85rem', margin: 0 }}>
+                            {uploadingBlogPicIdx === editingBlogIdx ? '📤 Uploading...' : '📤 Upload blogpic'}
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={(e) => handleBlogPicUpload(e, editingBlogIdx)} 
+                              disabled={uploadingBlogPicIdx !== null} 
+                              style={{ display: 'none' }} 
+                            />
+                          </label>
+                        </div>
+                        {blog.blogpic && (
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              type="button"
+                              className="btn"
+                              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+                              onClick={() => {
+                                const currentVal = Array.isArray(blog.content) ? blog.content.map(p => `<p>${p}</p>`).join('') : (blog.content || '');
+                                const imgHtml = `<p style="text-align: center;"><img src="${blog.blogpic}" style="max-width: 85%; border-radius: 12px; margin: 15px auto; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" /></p>`;
+                                handleBlogChange(editingBlogIdx, 'content', currentVal + imgHtml);
+                                alert("✅ Inserted blogpic directly into the HTML editor below!");
+                              }}
+                            >
+                              ⚡ Paste Link into Editor
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-outline"
+                              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+                              onClick={() => {
+                                navigator.clipboard.writeText(blog.blogpic);
+                                alert("📋 Copied blogpic link to clipboard!");
+                              }}
+                            >
+                              📋 Copy Link
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Scheduling Section */}
