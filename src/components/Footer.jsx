@@ -168,7 +168,8 @@ function Footer() {
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: 0 }}>
             <li><Link to="/" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Home</Link></li>
             <li><Link to="/discover" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>About Us</Link></li>
-            <li><Link to="/contact" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Contact Us</Link></li>
+            <li><Link to="/career" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Careers</Link></li>
+            <li><a href="https://emyrishr.in" target="_blank" rel="noopener noreferrer" style={{ ...linkStyle, color: 'var(--secondary)', fontWeight: '700' }} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Employee Onboarding Portal ↗</a></li>
             <li><Link to="/terms-and-conditions" target="_blank" rel="noreferrer" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Terms & Conditions</Link></li>
             <li><Link to="/privacy-policy" target="_blank" rel="noreferrer" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Privacy Policy</Link></li>
             <li><Link to="/disclaimer" target="_blank" rel="noreferrer" style={linkStyle} onMouseOver={(e) => e.target.style.paddingLeft = '5px'} onMouseOut={(e) => e.target.style.paddingLeft = '0'}>Disclaimer</Link></li>

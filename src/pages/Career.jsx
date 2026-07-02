@@ -137,6 +137,47 @@ function Career() {
           </p>
         </div>
 
+        {/* Onboarding Portal Card */}
+        <div style={{
+          background: 'linear-gradient(135deg, #002345 0%, #003a70 100%)',
+          borderRadius: '20px',
+          padding: '2.5rem',
+          color: '#ffffff',
+          marginBottom: '4rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '2rem',
+          boxShadow: '0 20px 40px rgba(0, 35, 69, 0.15)',
+          border: '1px solid rgba(82, 203, 203, 0.3)'
+        }}>
+          <div style={{ flex: '1 1 400px', textAlign: 'left' }}>
+            <span style={{ background: 'var(--secondary)', color: '#002345', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>Selected Candidates & Staff</span>
+            <h3 style={{ fontSize: '1.8rem', fontWeight: '800', marginTop: '1rem', color: '#ffffff' }}>Official Employee Onboarding Portal</h3>
+            <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '1.05rem', marginTop: '0.5rem', lineHeight: '1.6' }}>
+              Have you received an offer letter or onboarding invitation? Access our secure digital portal to complete your verification, upload documents, and generate your joining paperwork.
+            </p>
+          </div>
+          <div>
+            <a href="https://emyrishr.in" target="_blank" rel="noopener noreferrer" className="btn" style={{
+              background: 'var(--secondary)',
+              color: '#002345',
+              padding: '1rem 2rem',
+              borderRadius: '50px',
+              fontWeight: '800',
+              fontSize: '1.05rem',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: '0 10px 25px rgba(82, 203, 203, 0.3)'
+            }}>
+              Launch Onboarding Portal ↗
+            </a>
+          </div>
+        </div>
+
         <div className="career-cards-grid" style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
