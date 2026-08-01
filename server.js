@@ -1459,6 +1459,38 @@ app.get('/api/sysinfo', requireAdmin, async (req, res) => {
   });
 });
 
+// Deep Disk Analysis Endpoint (admin only — temporary diagnostic tool)
+app.get('/api/admin/diskcheck', requireAdmin, async (req, res) => {
+  const { execSync } = await import('child_process');
+  const run = (cmd) => { try { return execSync(cmd, { timeout: 15000 }).toString().trim(); } catch(e) { return `ERROR: ${e.message}`; } };
+
+  res.json({
+    // Top-level root directories by size
+    rootDu:        run('du -sh /* 2>/dev/null | sort -rh | head -20'),
+    // /app directory (where Coolify typically mounts apps)
+    appDu:         run('du -sh /app/* 2>/dev/null | sort -rh | head -20'),
+    // /data directory (databases, volumes)
+    dataDu:        run('du -sh /data/* 2>/dev/null | sort -rh | head -20'),
+    // Docker overlay layers & volumes (Coolify uses Docker)
+    dockerDu:      run('du -sh /var/lib/docker/* 2>/dev/null | sort -rh | head -20'),
+    // Uploads folder for this app
+    uploadsDu:     run(`du -sh ${process.env.VPS_UPLOADS_DIR || '/var/uploads/emyrisweb'}/* 2>/dev/null | sort -rh | head -30`),
+    // /var top level
+    varDu:         run('du -sh /var/* 2>/dev/null | sort -rh | head -20'),
+    // /tmp
+    tmpDu:         run('du -sh /tmp/* 2>/dev/null | sort -rh | head -10'),
+    // Logs
+    logsDu:        run('du -sh /var/log/* 2>/dev/null | sort -rh | head -15'),
+    // Find largest individual files across whole disk
+    largestFiles:  run('find / -xdev -type f -size +100M 2>/dev/null | xargs du -sh 2>/dev/null | sort -rh | head -20'),
+    // Current app uploads dir env
+    uploadsDir:    process.env.VPS_UPLOADS_DIR || 'not set',
+    // df summary
+    dfAll:         run('df -h'),
+    timestamp:     new Date().toISOString()
+  });
+});
+
 
 
 
