@@ -1,6 +1,6 @@
-import React, { useContext, useState, useRef } from 'react';
+import React, { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import CaptchaBox from '../components/CaptchaBox';
+import { useRecaptcha } from '../components/CaptchaBox';
 
 function Contact() {
   const { siteData } = useContext(AppContext);
@@ -13,7 +13,8 @@ function Contact() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const getRecaptchaToken = useRecaptcha();
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,12 +26,11 @@ function Contact() {
       setError('Please fill in all required fields.');
       return;
     }
-    if (!captchaToken) {
-      setError('Please complete the CAPTCHA verification.');
-      return;
-    }
+    setSubmitting(true);
+    setError('');
 
     try {
+      const captchaToken = await getRecaptchaToken('contact_form');
       const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,19 +40,12 @@ function Contact() {
       if (data.success) {
         setSubmitted(true);
         setError('');
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          offering: '',
-          message: ''
-        });
+        setFormData({ name: '', email: '', phone: '', offering: '', message: '' });
       } else {
         setError(data.error || 'Failed to submit inquiry.');
       }
     } catch (err) {
       setError('Network error. Saving to local database backup.');
-      // Fallback submission logic
       const savedInquiries = JSON.parse(localStorage.getItem('emyrisInquiries') || '[]');
       savedInquiries.push({
         ...formData,
@@ -62,6 +55,8 @@ function Contact() {
       });
       localStorage.setItem('emyrisInquiries', JSON.stringify(savedInquiries));
       setSubmitted(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -185,8 +180,12 @@ function Contact() {
                 style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }}
               ></textarea>
             </label>
-            <CaptchaBox onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
-            <button type="submit" className="btn" style={{ marginTop: '1rem' }} disabled={!captchaToken}>Submit Inquiry</button>
+            <button type="submit" className="btn" style={{ marginTop: '1rem' }} disabled={submitting}>
+              {submitting ? 'Submitting…' : 'Submit Inquiry'}
+            </button>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              🔒 Protected by reCAPTCHA
+            </p>
           </form>
         )}
       </div>

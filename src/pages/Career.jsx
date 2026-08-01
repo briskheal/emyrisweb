@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
-import CaptchaBox from '../components/CaptchaBox';
+import { useRecaptcha } from '../components/CaptchaBox';
 
 function Career() {
   const { siteData } = useContext(AppContext);
@@ -16,7 +16,7 @@ function Career() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const getRecaptchaToken = useRecaptcha();
 
   const careerCards = [
     {
@@ -79,10 +79,6 @@ function Career() {
       setError('Please fill in all required fields.');
       return;
     }
-    if (!captchaToken) {
-      setError('Please complete the CAPTCHA verification.');
-      return;
-    }
     setSubmitting(true);
     setError('');
 
@@ -100,7 +96,8 @@ function Career() {
     }
 
     try {
-      submitData.append('captchaToken', captchaToken);
+      const captchaToken = await getRecaptchaToken('career_form');
+      submitData.append('captchaToken', captchaToken || '');
       const res = await fetch('/api/careers', {
         method: 'POST',
         body: submitData
@@ -283,11 +280,10 @@ function Career() {
                   
                   <textarea name="address" value={formData.address} onChange={handleInputChange} placeholder="Address*:" required rows="4" style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', resize: 'vertical', fontSize: '1rem' }}></textarea>
                   
-                  <CaptchaBox onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
-
-                  <button type="submit" className="btn" disabled={submitting || !captchaToken} style={{ padding: '16px', fontSize: '1.15rem', fontWeight: 'bold', marginTop: '1rem', width: '100%' }}>
+                  <button type="submit" className="btn" disabled={submitting} style={{ padding: '16px', fontSize: '1.15rem', fontWeight: 'bold', marginTop: '1rem', width: '100%' }}>
                     {submitting ? 'Submitting...' : 'Submit'}
                   </button>
+                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>🔒 Protected by reCAPTCHA</p>
                 </form>
               )}
             </div>

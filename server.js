@@ -69,7 +69,7 @@ const requireAdmin = (req, res, next) => {
 };
 
 // ─── CAPTCHA VERIFICATION ──────────────────────────────────────────────────────
-// Server-side validation of Google reCAPTCHA v2 token
+// Server-side validation of Google reCAPTCHA v3 token
 const verifyCaptcha = async (token) => {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
   if (!secret) {
@@ -86,7 +86,15 @@ const verifyCaptcha = async (token) => {
       body: params
     });
     const data = await res.json();
-    return data.success === true;
+    // v3 returns a score (0.0–1.0). >= 0.5 = likely human.
+    // v2 returns success: true/false (score not present — treat as pass if success=true)
+    if (data.success) {
+      if (typeof data.score === 'number') {
+        return data.score >= 0.5; // v3 score check
+      }
+      return true; // v2 — success is enough
+    }
+    return false;
   } catch (err) {
     console.error('CAPTCHA verification error:', err.message);
     return false;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import CaptchaBox from '../components/CaptchaBox';
+import { useRecaptcha } from '../components/CaptchaBox';
 import './ServiceSubpage.css';
 
 function ServiceSubpage() {
@@ -15,7 +15,7 @@ function ServiceSubpage() {
   });
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('');
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const getRecaptchaToken = useRecaptcha();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,11 +29,9 @@ function ServiceSubpage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!captchaToken) {
-      setStatus('Please complete the CAPTCHA verification.');
-      return;
-    }
     setStatus('Submitting...');
+
+    const captchaToken = await getRecaptchaToken('service_form');
     
     const submitData = new FormData();
     submitData.append('name', formData.name);
@@ -266,9 +264,8 @@ function ServiceSubpage() {
                 </div>
               </div>
 
-              <CaptchaBox onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
-
-              <button type="submit" className="btn submit-btn" disabled={!captchaToken}>Submit</button>
+              <button type="submit" className="btn submit-btn" disabled={status === 'Submitting...'}>Submit</button>
+              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>🔒 Protected by reCAPTCHA</p>
             </form>
           </div>
         </div>

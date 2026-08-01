@@ -1,31 +1,33 @@
-import React from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
-
 /**
- * Reusable reCAPTCHA v2 wrapper component.
- * Usage: <CaptchaBox onVerify={setToken} onExpire={() => setToken(null)} />
- * The parent must gate form submission on token being non-null.
+ * reCAPTCHA v3 utility hook.
+ * Usage in any form component:
+ *   const getRecaptchaToken = useRecaptcha();
+ *   const token = await getRecaptchaToken('contact_form');
+ *   // send token with form data to backend
+ *
+ * v3 is invisible — no checkbox, no user friction.
+ * The GoogleReCaptchaProvider in main.jsx handles the script loading.
  */
-function CaptchaBox({ onVerify, onExpire }) {
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-  if (!siteKey) {
-    console.warn('VITE_RECAPTCHA_SITE_KEY not set. CAPTCHA disabled.');
-    // Auto-verify so form still works in dev without keys
-    if (onVerify) onVerify('dev-bypass');
-    return null;
-  }
+export function useRecaptcha() {
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
-  return (
-    <div style={{ margin: '1rem 0' }}>
-      <ReCAPTCHA
-        sitekey={siteKey}
-        theme="dark"
-        onChange={onVerify}
-        onExpired={onExpire}
-      />
-    </div>
-  );
+  const getToken = async (action = 'submit') => {
+    if (!executeRecaptcha) {
+      console.warn('reCAPTCHA not loaded yet');
+      return null;
+    }
+    try {
+      const token = await executeRecaptcha(action);
+      return token;
+    } catch (err) {
+      console.error('reCAPTCHA execute error:', err);
+      return null;
+    }
+  };
+
+  return getToken;
 }
 
-export default CaptchaBox;
+export default useRecaptcha;

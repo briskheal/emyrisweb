@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import CaptchaBox from '../components/CaptchaBox';
+import { useRecaptcha } from '../components/CaptchaBox';
 
 // ── Offering data — matches emyrisbio.com content exactly ──────────────────
 const OFFERING_DATA = {
@@ -396,16 +396,13 @@ function InquiryModal({ offering, onClose }) {
   const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const getRecaptchaToken = useRecaptcha();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!captchaToken) {
-      alert('Please complete the CAPTCHA verification.');
-      return;
-    }
     setLoading(true);
     try {
+      const captchaToken = await getRecaptchaToken('inquiry_modal');
       await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -441,10 +438,10 @@ function InquiryModal({ offering, onClose }) {
               <input type="tel" required placeholder="Phone Number *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               <input type="email" required placeholder="Email Address *" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               <textarea rows="3" placeholder="Your Message" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
-              <CaptchaBox onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
-              <button type="submit" className="btn" disabled={loading || !captchaToken} style={{ width: '100%' }}>
+              <button type="submit" className="btn" disabled={loading} style={{ width: '100%' }}>
                 {loading ? '⏳ Sending…' : '📨 Submit Inquiry'}
               </button>
+              <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.4rem' }}>🔒 Protected by reCAPTCHA</p>
             </form>
           </>
         )}
