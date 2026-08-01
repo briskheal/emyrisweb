@@ -68,6 +68,31 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// ─── CAPTCHA VERIFICATION ──────────────────────────────────────────────────────
+// Server-side validation of Google reCAPTCHA v2 token
+const verifyCaptcha = async (token) => {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) {
+    console.warn('⚠️ RECAPTCHA_SECRET_KEY not set. Skipping CAPTCHA check (dev mode).');
+    return true; // Dev bypass — always pass if key not configured
+  }
+  if (!token) return false;
+  try {
+    const params = new URLSearchParams();
+    params.append('secret', secret);
+    params.append('response', token);
+    const res = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
+      method: 'POST',
+      body: params
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch (err) {
+    console.error('CAPTCHA verification error:', err.message);
+    return false;
+  }
+};
+
 // ─── RATE LIMITERS ────────────────────────────────────────────────────────────
 // Public contact/career forms: max 5 submissions per 15 minutes per IP
 const formLimiter = rateLimit({
@@ -1039,9 +1064,13 @@ app.get('/api/test-email', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/inquiries', formLimiter, async (req, res) => {
-  const { name, email, phone, offering, message } = req.body;
+  const { name, email, phone, offering, message, captchaToken } = req.body;
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
+  }
+  const captchaOk = await verifyCaptcha(captchaToken);
+  if (!captchaOk) {
+    return res.status(400).json({ success: false, error: 'CAPTCHA verification failed. Please try again.' });
   }
 
   try {
@@ -1128,12 +1157,17 @@ app.delete('/api/admin/inquiries/:id', requireAdmin, async (req, res) => {
 
 // Submit Career Application
 app.post('/api/careers', formLimiter, upload.single('resume'), async (req, res) => {
-  const { name, email, phone, position, experience, message } = req.body;
+  const { name, email, phone, position, experience, message, captchaToken } = req.body;
   if (!name || !email || !position) {
     if (req.file) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
     return res.status(400).json({ success: false, error: 'Name, email, and position are required.' });
+  }
+  const captchaOk = await verifyCaptcha(captchaToken);
+  if (!captchaOk) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    return res.status(400).json({ success: false, error: 'CAPTCHA verification failed. Please try again.' });
   }
 
   let resumeData = null;
@@ -1195,12 +1229,17 @@ app.post('/api/careers', formLimiter, upload.single('resume'), async (req, res) 
 
 // Submit Form (for Services Pages)
 app.post('/api/submissions', formLimiter, upload.single('attachment'), async (req, res) => {
-  const { name, email, subject, phone, message, servicePage } = req.body;
+  const { name, email, subject, phone, message, servicePage, captchaToken } = req.body;
   if (!name || !email || !message) {
     if (req.file) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
     return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
+  }
+  const captchaOk = await verifyCaptcha(captchaToken);
+  if (!captchaOk) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    return res.status(400).json({ success: false, error: 'CAPTCHA verification failed. Please try again.' });
   }
 
   let attachmentData = null;

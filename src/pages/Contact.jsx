@@ -1,5 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
+import CaptchaBox from '../components/CaptchaBox';
 
 function Contact() {
   const { siteData } = useContext(AppContext);
@@ -12,6 +13,7 @@ function Contact() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState(null);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,12 +25,16 @@ function Contact() {
       setError('Please fill in all required fields.');
       return;
     }
+    if (!captchaToken) {
+      setError('Please complete the CAPTCHA verification.');
+      return;
+    }
 
     try {
       const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, captchaToken })
       });
       const data = await res.json();
       if (data.success) {
@@ -179,7 +185,8 @@ function Contact() {
                 style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }}
               ></textarea>
             </label>
-            <button type="submit" className="btn" style={{ marginTop: '1rem' }}>Submit Inquiry</button>
+            <CaptchaBox onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
+            <button type="submit" className="btn" style={{ marginTop: '1rem' }} disabled={!captchaToken}>Submit Inquiry</button>
           </form>
         )}
       </div>

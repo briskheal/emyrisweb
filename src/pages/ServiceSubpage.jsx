@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import CaptchaBox from '../components/CaptchaBox';
 import './ServiceSubpage.css';
 
 function ServiceSubpage() {
@@ -14,6 +15,7 @@ function ServiceSubpage() {
   });
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('');
+  const [captchaToken, setCaptchaToken] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,6 +29,10 @@ function ServiceSubpage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!captchaToken) {
+      setStatus('Please complete the CAPTCHA verification.');
+      return;
+    }
     setStatus('Submitting...');
     
     const submitData = new FormData();
@@ -36,6 +42,7 @@ function ServiceSubpage() {
     submitData.append('phone', formData.phone);
     submitData.append('message', formData.message);
     submitData.append('servicePage', pageId);
+    submitData.append('captchaToken', captchaToken);
     if (file) {
       submitData.append('attachment', file);
     }
@@ -259,7 +266,9 @@ function ServiceSubpage() {
                 </div>
               </div>
 
-              <button type="submit" className="btn submit-btn">Submit</button>
+              <CaptchaBox onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
+
+              <button type="submit" className="btn submit-btn" disabled={!captchaToken}>Submit</button>
             </form>
           </div>
         </div>
