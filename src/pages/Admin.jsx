@@ -416,6 +416,18 @@ function Admin() {
     }
   }, []);
 
+  // Helper: fetch with admin token header automatically attached
+  const adminFetch = (url, options = {}) => {
+    const token = sessionStorage.getItem('emyrisAdminToken') || '';
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        'x-admin-token': token
+      }
+    });
+  };
+
   // Fetch tables when logged in
   useEffect(() => {
     if (isLoggedIn) {
@@ -427,7 +439,7 @@ function Admin() {
     setLoadingList(true);
     try {
       // Inquiries
-      const inqRes = await fetch('/api/admin/inquiries');
+      const inqRes = await adminFetch('/api/admin/inquiries');
       const inqData = await inqRes.json();
       if (inqData.success) {
         setInquiries(inqData.inquiries);
@@ -437,7 +449,7 @@ function Admin() {
       }
 
       // Careers
-      const carRes = await fetch('/api/admin/careers');
+      const carRes = await adminFetch('/api/admin/careers');
       const carData = await carRes.json();
       if (carData.success) {
         setCareers(carData.applications);
@@ -465,8 +477,11 @@ function Admin() {
       });
       const data = await res.json();
       if (data.success) {
-        setIsLoggedIn(true);
+        // Store the admin secret token for all subsequent admin API calls
+        const adminToken = import.meta.env.VITE_ADMIN_SECRET_TOKEN || '';
         sessionStorage.setItem('emyrisAdminLoggedIn', 'true');
+        sessionStorage.setItem('emyrisAdminToken', adminToken);
+        setIsLoggedIn(true);
       } else {
         setLoginError(data.message || 'Invalid Credentials');
       }
@@ -656,7 +671,7 @@ function Admin() {
       const formData = new FormData();
       formData.append('file', compressedFile);
 
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -725,7 +740,7 @@ function Admin() {
       const formData = new FormData();
       formData.append('file', compressedFile);
 
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -858,7 +873,7 @@ function Admin() {
       const formData = new FormData();
       formData.append('file', compressedFile);
 
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -967,7 +982,7 @@ function Admin() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -993,7 +1008,7 @@ function Admin() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -1025,7 +1040,7 @@ function Admin() {
       formData.append('file', file);
       
       try {
-        const res = await fetch('/api/admin/upload', {
+        const res = await adminFetch('/api/admin/upload', {
           method: 'POST',
           body: formData
         });
@@ -1065,7 +1080,7 @@ function Admin() {
       const formData = new FormData();
       formData.append('file', file);
       try {
-        const res = await fetch('/api/admin/upload', {
+        const res = await adminFetch('/api/admin/upload', {
           method: 'POST',
           body: formData
         });
@@ -1141,7 +1156,7 @@ function Admin() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -1168,7 +1183,7 @@ function Admin() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });
@@ -1195,7 +1210,7 @@ function Admin() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/admin/upload', {
+      const res = await adminFetch('/api/admin/upload', {
         method: 'POST',
         body: formData
       });

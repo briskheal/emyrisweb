@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -24,7 +25,25 @@ const transporter = nodemailer.createTransport({
 });
 
 const app = express();
-app.use(cors());
+
+// ─── CORS: Restrict to own domain only ────────────────────────────────────────
+const allowedOrigins = [
+  'https://emyrisbio.com',
+  'http://localhost:5173',
+  'http://localhost:5000'
+];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman) or matching origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS: Origin not allowed'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -34,15 +53,80 @@ app.use((req, res, next) => {
   next();
 });
 
+// ─── ADMIN AUTH MIDDLEWARE ─────────────────────────────────────────────────────
+// All /api/admin/* routes require this header: x-admin-token: <ADMIN_SECRET_TOKEN>
+const requireAdmin = (req, res, next) => {
+  const token = req.headers['x-admin-token'];
+  const secretToken = process.env.ADMIN_SECRET_TOKEN;
+  if (!secretToken) {
+    console.warn('⚠️ ADMIN_SECRET_TOKEN not set in env. Admin routes are unprotected!');
+    return next(); // Fail open only if token not configured (dev fallback)
+  }
+  if (!token || token !== secretToken) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing admin token.' });
+  }
+  next();
+};
+
+// ─── RATE LIMITERS ────────────────────────────────────────────────────────────
+// Public contact/career forms: max 5 submissions per 15 minutes per IP
+const formLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many submissions. Please try again after 15 minutes.' }
+});
+
+// Admin login: max 10 attempts per 15 minutes per IP
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many login attempts. Please try again later.' }
+});
+
+// ─── MULTER WITH FILE TYPE FILTER ─────────────────────────────────────────────
 // Configure temp directory for multer temp files (Serverless compatible)
 const uploadDir = os.tmpdir();
+
+// Allowed MIME types for uploads
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+const ALLOWED_DOC_TYPES   = ['application/pdf'];
+const ALLOWED_ALL_TYPES   = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOC_TYPES];
 
 // Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
-const upload = multer({ storage });
+
+// Image-only upload (admin branding/photos)
+const uploadImage = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type. Only images (JPG, PNG, WebP, GIF, SVG) are allowed.`));
+    }
+  }
+});
+
+// Document upload (CVs / attachments — PDF + images)
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_ALL_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type. Only PDF and images are allowed.`));
+    }
+  }
+});
 
 // Cloudinary Configuration
 let cloudinaryConfigured = false;
@@ -873,7 +957,7 @@ initDb();
 // --- API ENDPOINTS ---
 
 // Admin Login
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', loginLimiter, (req, res) => {
   const { adminId, password } = req.body;
   const correctId = process.env.ADMIN_ID;
   const correctPass = process.env.ADMIN_PASSWORD;
@@ -913,7 +997,7 @@ app.get('/api/config', async (req, res) => {
 });
 
 // Update Config (Admin only)
-app.post('/api/admin/config', async (req, res) => {
+app.post('/api/admin/config', requireAdmin, async (req, res) => {
   const { type, data } = req.body; // type can be 'branding' or 'pages'
   if (!['branding', 'pages'].includes(type)) {
     return res.status(400).json({ success: false, error: 'Invalid config type' });
@@ -939,7 +1023,7 @@ app.post('/api/admin/config', async (req, res) => {
 });
 
 // Submit Contact Inquiry
-app.get('/api/test-email', async (req, res) => {
+app.get('/api/test-email', requireAdmin, async (req, res) => {
   try {
     await transporter.verify();
     let info = await transporter.sendMail({
@@ -954,7 +1038,7 @@ app.get('/api/test-email', async (req, res) => {
   }
 });
 
-app.post('/api/inquiries', async (req, res) => {
+app.post('/api/inquiries', formLimiter, async (req, res) => {
   const { name, email, phone, offering, message } = req.body;
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
@@ -994,7 +1078,7 @@ app.post('/api/inquiries', async (req, res) => {
 });
 
 // Get Inquiries (Admin)
-app.get('/api/admin/inquiries', async (req, res) => {
+app.get('/api/admin/inquiries', requireAdmin, async (req, res) => {
   try {
     if (dbEnabled) {
       const inquiries = await Inquiry.findAll({ order: [['createdAt', 'DESC']] });
@@ -1008,7 +1092,7 @@ app.get('/api/admin/inquiries', async (req, res) => {
 });
 
 // Update Inquiry Status (Admin)
-app.put('/api/admin/inquiries/:id', async (req, res) => {
+app.put('/api/admin/inquiries/:id', requireAdmin, async (req, res) => {
   const { status } = req.body;
   try {
     if (dbEnabled) {
@@ -1028,7 +1112,7 @@ app.put('/api/admin/inquiries/:id', async (req, res) => {
 });
 
 // Delete Inquiry (Admin)
-app.delete('/api/admin/inquiries/:id', async (req, res) => {
+app.delete('/api/admin/inquiries/:id', requireAdmin, async (req, res) => {
   try {
     if (dbEnabled) {
       const deleted = await Inquiry.destroy({ where: { id: req.params.id } });
@@ -1043,7 +1127,7 @@ app.delete('/api/admin/inquiries/:id', async (req, res) => {
 });
 
 // Submit Career Application
-app.post('/api/careers', upload.single('resume'), async (req, res) => {
+app.post('/api/careers', formLimiter, upload.single('resume'), async (req, res) => {
   const { name, email, phone, position, experience, message } = req.body;
   if (!name || !email || !position) {
     if (req.file) {
@@ -1110,7 +1194,7 @@ app.post('/api/careers', upload.single('resume'), async (req, res) => {
 });
 
 // Submit Form (for Services Pages)
-app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
+app.post('/api/submissions', formLimiter, upload.single('attachment'), async (req, res) => {
   const { name, email, subject, phone, message, servicePage } = req.body;
   if (!name || !email || !message) {
     if (req.file) {
@@ -1177,7 +1261,7 @@ app.post('/api/submissions', upload.single('attachment'), async (req, res) => {
 });
 
 // Get Career Applications (Admin)
-app.get('/api/admin/careers', async (req, res) => {
+app.get('/api/admin/careers', requireAdmin, async (req, res) => {
   try {
     if (dbEnabled) {
       const applications = await Career.findAll({ order: [['createdAt', 'DESC']] });
@@ -1191,7 +1275,7 @@ app.get('/api/admin/careers', async (req, res) => {
 });
 
 // Update Career Application Status (Admin)
-app.put('/api/admin/careers/:id', async (req, res) => {
+app.put('/api/admin/careers/:id', requireAdmin, async (req, res) => {
   const { status } = req.body;
   try {
     if (dbEnabled) {
@@ -1211,7 +1295,7 @@ app.put('/api/admin/careers/:id', async (req, res) => {
 });
 
 // Delete Career Application (Admin)
-app.delete('/api/admin/careers/:id', async (req, res) => {
+app.delete('/api/admin/careers/:id', requireAdmin, async (req, res) => {
   try {
     if (dbEnabled) {
       const deleted = await Career.destroy({ where: { id: req.params.id } });
@@ -1226,7 +1310,7 @@ app.delete('/api/admin/careers/:id', async (req, res) => {
 });
 
 // Download CV from DB
-app.get('/api/admin/careers/:id/cv', async (req, res) => {
+app.get('/api/admin/careers/:id/cv', requireAdmin, async (req, res) => {
   try {
     let cvRecord;
     if (dbEnabled) {
@@ -1256,7 +1340,7 @@ if (!fs.existsSync(vpsUploadsDir)) {
 }
 app.use('/uploads', express.static(vpsUploadsDir));
 
-app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
+app.post('/api/admin/upload', requireAdmin, uploadImage.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'No file uploaded' });
@@ -1310,7 +1394,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // System Hardware & VPS Specs Inspection Endpoint
-app.get('/api/sysinfo', async (req, res) => {
+app.get('/api/sysinfo', requireAdmin, async (req, res) => {
   const { execSync } = await import('child_process');
   let freeOutput = '';
   let dfOutput = '';

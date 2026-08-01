@@ -61,12 +61,19 @@ export const AppProvider = ({ children }) => {
     });
 
     try {
+      // Read admin token stored in sessionStorage after login
+      const adminToken = sessionStorage.getItem('emyrisAdminToken') || '';
+      const adminHeaders = {
+        'Content-Type': 'application/json',
+        'x-admin-token': adminToken
+      };
+
       if (hasBranding) {
         const brandingData = {};
         brandingKeys.forEach(k => { brandingData[k] = newDataToSave[k]; });
         await fetch('/api/admin/config', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: adminHeaders,
           body: JSON.stringify({ type: 'branding', data: brandingData })
         });
       }
@@ -76,7 +83,7 @@ export const AppProvider = ({ children }) => {
         pagesKeys.forEach(k => { pagesData[k] = newDataToSave[k]; });
         await fetch('/api/admin/config', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: adminHeaders,
           body: JSON.stringify({ type: 'pages', data: pagesData })
         });
       }
