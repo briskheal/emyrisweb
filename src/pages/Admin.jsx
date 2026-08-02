@@ -1381,7 +1381,8 @@ function Admin() {
                     cursor: 'pointer', 
                     fontSize: '0.9rem',
                     fontWeight: 'bold',
-                    color: 'var(--primary)'
+                    color: 'var(--primary)',
+                    zIndex: 10
                   }}
                   title={showPassword ? "Hide Password" : "Show Password"}
                 >
