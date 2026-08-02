@@ -244,8 +244,10 @@ function Admin() {
   // Data lists from DB
   const [inquiries, setInquiries] = useState([]);
   const [careers, setCareers] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
+  const [selectedSubmissions, setSelectedSubmissions] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
 
   // File uploading states
@@ -459,6 +461,15 @@ function Admin() {
       } else {
         // Localstorage fallback
         setCareers(JSON.parse(localStorage.getItem('emyrisCareers') || '[]'));
+      }
+
+      // Submissions
+      const subRes = await adminFetch('/api/admin/submissions');
+      const subData = await subRes.json();
+      if (subData.success) {
+        setSubmissions(subData.submissions);
+      } else {
+        setSubmissions(JSON.parse(localStorage.getItem('emyrisSubmissions') || '[]'));
       }
     } catch (err) {
       console.warn("Could not load data from backend server, falling back to LocalStorage:", err);
@@ -1255,6 +1266,43 @@ function Admin() {
     setLoadingList(false);
   };
 
+  const handleBulkDeleteSubmissions = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedSubmissions.length} submissions?`)) return;
+    setLoadingList(true);
+    for (const id of selectedSubmissions) {
+      try { await adminFetch(`/api/admin/submissions/${id}`, { method: 'DELETE' }); } catch (e) {}
+    }
+    setSubmissions(submissions.filter(s => !selectedSubmissions.includes(s.id)));
+    setSelectedSubmissions([]);
+    setLoadingList(false);
+  };
+
+  const deleteSubmission = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this submission?")) return;
+    try {
+      const res = await adminFetch(`/api/admin/submissions/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setSubmissions(submissions.filter(s => s.id !== id));
+        setSelectedSubmissions(selectedSubmissions.filter(selId => selId !== id));
+      }
+    } catch (err) {}
+  };
+
+  const updateSubmissionStatus = async (id, newStatus) => {
+    try {
+      const res = await adminFetch(`/api/admin/submissions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmissions(submissions.map(s => s.id === id ? { ...s, status: newStatus } : s));
+      }
+    } catch (err) {}
+  };
+
   const deleteInquiry = async (id) => {
     if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
     try {
@@ -1433,6 +1481,9 @@ function Admin() {
           <li className={activeTab === 'Blogs' ? 'active' : ''} onClick={() => setActiveTab('Blogs')}>Blog Posts</li>
           <li className={activeTab === 'Inquiries' ? 'active' : ''} onClick={() => setActiveTab('Inquiries')}>
             Inquiries Inbox ({inquiries.length})
+          </li>
+          <li className={activeTab === 'Submissions' ? 'active' : ''} onClick={() => setActiveTab('Submissions')}>
+            Service Submissions ({submissions.length})
           </li>
           <li className={activeTab === 'Careers' ? 'active' : ''} onClick={() => setActiveTab('Careers')}>
             Applications ({careers.length})
@@ -2746,6 +2797,104 @@ function Admin() {
                           <button 
                             style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }} 
                             onClick={() => deleteInquiry(inq.id)}
+                          >
+                            ❌ Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Service Submissions Inbox */}
+        {activeTab === 'Submissions' && (
+          <div className="admin-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3>Service Submissions Inbox</h3>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                {selectedSubmissions.length > 0 && (
+                  <button className="btn" onClick={handleBulkDeleteSubmissions} style={{ background: '#ef4444' }}>
+                    ❌ Delete Selected ({selectedSubmissions.length})
+                  </button>
+                )}
+                <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
+                  {loadingList ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+              </div>
+            </div>
+            {submissions.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>No service submissions found.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-light)' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--glass-border)', textAlign: 'left' }}>
+                      <th style={{ padding: '12px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={submissions.length > 0 && selectedSubmissions.length === submissions.length}
+                          onChange={(e) => setSelectedSubmissions(e.target.checked ? submissions.map(i => i.id) : [])}
+                        />
+                      </th>
+                      <th style={{ padding: '12px' }}>Date</th>
+                      <th style={{ padding: '12px' }}>Name</th>
+                      <th style={{ padding: '12px' }}>Contact</th>
+                      <th style={{ padding: '12px' }}>Service Area</th>
+                      <th style={{ padding: '12px' }}>Subject & Message</th>
+                      <th style={{ padding: '12px' }}>Status</th>
+                      <th style={{ padding: '12px' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {submissions.map((sub) => (
+                      <tr key={sub.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                        <td style={{ padding: '12px' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedSubmissions.includes(sub.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedSubmissions([...selectedSubmissions, sub.id]);
+                              else setSelectedSubmissions(selectedSubmissions.filter(id => id !== sub.id));
+                            }}
+                          />
+                        </td>
+                        <td style={{ padding: '12px', fontSize: '0.85rem' }}>{new Date(sub.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{sub.name}</td>
+                        <td style={{ padding: '12px' }}>
+                          <div>{sub.email}</div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{sub.phone}</div>
+                        </td>
+                        <td style={{ padding: '12px' }}><span className="glass" style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--primary)' }}>{sub.servicePage || 'N/A'}</span></td>
+                        <td style={{ padding: '12px', fontSize: '0.9rem', maxWidth: '250px' }}>
+                          <strong style={{ display: 'block', marginBottom: '4px' }}>{sub.subject}</strong>
+                          {sub.message}
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <select 
+                            value={sub.status} 
+                            onChange={(e) => updateSubmissionStatus(sub.id, e.target.value)}
+                            style={{ 
+                              padding: '4px 8px', 
+                              borderRadius: '4px', 
+                              background: sub.status === 'contacted' ? '#d1fae5' : '#fef3c7', 
+                              color: sub.status === 'contacted' ? '#065f46' : '#92400e',
+                              border: 'none',
+                              fontWeight: 'bold',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="contacted">Contacted</option>
+                          </select>
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <button 
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }} 
+                            onClick={() => deleteSubmission(sub.id)}
                           >
                             ❌ Delete
                           </button>

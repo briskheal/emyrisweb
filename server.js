@@ -103,6 +103,30 @@ const verifyCaptcha = async (token) => {
   }
 };
 
+// ─── DEEP BOT TEXT VALIDATION ──────────────────────────────────────────────────
+// Prevents advanced bots that bypass ReCAPTCHA by checking for spam characteristics.
+const deepBotCheck = (data) => {
+  const { name, email, message } = data;
+  
+  // 1. Blacklist specific spam emails
+  if (email && (email.toLowerCase() === 'bobbylarson1@yahoo.com' || email.toLowerCase().endsWith('.ru'))) {
+    return { isSpam: true, reason: 'Blacklisted email address.' };
+  }
+  
+  // 2. Gibberish Name Check: Regex checks for 5 or more consecutive consonants (case insensitive)
+  // Ignoring 'y' since it often acts as a vowel.
+  if (name && /[bcdfghjklmnpqrstvwxz]{5,}/i.test(name.replace(/\s/g, ''))) {
+    return { isSpam: true, reason: 'Invalid name structure.' };
+  }
+  
+  // 3. Gibberish Message Check: Too many consecutive consonants in a single word
+  if (message && /[bcdfghjklmnpqrstvwxz]{7,}/i.test(message)) {
+    return { isSpam: true, reason: 'Invalid message structure.' };
+  }
+  
+  return { isSpam: false };
+};
+
 // ─── RATE LIMITERS ────────────────────────────────────────────────────────────
 // Public contact/career forms: max 5 submissions per 15 minutes per IP
 const formLimiter = rateLimit({
@@ -1094,6 +1118,14 @@ app.post('/api/inquiries', formLimiter, async (req, res) => {
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
   }
+
+  // Deep bot text validation
+  const botCheck = deepBotCheck({ name, email, message });
+  if (botCheck.isSpam) {
+    console.warn(`Spam bot caught by deep text check on /api/inquiries from ${req.ip}. Reason: ${botCheck.reason}`);
+    return res.json({ success: true, message: 'Inquiry submitted successfully.' }); // Fake success
+  }
+
   const captchaOk = await verifyCaptcha(captchaToken);
   if (!captchaOk) {
     return res.status(400).json({ success: false, error: 'CAPTCHA verification failed. Please try again.' });
@@ -1126,6 +1158,57 @@ app.post('/api/inquiries', formLimiter, async (req, res) => {
       });
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ─── ADMIN ROUTES FOR SERVICE SUBMISSIONS ───────────────────────────────────────
+
+// Get Submissions (Admin)
+app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
+  try {
+    if (dbEnabled) {
+      const submissions = await FormSubmission.findAll({ order: [['createdAt', 'DESC']] });
+      res.json({ success: true, submissions });
+    } else {
+      res.json({ success: true, submissions: [...inMemorySubmissions].reverse() });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Update Submission Status (Admin)
+app.put('/api/admin/submissions/:id', requireAdmin, async (req, res) => {
+  const { status } = req.body;
+  try {
+    if (dbEnabled) {
+      const submission = await FormSubmission.findByPk(req.params.id);
+      if (!submission) return res.status(404).json({ success: false, error: 'Submission not found' });
+      await submission.update({ status });
+      res.json({ success: true, submission });
+    } else {
+      const idx = inMemorySubmissions.findIndex(s => s.id == req.params.id);
+      if (idx === -1) return res.status(404).json({ success: false, error: 'Submission not found' });
+      inMemorySubmissions[idx].status = status;
+      res.json({ success: true, submission: inMemorySubmissions[idx] });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Delete Submission (Admin)
+app.delete('/api/admin/submissions/:id', requireAdmin, async (req, res) => {
+  try {
+    if (dbEnabled) {
+      const deleted = await FormSubmission.destroy({ where: { id: req.params.id } });
+      res.json({ success: true, deleted: deleted > 0 });
+    } else {
+      inMemorySubmissions = inMemorySubmissions.filter(s => s.id != req.params.id);
+      res.json({ success: true });
     }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
@@ -1198,6 +1281,15 @@ app.post('/api/careers', formLimiter, upload.single('resume'), async (req, res) 
     }
     return res.status(400).json({ success: false, error: 'Name, email, and position are required.' });
   }
+
+  // Deep bot text validation
+  const botCheck = deepBotCheck({ name, email, message: message || '' });
+  if (botCheck.isSpam) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    console.warn(`Spam bot caught by deep text check on /api/careers from ${req.ip}. Reason: ${botCheck.reason}`);
+    return res.json({ success: true, message: 'Application submitted successfully.' }); // Fake success
+  }
+
   const captchaOk = await verifyCaptcha(captchaToken);
   if (!captchaOk) {
     if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
@@ -1278,6 +1370,15 @@ app.post('/api/submissions', formLimiter, upload.single('attachment'), async (re
     }
     return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
   }
+
+  // Deep bot text validation
+  const botCheck = deepBotCheck({ name, email, message });
+  if (botCheck.isSpam) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    console.warn(`Spam bot caught by deep text check on /api/submissions from ${req.ip}. Reason: ${botCheck.reason}`);
+    return res.json({ success: true, message: 'Submission successful.' }); // Fake success
+  }
+
   const captchaOk = await verifyCaptcha(captchaToken);
   if (!captchaOk) {
     if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
