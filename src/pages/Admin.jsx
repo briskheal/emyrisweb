@@ -243,6 +243,8 @@ function Admin() {
   // Data lists from DB
   const [inquiries, setInquiries] = useState([]);
   const [careers, setCareers] = useState([]);
+  const [selectedInquiries, setSelectedInquiries] = useState([]);
+  const [selectedCareers, setSelectedCareers] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
 
   // File uploading states
@@ -1228,13 +1230,38 @@ function Admin() {
   };
 
   // Actions for Inquiry/Careers
+  const handleBulkDeleteInquiries = async () => {
+    if (selectedInquiries.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedInquiries.length} inquiries?`)) return;
+    setLoadingList(true);
+    for (const id of selectedInquiries) {
+      try { await adminFetch(`/api/admin/inquiries/${id}`, { method: 'DELETE' }); } catch (e) {}
+    }
+    setInquiries(inquiries.filter(i => !selectedInquiries.includes(i.id)));
+    setSelectedInquiries([]);
+    setLoadingList(false);
+  };
+
+  const handleBulkDeleteCareers = async () => {
+    if (selectedCareers.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedCareers.length} applications?`)) return;
+    setLoadingList(true);
+    for (const id of selectedCareers) {
+      try { await adminFetch(`/api/admin/careers/${id}`, { method: 'DELETE' }); } catch (e) {}
+    }
+    setCareers(careers.filter(c => !selectedCareers.includes(c.id)));
+    setSelectedCareers([]);
+    setLoadingList(false);
+  };
+
   const deleteInquiry = async (id) => {
     if (!window.confirm("Are you sure you want to delete this inquiry?")) return;
     try {
-      const res = await fetch(`/api/admin/inquiries/${id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/inquiries/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setInquiries(inquiries.filter(i => i.id !== id));
+        setSelectedInquiries(selectedInquiries.filter(selId => selId !== id));
       }
     } catch (err) {
       // Local fallback delete
@@ -1247,7 +1274,7 @@ function Admin() {
 
   const updateInquiryStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`/api/admin/inquiries/${id}`, {
+      const res = await adminFetch(`/api/admin/inquiries/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -1268,10 +1295,11 @@ function Admin() {
   const deleteCareer = async (id) => {
     if (!window.confirm("Are you sure you want to delete this job application?")) return;
     try {
-      const res = await fetch(`/api/admin/careers/${id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/careers/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setCareers(careers.filter(c => c.id !== id));
+        setSelectedCareers(selectedCareers.filter(selId => selId !== id));
       }
     } catch (err) {
       // Local fallback delete
@@ -1284,7 +1312,7 @@ function Admin() {
 
   const updateCareerStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`/api/admin/careers/${id}`, {
+      const res = await adminFetch(`/api/admin/careers/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -2608,9 +2636,16 @@ function Admin() {
           <div className="admin-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h3>Customer Inquiries Inbox</h3>
-              <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
-                {loadingList ? 'Refreshing...' : '🔄 Refresh'}
-              </button>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                {selectedInquiries.length > 0 && (
+                  <button className="btn" onClick={handleBulkDeleteInquiries} style={{ background: '#ef4444' }}>
+                    ❌ Delete Selected ({selectedInquiries.length})
+                  </button>
+                )}
+                <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
+                  {loadingList ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+              </div>
             </div>
             {inquiries.length === 0 ? (
               <p style={{ color: 'var(--text-muted)' }}>No customer inquiries found.</p>
@@ -2619,6 +2654,13 @@ function Admin() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-light)' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--glass-border)', textAlign: 'left' }}>
+                      <th style={{ padding: '12px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={inquiries.length > 0 && selectedInquiries.length === inquiries.length}
+                          onChange={(e) => setSelectedInquiries(e.target.checked ? inquiries.map(i => i.id) : [])}
+                        />
+                      </th>
                       <th style={{ padding: '12px' }}>Date</th>
                       <th style={{ padding: '12px' }}>Name</th>
                       <th style={{ padding: '12px' }}>Contact</th>
@@ -2631,6 +2673,16 @@ function Admin() {
                   <tbody>
                     {inquiries.map((inq) => (
                       <tr key={inq.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                        <td style={{ padding: '12px' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedInquiries.includes(inq.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedInquiries([...selectedInquiries, inq.id]);
+                              else setSelectedInquiries(selectedInquiries.filter(id => id !== inq.id));
+                            }}
+                          />
+                        </td>
                         <td style={{ padding: '12px', fontSize: '0.85rem' }}>{new Date(inq.createdAt).toLocaleDateString()}</td>
                         <td style={{ padding: '12px', fontWeight: 'bold' }}>{inq.name}</td>
                         <td style={{ padding: '12px' }}>
@@ -2679,9 +2731,16 @@ function Admin() {
           <div className="admin-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h3>Job Applications Inbox</h3>
-              <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
-                {loadingList ? 'Refreshing...' : '🔄 Refresh'}
-              </button>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                {selectedCareers.length > 0 && (
+                  <button className="btn" onClick={handleBulkDeleteCareers} style={{ background: '#ef4444' }}>
+                    ❌ Delete Selected ({selectedCareers.length})
+                  </button>
+                )}
+                <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
+                  {loadingList ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+              </div>
             </div>
             {careers.length === 0 ? (
               <p style={{ color: 'var(--text-muted)' }}>No job applications found.</p>
@@ -2690,6 +2749,13 @@ function Admin() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-light)' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--glass-border)', textAlign: 'left' }}>
+                      <th style={{ padding: '12px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={careers.length > 0 && selectedCareers.length === careers.length}
+                          onChange={(e) => setSelectedCareers(e.target.checked ? careers.map(c => c.id) : [])}
+                        />
+                      </th>
                       <th style={{ padding: '12px' }}>Date</th>
                       <th style={{ padding: '12px' }}>Applicant</th>
                       <th style={{ padding: '12px' }}>Position & Exp</th>
@@ -2702,6 +2768,16 @@ function Admin() {
                   <tbody>
                     {careers.map((appRecord) => (
                       <tr key={appRecord.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                        <td style={{ padding: '12px' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedCareers.includes(appRecord.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedCareers([...selectedCareers, appRecord.id]);
+                              else setSelectedCareers(selectedCareers.filter(id => id !== appRecord.id));
+                            }}
+                          />
+                        </td>
                         <td style={{ padding: '12px', fontSize: '0.85rem' }}>{new Date(appRecord.createdAt).toLocaleDateString()}</td>
                         <td style={{ padding: '12px' }}>
                           <div style={{ fontWeight: 'bold' }}>{appRecord.name}</div>

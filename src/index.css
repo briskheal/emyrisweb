@@ -449,31 +449,51 @@ select option {
 }
 
 .admin-sidebar {
-  flex: 0 0 250px;
-  padding: 2rem 1rem;
+  flex: 0 0 220px;
+  padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 90px;
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+  border-right: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
 }
 
 .admin-sidebar h2 {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   color: var(--primary);
   text-align: center;
+  font-size: 1.25rem;
 }
 
 .admin-sidebar ul {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .admin-sidebar li {
-  padding: 12px 20px;
+  padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
   transition: var(--transition);
   color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .admin-sidebar li:hover {
@@ -506,9 +526,16 @@ select option {
   }
   .admin-layout {
     flex-direction: column;
+    padding: 1rem;
   }
   .admin-sidebar {
     flex: auto;
+    position: static;
+    height: auto;
+    overflow-y: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 2rem;
   }
 }
 
