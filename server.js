@@ -1006,28 +1006,38 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
 
 // Get Config (Public)
 app.get('/api/config', async (req, res) => {
+  const start = Date.now();
+  let log = [];
+  log.push(`[API] /api/config started`);
   try {
     // Vercel Edge Caching to drastically reduce Fast Origin Transfer
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=3600');
 
     if (dbEnabled) {
+      log.push(`[API] /api/config checking DB (dbEnabled=true) after ${Date.now()-start}ms`);
       const brandRecord = await ConfigRecord.findByPk('branding');
+      log.push(`[API] /api/config brandRecord fetched after ${Date.now()-start}ms`);
       const pagesRecord = await ConfigRecord.findByPk('pages');
+      log.push(`[API] /api/config pagesRecord fetched after ${Date.now()-start}ms`);
 
       const branding = brandRecord ? JSON.parse(brandRecord.value) : defaultBranding;
       const pages = pagesRecord ? JSON.parse(pagesRecord.value) : defaultPages;
+      log.push(`[API] /api/config parsed JSON after ${Date.now()-start}ms`);
 
-      res.json({ success: true, branding, pages });
+      res.json({ success: true, branding, pages, timing: log.join(' | ') });
     } else {
+      log.push(`[API] /api/config fallback used after ${Date.now()-start}ms`);
       // Fallback
       res.json({ 
         success: true, 
         branding: { ...defaultBranding, ...inMemoryConfig.branding }, 
-        pages: { ...defaultPages, ...inMemoryConfig.pages } 
+        pages: { ...defaultPages, ...inMemoryConfig.pages },
+        timing: log.join(' | ')
       });
     }
   } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
+    log.push(`[API] /api/config error after ${Date.now()-start}ms: ${e.message}`);
+    res.status(500).json({ success: false, error: e.message, timing: log.join(' | ') });
   }
 });
 
