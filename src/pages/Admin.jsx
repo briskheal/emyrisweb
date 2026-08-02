@@ -239,6 +239,7 @@ function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminCreds, setAdminCreds] = useState({ adminId: '', password: '' });
   const [loginError, setLoginError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   // Data lists from DB
   const [inquiries, setInquiries] = useState([]);
@@ -1358,14 +1359,34 @@ function Admin() {
             </label>
             <label>
               Password
-              <input 
-                type="password" 
-                value={adminCreds.password} 
-                onChange={(e) => setAdminCreds({ ...adminCreds, password: e.target.value })} 
-                placeholder="Enter Password"
-                required
-                style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  value={adminCreds.password} 
+                  onChange={(e) => setAdminCreds({ ...adminCreds, password: e.target.value })} 
+                  placeholder="Enter Password"
+                  required
+                  style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', paddingRight: '2.5rem' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ 
+                    position: 'absolute', 
+                    right: '10px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)', 
+                    background: 'transparent', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    fontSize: '1.2rem',
+                    color: 'var(--text-muted)'
+                  }}
+                  title={showPassword ? "Hide Password" : "Show Password"}
+                >
+                  {showPassword ? '👁️' : '🙈'}
+                </button>
+              </div>
             </label>
             <button type="submit" className="btn" style={{ marginTop: '1.5rem', width: '100%' }}>
               Log In
