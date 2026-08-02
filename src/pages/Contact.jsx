@@ -9,7 +9,8 @@ function Contact() {
     email: '',
     phone: '',
     offering: '',
-    message: ''
+    message: '',
+    fax: '' // Honeypot
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -180,6 +181,16 @@ function Contact() {
                 style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)' }}
               ></textarea>
             </label>
+            {/* Honeypot Field - Hidden from humans, filled by bots */}
+            <input 
+              type="text" 
+              name="fax" 
+              value={formData.fax} 
+              onChange={handleInputChange} 
+              style={{ display: 'none' }} 
+              tabIndex="-1" 
+              autoComplete="off" 
+            />
             <button type="submit" className="btn" style={{ marginTop: '1rem' }} disabled={submitting}>
               {submitting ? 'Submitting…' : 'Submit Inquiry'}
             </button>

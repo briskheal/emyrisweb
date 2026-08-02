@@ -393,7 +393,7 @@ const ALL_OFFERINGS = [
 
 // ── InquiryModal ─────────────────────────────────────────────────────────────
 function InquiryModal({ offering, onClose }) {
-  const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', message: '', fax: '' });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const getRecaptchaToken = useRecaptcha();
@@ -438,6 +438,8 @@ function InquiryModal({ offering, onClose }) {
               <input type="tel" required placeholder="Phone Number *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               <input type="email" required placeholder="Email Address *" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               <textarea rows="3" placeholder="Your Message" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+              {/* Honeypot Field */}
+              <input type="text" name="fax" value={form.fax} onChange={(e) => setForm({ ...form, fax: e.target.value })} style={{ display: 'none' }} tabIndex="-1" autoComplete="off" />
               <button type="submit" className="btn" disabled={loading} style={{ width: '100%' }}>
                 {loading ? '⏳ Sending…' : '📨 Submit Inquiry'}
               </button>

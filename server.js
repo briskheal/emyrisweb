@@ -86,14 +86,16 @@ const verifyCaptcha = async (token) => {
       body: params
     });
     const data = await res.json();
-    // v3 returns a score (0.0–1.0). >= 0.5 = likely human.
+    // v3 returns a score (0.0–1.0). >= 0.7 = likely human.
     // v2 returns success: true/false (score not present — treat as pass if success=true)
     if (data.success) {
       if (typeof data.score === 'number') {
-        return data.score >= 0.5; // v3 score check
+        console.log(`CAPTCHA v3 Score: ${data.score} for action: ${data.action}`);
+        return data.score >= 0.7; // Increased threshold to 0.7 for stricter spam filtering
       }
       return true; // v2 — success is enough
     }
+    console.warn(`CAPTCHA verification failed. Google response:`, data);
     return false;
   } catch (err) {
     console.error('CAPTCHA verification error:', err.message);
@@ -1072,7 +1074,13 @@ app.get('/api/test-email', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/inquiries', formLimiter, async (req, res) => {
-  const { name, email, phone, offering, message, captchaToken } = req.body;
+  const { name, email, phone, offering, message, captchaToken, fax } = req.body;
+  // Honeypot check: If the hidden 'fax' field is filled out, it's an automated bot.
+  if (fax) {
+    console.warn(`Spam bot caught by honeypot on /api/inquiries from ${req.ip}`);
+    return res.json({ success: true, message: 'Inquiry submitted successfully.' }); // Fake success
+  }
+
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
   }
@@ -1165,7 +1173,15 @@ app.delete('/api/admin/inquiries/:id', requireAdmin, async (req, res) => {
 
 // Submit Career Application
 app.post('/api/careers', formLimiter, upload.single('resume'), async (req, res) => {
-  const { name, email, phone, position, experience, message, captchaToken } = req.body;
+  const { name, email, phone, position, experience, message, captchaToken, fax } = req.body;
+
+  // Honeypot check
+  if (fax) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    console.warn(`Spam bot caught by honeypot on /api/careers from ${req.ip}`);
+    return res.json({ success: true, message: 'Application submitted successfully.' }); // Fake success
+  }
+
   if (!name || !email || !position) {
     if (req.file) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
@@ -1237,7 +1253,15 @@ app.post('/api/careers', formLimiter, upload.single('resume'), async (req, res) 
 
 // Submit Form (for Services Pages)
 app.post('/api/submissions', formLimiter, upload.single('attachment'), async (req, res) => {
-  const { name, email, subject, phone, message, servicePage, captchaToken } = req.body;
+  const { name, email, subject, phone, message, servicePage, captchaToken, fax } = req.body;
+
+  // Honeypot check
+  if (fax) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    console.warn(`Spam bot caught by honeypot on /api/submissions from ${req.ip}`);
+    return res.json({ success: true, message: 'Submission successful.' }); // Fake success
+  }
+
   if (!name || !email || !message) {
     if (req.file) {
       try { fs.unlinkSync(req.file.path); } catch (e) {}

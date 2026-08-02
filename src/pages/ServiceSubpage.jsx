@@ -11,7 +11,8 @@ function ServiceSubpage() {
     email: '',
     subject: '',
     phone: '',
-    message: ''
+    message: '',
+    fax: '' // Honeypot
   });
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('');
@@ -40,6 +41,7 @@ function ServiceSubpage() {
     submitData.append('phone', formData.phone);
     submitData.append('message', formData.message);
     submitData.append('servicePage', pageId);
+    submitData.append('fax', formData.fax); // Send honeypot to server
     submitData.append('captchaToken', captchaToken);
     if (file) {
       submitData.append('attachment', file);
@@ -263,6 +265,9 @@ function ServiceSubpage() {
                   <textarea name="message" value={formData.message} onChange={handleChange} rows="4" placeholder="Message*:" required></textarea>
                 </div>
               </div>
+
+              {/* Honeypot Field */}
+              <input type="text" name="fax" value={formData.fax} onChange={handleChange} style={{ display: 'none' }} tabIndex="-1" autoComplete="off" />
 
               <button type="submit" className="btn submit-btn" disabled={status === 'Submitting...'}>Submit</button>
               <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>🔒 Protected by reCAPTCHA</p>

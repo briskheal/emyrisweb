@@ -10,7 +10,8 @@ function Career() {
     email: '',
     qualification: '',
     experience: '',
-    address: ''
+    address: '',
+    fax: '' // Honeypot
   });
   const [cvFile, setCvFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -90,6 +91,7 @@ function Career() {
     submitData.append('position', formData.qualification); 
     submitData.append('experience', formData.experience);
     submitData.append('message', formData.address); 
+    submitData.append('fax', formData.fax); // Send honeypot to server
     
     if (cvFile) {
       submitData.append('resume', cvFile);
@@ -280,6 +282,9 @@ function Career() {
                   
                   <textarea name="address" value={formData.address} onChange={handleInputChange} placeholder="Address*:" required rows="4" style={{ width: '100%', padding: '14px', border: '1px solid #e2e8f0', borderRadius: '8px', resize: 'vertical', fontSize: '1rem' }}></textarea>
                   
+                  {/* Honeypot Field */}
+                  <input type="text" name="fax" value={formData.fax} onChange={handleInputChange} style={{ display: 'none' }} tabIndex="-1" autoComplete="off" />
+
                   <button type="submit" className="btn" disabled={submitting} style={{ padding: '16px', fontSize: '1.15rem', fontWeight: 'bold', marginTop: '1rem', width: '100%' }}>
                     {submitting ? 'Submitting...' : 'Submit'}
                   </button>
