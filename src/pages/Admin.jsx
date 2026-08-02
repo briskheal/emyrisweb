@@ -1359,31 +1359,20 @@ function Admin() {
             </label>
             <label>
               Password
-              <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'stretch', gap: '10px' }}>
                 <input 
                   type={showPassword ? "text" : "password"}
                   value={adminCreds.password} 
                   onChange={(e) => setAdminCreds({ ...adminCreds, password: e.target.value })} 
                   placeholder="Enter Password"
                   required
-                  style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', width: '100%', paddingRight: '2.5rem' }}
+                  style={{ color: 'var(--text-light)', border: '1px solid var(--glass-border)', flex: 1, margin: 0 }}
                 />
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ 
-                    position: 'absolute', 
-                    right: '10px', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)', 
-                    background: 'transparent', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold',
-                    color: 'var(--primary)',
-                    zIndex: 10
-                  }}
+                  className="btn"
+                  style={{ padding: '0 1.5rem', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   title={showPassword ? "Hide Password" : "Show Password"}
                 >
                   {showPassword ? 'Hide' : 'Show'}
