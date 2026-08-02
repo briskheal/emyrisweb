@@ -1379,12 +1379,13 @@ function Admin() {
                     background: 'transparent', 
                     border: 'none', 
                     cursor: 'pointer', 
-                    fontSize: '1.2rem',
-                    color: 'var(--text-muted)'
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    color: 'var(--primary)'
                   }}
                   title={showPassword ? "Hide Password" : "Show Password"}
                 >
-                  {showPassword ? '👁️' : '🙈'}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </label>
