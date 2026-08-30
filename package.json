@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.2.1",
-    "cloudinary": "^2.10.0",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
     "d3-geo": "^3.1.1",
     "dotenv": "^17.4.2",
