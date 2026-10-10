@@ -246,6 +246,9 @@ function Admin() {
   const [careers, setCareers] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [conferenceVisitors, setConferenceVisitors] = useState([]);
+  const [selectedVisitors, setSelectedVisitors] = useState([]);
+  const [editingVisitorId, setEditingVisitorId] = useState(null);
+  const [editVisitorData, setEditVisitorData] = useState({});
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
@@ -1283,6 +1286,61 @@ function Admin() {
     setSubmissions(submissions.filter(s => !selectedSubmissions.includes(s.id)));
     setSelectedSubmissions([]);
     setLoadingList(false);
+  };
+
+  const handleBulkDeleteVisitors = async () => {
+    if (selectedVisitors.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedVisitors.length} visitors?`)) return;
+    setLoadingList(true);
+    try {
+      const res = await adminFetch('/api/admin/conference-visitors', {
+        method: 'DELETE',
+        body: JSON.stringify({ ids: selectedVisitors })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConferenceVisitors(conferenceVisitors.filter(v => !selectedVisitors.includes(v.id)));
+        setSelectedVisitors([]);
+      } else {
+        alert(data.error || 'Failed to delete visitors');
+      }
+    } catch (e) {
+      alert('Error deleting visitors');
+    }
+    setLoadingList(false);
+  };
+
+  const deleteVisitor = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this visitor?")) return;
+    try {
+      const res = await adminFetch('/api/admin/conference-visitors', {
+        method: 'DELETE',
+        body: JSON.stringify({ ids: [id] })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConferenceVisitors(conferenceVisitors.filter(v => v.id !== id));
+        setSelectedVisitors(selectedVisitors.filter(selId => selId !== id));
+      }
+    } catch (err) {}
+  };
+
+  const handleSaveVisitorEdit = async (id) => {
+    try {
+      const res = await adminFetch(`/api/admin/conference-visitors/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(editVisitorData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConferenceVisitors(conferenceVisitors.map(v => v.id === id ? { ...v, ...editVisitorData } : v));
+        setEditingVisitorId(null);
+      } else {
+        alert(data.error || 'Failed to update visitor');
+      }
+    } catch (err) {
+      alert('Error updating visitor');
+    }
   };
 
   const deleteSubmission = async (id) => {
@@ -3032,6 +3090,11 @@ function Admin() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h3>Conference Visitors</h3>
               <div style={{ display: 'flex', gap: '1rem' }}>
+                {selectedVisitors.length > 0 && (
+                  <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: '#ef4444' }}>
+                    🗑 Delete Selected ({selectedVisitors.length})
+                  </button>
+                )}
                 <button className="btn" onClick={() => {
                   const headers = ['Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
                   const csvRows = [headers.join(',')];
@@ -3068,23 +3131,72 @@ function Admin() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                   <thead style={{ background: '#f1f5f9' }}>
                     <tr>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedVisitors.length === conferenceVisitors.length && conferenceVisitors.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedVisitors(conferenceVisitors.map(v => v.id));
+                            } else {
+                              setSelectedVisitors([]);
+                            }
+                          }}
+                        />
+                      </th>
                       <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Date</th>
                       <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Name</th>
                       <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Email</th>
                       <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Phone</th>
                       <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Hospital</th>
                       <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Address</th>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {conferenceVisitors.map(v => (
-                      <tr key={v.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <tr key={v.id} style={{ borderBottom: '1px solid #e2e8f0', background: selectedVisitors.includes(v.id) ? '#f0f9ff' : 'white' }}>
+                        <td style={{ padding: '12px' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedVisitors.includes(v.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedVisitors([...selectedVisitors, v.id]);
+                              else setSelectedVisitors(selectedVisitors.filter(id => id !== v.id));
+                            }}
+                          />
+                        </td>
                         <td style={{ padding: '12px' }}>{new Date(v.createdAt).toLocaleDateString()}</td>
-                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.name}</td>
-                        <td style={{ padding: '12px' }}>{v.email}</td>
-                        <td style={{ padding: '12px' }}>{v.phone}</td>
-                        <td style={{ padding: '12px' }}>{v.hospitalAttached}</td>
-                        <td style={{ padding: '12px' }}>{v.address}</td>
+                        {editingVisitorId === v.id ? (
+                          <>
+                            <td style={{ padding: '12px' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px' }}><input value={editVisitorData.hospitalAttached || ''} onChange={e => setEditVisitorData({...editVisitorData, hospitalAttached: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px' }}><input value={editVisitorData.address || ''} onChange={e => setEditVisitorData({...editVisitorData, address: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.name}</td>
+                            <td style={{ padding: '12px' }}>{v.email}</td>
+                            <td style={{ padding: '12px' }}>{v.phone}</td>
+                            <td style={{ padding: '12px' }}>{v.hospitalAttached}</td>
+                            <td style={{ padding: '12px' }}>{v.address}</td>
+                          </>
+                        )}
+                        <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                          {editingVisitorId === v.id ? (
+                            <>
+                              <button onClick={() => handleSaveVisitorEdit(v.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Save">💾</button>
+                              <button onClick={() => setEditingVisitorId(null)} style={{ background: '#64748b', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Cancel">❌</button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => { setEditingVisitorId(v.id); setEditVisitorData(v); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Edit">✏️</button>
+                              <button onClick={() => deleteVisitor(v.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Delete">🗑</button>
+                            </>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

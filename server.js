@@ -1203,6 +1203,48 @@ app.get('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
   }
 });
 
+// Update Conference Visitor (Admin)
+app.put('/api/admin/conference-visitors/:id', requireAdmin, async (req, res) => {
+  const { name, email, phone, hospitalAttached, address } = req.body;
+  try {
+    if (dbEnabled && ConferenceVisitor) {
+      const visitor = await ConferenceVisitor.findByPk(req.params.id);
+      if (!visitor) return res.status(404).json({ success: false, error: 'Visitor not found' });
+      await visitor.update({ name, email, phone, hospitalAttached, address });
+      res.json({ success: true, message: 'Visitor updated successfully' });
+    } else {
+      const idx = inMemoryConferenceVisitors.findIndex(v => v.id.toString() === req.params.id);
+      if (idx !== -1) {
+        inMemoryConferenceVisitors[idx] = { ...inMemoryConferenceVisitors[idx], name, email, phone, hospitalAttached, address };
+        res.json({ success: true, message: 'Visitor updated successfully' });
+      } else {
+        res.status(404).json({ success: false, error: 'Visitor not found' });
+      }
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Bulk Delete Conference Visitors (Admin)
+app.delete('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ success: false, error: 'No IDs provided for deletion.' });
+  }
+  try {
+    if (dbEnabled && ConferenceVisitor) {
+      await ConferenceVisitor.destroy({ where: { id: ids } });
+      res.json({ success: true, message: 'Visitors deleted successfully' });
+    } else {
+      inMemoryConferenceVisitors = inMemoryConferenceVisitors.filter(v => !ids.includes(v.id));
+      res.json({ success: true, message: 'Visitors deleted successfully' });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // Update Submission Status (Admin)
 app.put('/api/admin/submissions/:id', requireAdmin, async (req, res) => {
   const { status } = req.body;
