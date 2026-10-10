@@ -22,6 +22,7 @@ import CopyProofShield from './components/CopyProofShield';
 
 const ConferenceCheckin = () => {
   const [isActivated, setIsActivated] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', address: '', hospitalAttached: '', phone: '', email: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,7 +39,7 @@ const ConferenceCheckin = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setIsActivated(true);
+        setIsSubmitted(true);
       } else {
         setError(data.error || 'Check-in failed');
       }
@@ -60,45 +61,78 @@ const ConferenceCheckin = () => {
           display: 'flex', justifyContent: 'center', alignItems: 'center',
           backgroundColor: 'rgba(0, 0, 0, 0.4)', zIndex: 9999, padding: '20px'
         }}>
-          <form onSubmit={handleSubmit} style={{
-            background: 'white', padding: '30px', borderRadius: '12px',
-            width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-            display: 'flex', flexDirection: 'column', gap: '15px',
-            maxHeight: '90vh', overflowY: 'auto'
-          }}>
-            <h2 style={{ textAlign: 'center', margin: '0 0 10px', color: '#002345' }}>Conference Check-in</h2>
-            <p style={{ textAlign: 'center', color: '#666', fontSize: '14px', margin: '0 0 10px' }}>
-              Please enter your details to proceed.
-            </p>
-            {error && <p style={{ color: 'red', fontSize: '14px', margin: 0 }}>{error}</p>}
-            
-            <input type="text" placeholder="Your Name *" required 
-                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-                   onChange={e => setFormData({...formData, name: e.target.value})} />
-                   
-            <input type="text" placeholder="Your Address" 
-                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-                   onChange={e => setFormData({...formData, address: e.target.value})} />
-                   
-            <input type="text" placeholder="Hospital Attached" 
-                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-                   onChange={e => setFormData({...formData, hospitalAttached: e.target.value})} />
-                   
-            <input type="tel" placeholder="Phone No. *" required 
-                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-                   onChange={e => setFormData({...formData, phone: e.target.value})} />
-                   
-            <input type="email" placeholder="Email ID" 
-                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-                   onChange={e => setFormData({...formData, email: e.target.value})} />
-            
-            <button type="submit" disabled={loading} style={{
-              padding: '12px', background: '#002345', color: 'white', border: 'none',
-              borderRadius: '6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold'
+          {isSubmitted ? (
+            <div style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%)', 
+              padding: '40px 30px', borderRadius: '16px',
+              width: '100%', maxWidth: '450px', boxShadow: '0 20px 40px rgba(0,35,69,0.15)',
+              display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', textAlign: 'center',
+              border: '1px solid rgba(0,35,69,0.1)'
             }}>
-              {loading ? 'Submitting...' : 'Enter Site'}
-            </button>
-          </form>
+              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '60px', marginBottom: '10px' }} />
+              <div style={{ 
+                width: '80px', height: '80px', borderRadius: '50%', background: '#e6f4ea', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' 
+              }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <h2 style={{ margin: 0, color: '#002345', fontSize: '28px', fontWeight: '800' }}>Thank You!</h2>
+              <p style={{ color: '#4a5568', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
+                Thank You for your details.<br/>
+                We appreciate you visiting our stall. You can now visit our site to know us more.
+              </p>
+              <button onClick={() => setIsActivated(true)} style={{
+                padding: '14px 28px', background: 'linear-gradient(90deg, #002345 0%, #004080 100%)', 
+                color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', 
+                fontSize: '16px', fontWeight: 'bold', width: '100%',
+                marginTop: '10px', boxShadow: '0 4px 12px rgba(0,35,69,0.3)', transition: 'transform 0.2s ease'
+              }}>
+                Explore Site
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{
+              background: 'white', padding: '30px', borderRadius: '12px',
+              width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+              display: 'flex', flexDirection: 'column', gap: '15px',
+              maxHeight: '90vh', overflowY: 'auto'
+            }}>
+              <h2 style={{ textAlign: 'center', margin: '0 0 10px', color: '#002345' }}>Conference Check-in</h2>
+              <p style={{ textAlign: 'center', color: '#666', fontSize: '14px', margin: '0 0 10px' }}>
+                Please enter your details to proceed.
+              </p>
+              {error && <p style={{ color: 'red', fontSize: '14px', margin: 0 }}>{error}</p>}
+              
+              <input type="text" placeholder="Your Name *" required 
+                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     onChange={e => setFormData({...formData, name: e.target.value})} />
+                     
+              <input type="text" placeholder="Your Address" 
+                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     onChange={e => setFormData({...formData, address: e.target.value})} />
+                     
+              <input type="text" placeholder="Hospital Attached" 
+                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     onChange={e => setFormData({...formData, hospitalAttached: e.target.value})} />
+                     
+              <input type="tel" placeholder="Phone No. *" required 
+                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     onChange={e => setFormData({...formData, phone: e.target.value})} />
+                     
+              <input type="email" placeholder="Email ID" 
+                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     onChange={e => setFormData({...formData, email: e.target.value})} />
+              
+              <button type="submit" disabled={loading} style={{
+                padding: '12px', background: '#002345', color: 'white', border: 'none',
+                borderRadius: '6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold'
+              }}>
+                {loading ? 'Submitting...' : 'Enter Site'}
+              </button>
+            </form>
+          )}
         </div>
       )}
     </div>
