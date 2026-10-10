@@ -79,9 +79,8 @@ const ConferenceCheckin = () => {
                 </svg>
               </div>
               <h2 style={{ margin: 0, color: '#002345', fontSize: '28px', fontWeight: '800' }}>Thank You!</h2>
-              <p style={{ color: '#4a5568', fontSize: '16px', margin: 0, lineHeight: '1.6' }}>
-                Thank You for your details.<br/>
-                We appreciate you visiting our stall. You can now visit our site to know us more.
+              <p style={{ color: '#4a5568', fontSize: '18px', margin: 0, lineHeight: '1.6' }}>
+                Thank You for Submission.
               </p>
               <button onClick={() => setIsActivated(true)} style={{
                 padding: '14px 28px', background: 'linear-gradient(90deg, #002345 0%, #004080 100%)', 
