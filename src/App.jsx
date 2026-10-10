@@ -56,14 +56,15 @@ const ConferenceCheckin = () => {
       
       {!isActivated && (
         <div style={{
-          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
           backgroundColor: 'rgba(0, 0, 0, 0.4)', zIndex: 9999, padding: '20px'
         }}>
           <form onSubmit={handleSubmit} style={{
             background: 'white', padding: '30px', borderRadius: '12px',
             width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-            display: 'flex', flexDirection: 'column', gap: '15px'
+            display: 'flex', flexDirection: 'column', gap: '15px',
+            maxHeight: '90vh', overflowY: 'auto'
           }}>
             <h2 style={{ textAlign: 'center', margin: '0 0 10px', color: '#002345' }}>Conference Check-in</h2>
             <p style={{ textAlign: 'center', color: '#666', fontSize: '14px', margin: '0 0 10px' }}>
