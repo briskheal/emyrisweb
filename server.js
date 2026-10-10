@@ -210,7 +210,7 @@ let sequelize;
 let dbEnabled = false;
 let dbError = null;
 
-let Inquiry, Career, ConfigRecord, FormSubmission;
+let Inquiry, Career, ConfigRecord, FormSubmission, ConferenceVisitor;
 
 if (isPlaceholderDb) {
   console.warn('⚠️ DATABASE_URL is configured with placeholder values. Running in Fallback/InMemory Database Mode.');
@@ -249,6 +249,7 @@ let inMemoryInquiries = [];
 let inMemoryCareers = [];
 let inMemoryConfig = {};
 let inMemorySubmissions = [];
+let inMemoryConferenceVisitors = [];
 
 if (dbEnabled && sequelize) {
   // Define SQL Models
@@ -290,6 +291,15 @@ if (dbEnabled && sequelize) {
     attachmentFileName: { type: DataTypes.STRING, allowNull: true },
     attachmentFileType: { type: DataTypes.STRING, allowNull: true },
     status: { type: DataTypes.STRING, defaultValue: 'pending' }
+  });
+
+  ConferenceVisitor = sequelize.define('ConferenceVisitor', {
+    name: { type: DataTypes.STRING, allowNull: false },
+    address: { type: DataTypes.TEXT, allowNull: true },
+    hospitalAttached: { type: DataTypes.STRING, allowNull: true },
+    phone: { type: DataTypes.STRING, allowNull: true },
+    email: { type: DataTypes.STRING, allowNull: true },
+    status: { type: DataTypes.STRING, defaultValue: 'active' }
   });
 }
 
@@ -1511,6 +1521,66 @@ app.get('/api/admin/careers/:id/cv', requireAdmin, async (req, res) => {
     res.send(buffer);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+});
+
+// Conference Check-in Endpoint
+app.post('/api/conference-checkin', async (req, res) => {
+  try {
+    const { name, address, hospitalAttached, phone, email } = req.body;
+    
+    if (!name || !phone) {
+      return res.status(400).json({ success: false, error: 'Name and phone are required.' });
+    }
+
+    let savedRecord = { name, address, hospitalAttached, phone, email, status: 'active', createdAt: new Date() };
+
+    if (dbEnabled && ConferenceVisitor) {
+      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email });
+      savedRecord = newRecord.toJSON();
+    } else {
+      savedRecord.id = inMemoryConferenceVisitors.length + 1;
+      inMemoryConferenceVisitors.push(savedRecord);
+    }
+    
+    // Send email to customer
+    if (email) {
+      try {
+        await transporter.sendMail({
+          from: `"Emyris Biolifesciences" <${process.env.EMAIL_USER || 'contact@emyrisbio.com'}>`,
+          to: email,
+          subject: 'Thank You for Visiting Emyris Biolifesciences',
+          html: `<p>Dear ${name},</p>
+                 <p>Thank you for visiting the Emyris Biolifesciences stall. It was a pleasure having you.</p>
+                 <p>We look forward to connecting with you again!</p>
+                 <br/><p>Best Regards,</p><p>Emyris Biolifesciences Team</p>`
+        });
+      } catch (e) {
+        console.error('Error sending customer thank you email:', e);
+      }
+    }
+
+    // Send email to admin
+    try {
+      await transporter.sendMail({
+        from: `"Conference Check-in" <${process.env.EMAIL_USER || 'contact@emyrisbio.com'}>`,
+        to: 'contact@emyrisbio.com',
+        subject: `New Conference Check-in: ${name}`,
+        html: `<h3>New Conference Visitor Check-in</h3>
+               <p><strong>Name:</strong> ${name}</p>
+               <p><strong>Phone:</strong> ${phone}</p>
+               <p><strong>Email:</strong> ${email || 'N/A'}</p>
+               <p><strong>Hospital Attached:</strong> ${hospitalAttached || 'N/A'}</p>
+               <p><strong>Address:</strong> ${address || 'N/A'}</p>`
+      });
+    } catch (e) {
+      console.error('Error sending admin notification email:', e);
+    }
+
+    res.status(200).json({ success: true, message: 'Welcome to Emyris!', data: savedRecord });
+  } catch (error) {
+    console.error('Conference check-in error:', error);
+    res.status(500).json({ success: false, error: 'Failed to process check-in.' });
   }
 });
 

@@ -20,6 +20,90 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Disclaimer from './pages/Disclaimer';
 import CopyProofShield from './components/CopyProofShield';
 
+const ConferenceCheckin = () => {
+  const [isActivated, setIsActivated] = useState(false);
+  const [formData, setFormData] = useState({ name: '', address: '', hospitalAttached: '', phone: '', email: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/conference-checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsActivated(true);
+      } else {
+        setError(data.error || 'Check-in failed');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
+      <div style={{ filter: isActivated ? 'none' : 'blur(8px)', pointerEvents: isActivated ? 'auto' : 'none', transition: 'filter 0.5s ease' }}>
+        <Home />
+      </div>
+      
+      {!isActivated && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.4)', zIndex: 9999, padding: '20px'
+        }}>
+          <form onSubmit={handleSubmit} style={{
+            background: 'white', padding: '30px', borderRadius: '12px',
+            width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            display: 'flex', flexDirection: 'column', gap: '15px'
+          }}>
+            <h2 style={{ textAlign: 'center', margin: '0 0 10px', color: '#002345' }}>Conference Check-in</h2>
+            <p style={{ textAlign: 'center', color: '#666', fontSize: '14px', margin: '0 0 10px' }}>
+              Please enter your details to proceed.
+            </p>
+            {error && <p style={{ color: 'red', fontSize: '14px', margin: 0 }}>{error}</p>}
+            
+            <input type="text" placeholder="Your Name *" required 
+                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                   onChange={e => setFormData({...formData, name: e.target.value})} />
+                   
+            <input type="text" placeholder="Your Address" 
+                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                   onChange={e => setFormData({...formData, address: e.target.value})} />
+                   
+            <input type="text" placeholder="Hospital Attached" 
+                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                   onChange={e => setFormData({...formData, hospitalAttached: e.target.value})} />
+                   
+            <input type="tel" placeholder="Phone No. *" required 
+                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                   onChange={e => setFormData({...formData, phone: e.target.value})} />
+                   
+            <input type="email" placeholder="Email ID" 
+                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                   onChange={e => setFormData({...formData, email: e.target.value})} />
+            
+            <button type="submit" disabled={loading} style={{
+              padding: '12px', background: '#002345', color: 'white', border: 'none',
+              borderRadius: '6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold'
+            }}>
+              {loading ? 'Submitting...' : 'Enter Site'}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function Home() {
   const { siteData } = useContext(AppContext);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -591,6 +675,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/conference-checkin" element={<ConferenceCheckin />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/discover/:pageId" element={<DiscoverSubpage />} />
         <Route path="/offerings" element={<Navigate to="/offerings/anti-infective" replace />} />
