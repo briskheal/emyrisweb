@@ -1296,6 +1296,31 @@ function Admin() {
     setLoadingList(false);
   };
 
+  const handleBulkAssignConference = async () => {
+    if (selectedVisitors.length === 0) return;
+    const confName = window.prompt(`Enter the conference name to assign to ${selectedVisitors.length} selected visitors:`);
+    if (confName === null) return; // User cancelled
+    
+    setLoadingList(true);
+    try {
+      const res = await adminFetch('/api/admin/conference-visitors/bulk-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedVisitors, conferenceName: confName })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConferenceVisitors(conferenceVisitors.map(v => selectedVisitors.includes(v.id) ? { ...v, conferenceName: confName } : v));
+        setSelectedVisitors([]);
+      } else {
+        alert(data.error || 'Failed to update visitors');
+      }
+    } catch (e) {
+      alert('Error updating visitors');
+    }
+    setLoadingList(false);
+  };
+
   const handleBulkDeleteVisitors = async () => {
     if (selectedVisitors.length === 0) return;
     if (!window.confirm(`Are you sure you want to delete ${selectedVisitors.length} visitors?`)) return;
@@ -3157,6 +3182,11 @@ function Admin() {
                 {selectedVisitors.length > 0 && (
                   <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: '#ef4444' }}>
                     🗑 Delete Selected ({selectedVisitors.length})
+                  </button>
+                )}
+                {selectedVisitors.length > 0 && (
+                  <button className="btn" onClick={handleBulkAssignConference} style={{ background: '#3b82f6' }}>
+                    🏷 Assign Conference ({selectedVisitors.length})
                   </button>
                 )}
                 <button className="btn" onClick={() => {

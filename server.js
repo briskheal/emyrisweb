@@ -1247,6 +1247,25 @@ app.post('/api/admin/conference-visitors/bulk-delete', requireAdmin, async (req,
   }
 });
 
+// Bulk Update Conference Visitors (Admin)
+app.post('/api/admin/conference-visitors/bulk-update', requireAdmin, async (req, res) => {
+  const { ids, conferenceName } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ success: false, error: 'No IDs provided for update.' });
+  }
+  try {
+    if (dbEnabled && ConferenceVisitor) {
+      await ConferenceVisitor.update({ conferenceName }, { where: { id: ids } });
+      res.json({ success: true, message: 'Visitors updated successfully' });
+    } else {
+      inMemoryConferenceVisitors = inMemoryConferenceVisitors.map(v => ids.includes(v.id) ? { ...v, conferenceName } : v);
+      res.json({ success: true, message: 'Visitors updated successfully' });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // Single Delete Conference Visitor (Admin)
 app.delete('/api/admin/conference-visitors/:id', requireAdmin, async (req, res) => {
   try {
