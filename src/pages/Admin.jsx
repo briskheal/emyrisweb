@@ -1293,8 +1293,9 @@ function Admin() {
     if (!window.confirm(`Are you sure you want to delete ${selectedVisitors.length} visitors?`)) return;
     setLoadingList(true);
     try {
-      const res = await adminFetch('/api/admin/conference-visitors', {
-        method: 'DELETE',
+      const res = await adminFetch('/api/admin/conference-visitors/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedVisitors })
       });
       const data = await res.json();
@@ -1313,22 +1314,26 @@ function Admin() {
   const deleteVisitor = async (id) => {
     if (!window.confirm("Are you sure you want to delete this visitor?")) return;
     try {
-      const res = await adminFetch('/api/admin/conference-visitors', {
-        method: 'DELETE',
-        body: JSON.stringify({ ids: [id] })
+      const res = await adminFetch(`/api/admin/conference-visitors/${id}`, {
+        method: 'DELETE'
       });
       const data = await res.json();
       if (data.success) {
         setConferenceVisitors(conferenceVisitors.filter(v => v.id !== id));
         setSelectedVisitors(selectedVisitors.filter(selId => selId !== id));
+      } else {
+        alert(data.error || 'Failed to delete visitor');
       }
-    } catch (err) {}
+    } catch (err) {
+      alert('Error deleting visitor');
+    }
   };
 
   const handleSaveVisitorEdit = async (id) => {
     try {
       const res = await adminFetch(`/api/admin/conference-visitors/${id}`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editVisitorData)
       });
       const data = await res.json();
@@ -3108,7 +3113,8 @@ function Admin() {
                       `"${new Date(v.createdAt).toLocaleDateString()}"`
                     ].join(','));
                   });
-                  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+                  // Add BOM \uFEFF so Excel automatically opens it with UTF-8 encoding
+                  const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
@@ -3128,10 +3134,10 @@ function Admin() {
               <p style={{ color: '#64748b' }}>No visitors found.</p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'white', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
                   <thead style={{ background: '#f1f5f9' }}>
                     <tr>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>
                         <input 
                           type="checkbox" 
                           checked={selectedVisitors.length === conferenceVisitors.length && conferenceVisitors.length > 0}
@@ -3144,19 +3150,19 @@ function Admin() {
                           }}
                         />
                       </th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Date</th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Name</th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Email</th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Phone</th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Hospital</th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Address</th>
-                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Actions</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Date</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Name</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Email</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Phone</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Hospital</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Address</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {conferenceVisitors.map(v => (
-                      <tr key={v.id} style={{ borderBottom: '1px solid #e2e8f0', background: selectedVisitors.includes(v.id) ? '#f0f9ff' : 'white' }}>
-                        <td style={{ padding: '12px' }}>
+                      <tr key={v.id} style={{ background: selectedVisitors.includes(v.id) ? '#f0f9ff' : 'white' }}>
+                        <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>
                           <input 
                             type="checkbox" 
                             checked={selectedVisitors.includes(v.id)}
@@ -3166,25 +3172,25 @@ function Admin() {
                             }}
                           />
                         </td>
-                        <td style={{ padding: '12px' }}>{new Date(v.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{new Date(v.createdAt).toLocaleDateString()}</td>
                         {editingVisitorId === v.id ? (
                           <>
-                            <td style={{ padding: '12px' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px' }}><input value={editVisitorData.hospitalAttached || ''} onChange={e => setEditVisitorData({...editVisitorData, hospitalAttached: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px' }}><input value={editVisitorData.address || ''} onChange={e => setEditVisitorData({...editVisitorData, address: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.hospitalAttached || ''} onChange={e => setEditVisitorData({...editVisitorData, hospitalAttached: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.address || ''} onChange={e => setEditVisitorData({...editVisitorData, address: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                           </>
                         ) : (
                           <>
-                            <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.name}</td>
-                            <td style={{ padding: '12px' }}>{v.email}</td>
-                            <td style={{ padding: '12px' }}>{v.phone}</td>
-                            <td style={{ padding: '12px' }}>{v.hospitalAttached}</td>
-                            <td style={{ padding: '12px' }}>{v.address}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{v.name}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.email}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.phone}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.hospitalAttached}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.address}</td>
                           </>
                         )}
-                        <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                        <td style={{ padding: '12px', border: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
                           {editingVisitorId === v.id ? (
                             <>
                               <button onClick={() => handleSaveVisitorEdit(v.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Save">💾</button>

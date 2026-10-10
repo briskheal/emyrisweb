@@ -1227,7 +1227,7 @@ app.put('/api/admin/conference-visitors/:id', requireAdmin, async (req, res) => 
 });
 
 // Bulk Delete Conference Visitors (Admin)
-app.delete('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
+app.post('/api/admin/conference-visitors/bulk-delete', requireAdmin, async (req, res) => {
   const { ids } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ success: false, error: 'No IDs provided for deletion.' });
@@ -1239,6 +1239,23 @@ app.delete('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
     } else {
       inMemoryConferenceVisitors = inMemoryConferenceVisitors.filter(v => !ids.includes(v.id));
       res.json({ success: true, message: 'Visitors deleted successfully' });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Single Delete Conference Visitor (Admin)
+app.delete('/api/admin/conference-visitors/:id', requireAdmin, async (req, res) => {
+  try {
+    if (dbEnabled && ConferenceVisitor) {
+      const visitor = await ConferenceVisitor.findByPk(req.params.id);
+      if (!visitor) return res.status(404).json({ success: false, error: 'Visitor not found' });
+      await visitor.destroy();
+      res.json({ success: true, message: 'Visitor deleted successfully' });
+    } else {
+      inMemoryConferenceVisitors = inMemoryConferenceVisitors.filter(v => v.id.toString() !== req.params.id);
+      res.json({ success: true, message: 'Visitor deleted successfully' });
     }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
