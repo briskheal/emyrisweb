@@ -245,6 +245,7 @@ function Admin() {
   const [inquiries, setInquiries] = useState([]);
   const [careers, setCareers] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [conferenceVisitors, setConferenceVisitors] = useState([]);
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
@@ -470,6 +471,13 @@ function Admin() {
         setSubmissions(subData.submissions);
       } else {
         setSubmissions(JSON.parse(localStorage.getItem('emyrisSubmissions') || '[]'));
+      }
+
+      // Conference Visitors
+      const visRes = await adminFetch('/api/admin/conference-visitors');
+      const visData = await visRes.json();
+      if (visData.success) {
+        setConferenceVisitors(visData.visitors);
       }
     } catch (err) {
       console.warn("Could not load data from backend server, falling back to LocalStorage:", err);
@@ -1487,6 +1495,9 @@ function Admin() {
           </li>
           <li className={activeTab === 'Careers' ? 'active' : ''} onClick={() => setActiveTab('Careers')}>
             Applications ({careers.length})
+          </li>
+          <li className={activeTab === 'ConferenceVisitors' ? 'active' : ''} onClick={() => setActiveTab('ConferenceVisitors')}>
+            Conference Visitors ({conferenceVisitors.length})
           </li>
         </ul>
         <button className="btn-outline" style={{ marginTop: 'auto', alignSelf: 'stretch' }} onClick={handleLogout}>
@@ -3006,6 +3017,74 @@ function Admin() {
                             ❌ Delete
                           </button>
                         </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Conference Visitors */}
+        {activeTab === 'ConferenceVisitors' && (
+          <div className="admin-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3>Conference Visitors</h3>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn" onClick={() => {
+                  const headers = ['Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
+                  const csvRows = [headers.join(',')];
+                  conferenceVisitors.forEach(v => {
+                    csvRows.push([
+                      `"${v.name}"`, 
+                      `"${v.email}"`, 
+                      `"${v.phone}"`, 
+                      `"${v.hospitalAttached}"`, 
+                      `"${v.address}"`, 
+                      `"${new Date(v.createdAt).toLocaleDateString()}"`
+                    ].join(','));
+                  });
+                  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'Conference_Visitors.csv';
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                }} style={{ background: '#10b981' }}>
+                  📥 Download CSV
+                </button>
+                <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
+                  {loadingList ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+              </div>
+            </div>
+
+            {conferenceVisitors.length === 0 ? (
+              <p style={{ color: '#64748b' }}>No visitors found.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+                  <thead style={{ background: '#f1f5f9' }}>
+                    <tr>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Date</th>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Name</th>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Email</th>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Phone</th>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Hospital</th>
+                      <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {conferenceVisitors.map(v => (
+                      <tr key={v.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '12px' }}>{new Date(v.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.name}</td>
+                        <td style={{ padding: '12px' }}>{v.email}</td>
+                        <td style={{ padding: '12px' }}>{v.phone}</td>
+                        <td style={{ padding: '12px' }}>{v.hospitalAttached}</td>
+                        <td style={{ padding: '12px' }}>{v.address}</td>
                       </tr>
                     ))}
                   </tbody>

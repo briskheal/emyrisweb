@@ -1190,6 +1190,19 @@ app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
+  try {
+    if (dbEnabled && ConferenceVisitor) {
+      const visitors = await ConferenceVisitor.findAll({ order: [['createdAt', 'DESC']] });
+      res.json({ success: true, visitors });
+    } else {
+      res.json({ success: true, visitors: [...inMemoryConferenceVisitors].reverse() });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // Update Submission Status (Admin)
 app.put('/api/admin/submissions/:id', requireAdmin, async (req, res) => {
   const { status } = req.body;
