@@ -300,6 +300,8 @@ if (dbEnabled && sequelize) {
     phone: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },
     conferenceName: { type: DataTypes.STRING, allowNull: true },
+    state: { type: DataTypes.STRING, allowNull: true },
+    city: { type: DataTypes.STRING, allowNull: true },
     status: { type: DataTypes.STRING, defaultValue: 'active' }
   });
 }
@@ -1207,17 +1209,17 @@ app.get('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
 
 // Update Conference Visitor (Admin)
 app.put('/api/admin/conference-visitors/:id', requireAdmin, async (req, res) => {
-  const { name, email, phone, hospitalAttached, address, conferenceName } = req.body;
+  const { name, email, phone, hospitalAttached, address, conferenceName, state, city } = req.body;
   try {
     if (dbEnabled && ConferenceVisitor) {
       const visitor = await ConferenceVisitor.findByPk(req.params.id);
       if (!visitor) return res.status(404).json({ success: false, error: 'Visitor not found' });
-      await visitor.update({ name, email, phone, hospitalAttached, address, conferenceName });
+      await visitor.update({ name, email, phone, hospitalAttached, address, conferenceName, state, city });
       res.json({ success: true, message: 'Visitor updated successfully' });
     } else {
       const idx = inMemoryConferenceVisitors.findIndex(v => v.id.toString() === req.params.id);
       if (idx !== -1) {
-        inMemoryConferenceVisitors[idx] = { ...inMemoryConferenceVisitors[idx], name, email, phone, hospitalAttached, address, conferenceName };
+        inMemoryConferenceVisitors[idx] = { ...inMemoryConferenceVisitors[idx], name, email, phone, hospitalAttached, address, conferenceName, state, city };
         res.json({ success: true, message: 'Visitor updated successfully' });
       } else {
         res.status(404).json({ success: false, error: 'Visitor not found' });
@@ -1249,16 +1251,23 @@ app.post('/api/admin/conference-visitors/bulk-delete', requireAdmin, async (req,
 
 // Bulk Update Conference Visitors (Admin)
 app.post('/api/admin/conference-visitors/bulk-update', requireAdmin, async (req, res) => {
-  const { ids, conferenceName } = req.body;
+  const { ids, conferenceName, state, city } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ success: false, error: 'No IDs provided for update.' });
   }
+  
+  // Construct update object dynamically to only update provided fields
+  const updateData = {};
+  if (conferenceName !== undefined) updateData.conferenceName = conferenceName;
+  if (state !== undefined) updateData.state = state;
+  if (city !== undefined) updateData.city = city;
+  
   try {
     if (dbEnabled && ConferenceVisitor) {
-      await ConferenceVisitor.update({ conferenceName }, { where: { id: ids } });
+      await ConferenceVisitor.update(updateData, { where: { id: ids } });
       res.json({ success: true, message: 'Visitors updated successfully' });
     } else {
-      inMemoryConferenceVisitors = inMemoryConferenceVisitors.map(v => ids.includes(v.id) ? { ...v, conferenceName } : v);
+      inMemoryConferenceVisitors = inMemoryConferenceVisitors.map(v => ids.includes(v.id) ? { ...v, ...updateData } : v);
       res.json({ success: true, message: 'Visitors updated successfully' });
     }
   } catch (e) {

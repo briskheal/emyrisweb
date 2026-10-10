@@ -3190,11 +3190,13 @@ function Admin() {
                   </button>
                 )}
                 <button className="btn" onClick={() => {
-                  const headers = ['Conference', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
+                  const headers = ['Conference', 'State', 'City', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
                   const csvRows = [headers.join(',')];
                   filteredVisitors.forEach(v => {
                     csvRows.push([
                       `"${v.conferenceName || 'N/A'}"`, 
+                      `"${v.state || 'N/A'}"`, 
+                      `"${v.city || 'N/A'}"`, 
                       `"${v.name}"`, 
                       `"${v.email}"`, 
                       `"${v.phone}"`, 
@@ -3260,6 +3262,8 @@ function Admin() {
                       </th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Date</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Conference</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>State</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>City</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Name</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Email</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Phone</th>
@@ -3285,6 +3289,8 @@ function Admin() {
                         {editingVisitorId === v.id ? (
                           <>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.conferenceName || ''} onChange={e => setEditVisitorData({...editVisitorData, conferenceName: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.state || ''} onChange={e => setEditVisitorData({...editVisitorData, state: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.city || ''} onChange={e => setEditVisitorData({...editVisitorData, city: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
@@ -3294,6 +3300,8 @@ function Admin() {
                         ) : (
                           <>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.conferenceName || 'N/A'}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.state || 'N/A'}</td>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.city || 'N/A'}</td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{v.name}</td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.email}</td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.phone}</td>
