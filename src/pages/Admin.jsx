@@ -3176,16 +3176,16 @@ function Admin() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3>Conference Visitors ({filteredVisitors.length})</h3>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 style={{ margin: 0, whiteSpace: 'nowrap' }}>Conference Visitors ({filteredVisitors.length})</h3>
+              <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px', flex: 1, justifyContent: 'flex-end', WebkitOverflowScrolling: 'touch' }}>
                 {selectedVisitors.length > 0 && (
-                  <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: '#ef4444' }}>
+                  <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: '#ef4444', padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                     🗑 Delete Selected ({selectedVisitors.length})
                   </button>
                 )}
                 {selectedVisitors.length > 0 && (
-                  <button className="btn" onClick={handleBulkAssignConference} style={{ background: '#3b82f6' }}>
+                  <button className="btn" onClick={handleBulkAssignConference} style={{ background: '#3b82f6', padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                     🏷 Assign Conference ({selectedVisitors.length})
                   </button>
                 )}
@@ -3212,10 +3212,10 @@ function Admin() {
                   a.download = `Conference_Visitors${filterConference ? `_${filterConference}` : ''}.csv`;
                   a.click();
                   window.URL.revokeObjectURL(url);
-                }} style={{ background: '#10b981' }}>
+                }} style={{ background: '#10b981', padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                   📥 Download CSV
                 </button>
-                <button className="btn" onClick={fetchAdminData} disabled={loadingList}>
+                <button className="btn" onClick={fetchAdminData} disabled={loadingList} style={{ padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                   {loadingList ? 'Refreshing...' : '🔄 Refresh'}
                 </button>
               </div>
