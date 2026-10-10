@@ -249,6 +249,10 @@ function Admin() {
   const [selectedVisitors, setSelectedVisitors] = useState([]);
   const [editingVisitorId, setEditingVisitorId] = useState(null);
   const [editVisitorData, setEditVisitorData] = useState({});
+  const [filterConference, setFilterConference] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [activeConferenceInput, setActiveConferenceInput] = useState(siteData.activeConferenceName || '');
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
@@ -424,6 +428,10 @@ function Admin() {
       setIsLoggedIn(true);
     }
   }, []);
+
+  useEffect(() => {
+    setActiveConferenceInput(siteData.activeConferenceName || '');
+  }, [siteData.activeConferenceName]);
 
   // Helper: fetch with admin token header automatically attached
   const adminFetch = (url, options = {}) => {
@@ -1527,6 +1535,25 @@ function Admin() {
       </div>
     );
   }
+
+  // Calculate unique conferences and filtered visitors
+  const uniqueConferences = Array.from(new Set(conferenceVisitors.map(v => v.conferenceName).filter(Boolean)));
+  
+  const filteredVisitors = conferenceVisitors.filter(v => {
+    let match = true;
+    if (filterConference && v.conferenceName !== filterConference) match = false;
+    if (filterDateFrom) {
+      const vDate = new Date(v.createdAt).setHours(0,0,0,0);
+      const fDate = new Date(filterDateFrom).setHours(0,0,0,0);
+      if (vDate < fDate) match = false;
+    }
+    if (filterDateTo) {
+      const vDate = new Date(v.createdAt).setHours(0,0,0,0);
+      const fDate = new Date(filterDateTo).setHours(0,0,0,0);
+      if (vDate > fDate) match = false;
+    }
+    return match;
+  });
 
   // --- ADMIN PORTAL PANEL RENDER ---
   return (
@@ -3092,8 +3119,40 @@ function Admin() {
         {/* Conference Visitors */}
         {activeTab === 'ConferenceVisitors' && (
           <div className="admin-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h3>Conference Visitors</h3>
+            <div className="admin-form glass" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+              <h4 style={{ margin: '0 0 1rem 0' }}>⚙️ Global Setting: Current Active Conference</h4>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                <label style={{ flex: 1, margin: 0 }}>
+                  <span style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>
+                    Type the name of the ongoing conference. All new QR scans will be tagged with this event.
+                  </span>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., APICON 2026"
+                    value={activeConferenceInput}
+                    onChange={(e) => setActiveConferenceInput(e.target.value)}
+                    style={{ padding: '10px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px' }}
+                  />
+                </label>
+                <button 
+                  className="btn" 
+                  onClick={async () => {
+                    try {
+                      await saveConfigToServer({ ...siteData, activeConferenceName: activeConferenceInput });
+                      alert("✅ Active Conference saved successfully!");
+                    } catch (e) {
+                      alert("❌ Failed to save Active Conference");
+                    }
+                  }}
+                  style={{ background: '#0f172a' }}
+                >
+                  Save Active Conference
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3>Conference Visitors ({filteredVisitors.length})</h3>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 {selectedVisitors.length > 0 && (
                   <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: '#ef4444' }}>
@@ -3101,10 +3160,11 @@ function Admin() {
                   </button>
                 )}
                 <button className="btn" onClick={() => {
-                  const headers = ['Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
+                  const headers = ['Conference', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
                   const csvRows = [headers.join(',')];
-                  conferenceVisitors.forEach(v => {
+                  filteredVisitors.forEach(v => {
                     csvRows.push([
+                      `"${v.conferenceName || 'N/A'}"`, 
                       `"${v.name}"`, 
                       `"${v.email}"`, 
                       `"${v.phone}"`, 
@@ -3113,12 +3173,11 @@ function Admin() {
                       `"${new Date(v.createdAt).toLocaleDateString()}"`
                     ].join(','));
                   });
-                  // Add BOM \uFEFF so Excel automatically opens it with UTF-8 encoding
                   const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = 'Conference_Visitors.csv';
+                  a.download = `Conference_Visitors${filterConference ? `_${filterConference}` : ''}.csv`;
                   a.click();
                   window.URL.revokeObjectURL(url);
                 }} style={{ background: '#10b981' }}>
@@ -3130,8 +3189,27 @@ function Admin() {
               </div>
             </div>
 
-            {conferenceVisitors.length === 0 ? (
-              <p style={{ color: '#64748b' }}>No visitors found.</p>
+            <div className="glass" style={{ display: 'flex', gap: '1rem', padding: '1rem', marginBottom: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <label style={{ margin: 0, flex: 1, minWidth: '200px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Filter by Conference:</span>
+                <select value={filterConference} onChange={(e) => setFilterConference(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                  <option value="">All Conferences</option>
+                  {uniqueConferences.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
+              <label style={{ margin: 0, flex: 1, minWidth: '150px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Date From:</span>
+                <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+              </label>
+              <label style={{ margin: 0, flex: 1, minWidth: '150px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Date To:</span>
+                <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+              </label>
+              <button onClick={() => { setFilterConference(''); setFilterDateFrom(''); setFilterDateTo(''); }} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer' }}>Clear Filters</button>
+            </div>
+
+            {filteredVisitors.length === 0 ? (
+              <p style={{ color: '#64748b' }}>No visitors found matching your criteria.</p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'white', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
@@ -3140,10 +3218,10 @@ function Admin() {
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>
                         <input 
                           type="checkbox" 
-                          checked={selectedVisitors.length === conferenceVisitors.length && conferenceVisitors.length > 0}
+                          checked={selectedVisitors.length === filteredVisitors.length && filteredVisitors.length > 0}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedVisitors(conferenceVisitors.map(v => v.id));
+                              setSelectedVisitors(filteredVisitors.map(v => v.id));
                             } else {
                               setSelectedVisitors([]);
                             }
@@ -3151,6 +3229,7 @@ function Admin() {
                         />
                       </th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Date</th>
+                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Conference</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Name</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Email</th>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Phone</th>
@@ -3160,7 +3239,7 @@ function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {conferenceVisitors.map(v => (
+                    {filteredVisitors.map(v => (
                       <tr key={v.id} style={{ background: selectedVisitors.includes(v.id) ? '#f0f9ff' : 'white' }}>
                         <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>
                           <input 
@@ -3175,6 +3254,7 @@ function Admin() {
                         <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{new Date(v.createdAt).toLocaleDateString()}</td>
                         {editingVisitorId === v.id ? (
                           <>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.conferenceName || ''} onChange={e => setEditVisitorData({...editVisitorData, conferenceName: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
@@ -3183,6 +3263,7 @@ function Admin() {
                           </>
                         ) : (
                           <>
+                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.conferenceName || 'N/A'}</td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{v.name}</td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.email}</td>
                             <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.phone}</td>

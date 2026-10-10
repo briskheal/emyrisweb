@@ -44,7 +44,7 @@ export const AppProvider = ({ children }) => {
     // Partition keys to synchronize to the database
     const brandingKeys = [
       'logo', 'companyName', 'contactNumber', 'email', 'address', 'tollFree',
-      'headerColor', 'footerColor', 'headerTextColor', 'footerTextColor', 'socialLinks', 'youtubeVideoId'
+      'headerColor', 'footerColor', 'headerTextColor', 'footerTextColor', 'socialLinks', 'youtubeVideoId', 'activeConferenceName'
     ];
     const pagesKeys = ['slides', 'discover', 'offerings', 'services', 'advisors', 'doctors', 'enhancers', 'testimonials', 'logisticPartners', 'markets', 'blogs'];
 

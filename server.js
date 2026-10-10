@@ -299,6 +299,7 @@ if (dbEnabled && sequelize) {
     hospitalAttached: { type: DataTypes.STRING, allowNull: true },
     phone: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },
+    conferenceName: { type: DataTypes.STRING, allowNull: true },
     status: { type: DataTypes.STRING, defaultValue: 'active' }
   });
 }
@@ -307,6 +308,7 @@ if (dbEnabled && sequelize) {
 const defaultBranding = {
   logo: '/images/assets/logo.png',
   companyName: 'EMYRIS BIOLIFESCIENCES',
+  activeConferenceName: '',
   youtubeVideoId: 'ysz5S6PUM-U',
   contactNumber: '+91 7993163300',
   email: 'contact@emyrisbio.com',
@@ -1205,17 +1207,17 @@ app.get('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
 
 // Update Conference Visitor (Admin)
 app.put('/api/admin/conference-visitors/:id', requireAdmin, async (req, res) => {
-  const { name, email, phone, hospitalAttached, address } = req.body;
+  const { name, email, phone, hospitalAttached, address, conferenceName } = req.body;
   try {
     if (dbEnabled && ConferenceVisitor) {
       const visitor = await ConferenceVisitor.findByPk(req.params.id);
       if (!visitor) return res.status(404).json({ success: false, error: 'Visitor not found' });
-      await visitor.update({ name, email, phone, hospitalAttached, address });
+      await visitor.update({ name, email, phone, hospitalAttached, address, conferenceName });
       res.json({ success: true, message: 'Visitor updated successfully' });
     } else {
       const idx = inMemoryConferenceVisitors.findIndex(v => v.id.toString() === req.params.id);
       if (idx !== -1) {
-        inMemoryConferenceVisitors[idx] = { ...inMemoryConferenceVisitors[idx], name, email, phone, hospitalAttached, address };
+        inMemoryConferenceVisitors[idx] = { ...inMemoryConferenceVisitors[idx], name, email, phone, hospitalAttached, address, conferenceName };
         res.json({ success: true, message: 'Visitor updated successfully' });
       } else {
         res.status(404).json({ success: false, error: 'Visitor not found' });
@@ -1605,10 +1607,21 @@ app.post('/api/conference-checkin', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Name and phone are required.' });
     }
 
-    let savedRecord = { name, address, hospitalAttached, phone, email, status: 'active', createdAt: new Date() };
+    let currentConferenceName = '';
+    if (dbEnabled) {
+      const brandRecord = await ConfigRecord.findByPk('branding');
+      if (brandRecord) {
+        const branding = JSON.parse(brandRecord.value);
+        currentConferenceName = branding.activeConferenceName || '';
+      }
+    } else {
+      currentConferenceName = inMemoryConfig.branding?.activeConferenceName || '';
+    }
+
+    let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName, status: 'active', createdAt: new Date() };
 
     if (dbEnabled && ConferenceVisitor) {
-      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email });
+      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName });
       savedRecord = newRecord.toJSON();
     } else {
       savedRecord.id = inMemoryConferenceVisitors.length + 1;
