@@ -21,17 +21,52 @@ import Disclaimer from './pages/Disclaimer';
 import CopyProofShield from './components/CopyProofShield';
 
 const ConferenceCheckin = () => {
+  const { siteData } = useContext(AppContext);
   const [isActivated, setIsActivated] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', address: '', hospitalAttached: '', phone: '', email: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 1. Resolve target event from URL parameter (?event=...) or primary active event
+  const eventParam = new URLSearchParams(window.location.search).get('event') || '';
+  
+  let targetEvent = null;
+  if (eventParam && Array.isArray(siteData.conferences)) {
+    targetEvent = siteData.conferences.find(c => 
+      c.id === eventParam || 
+      c.code === eventParam || 
+      c.conferenceName?.toLowerCase() === eventParam.toLowerCase()
+    );
+  }
+
+  // Fallback to primary active conference
+  if (!targetEvent && siteData.activeConferenceName) {
+    targetEvent = {
+      conferenceName: siteData.activeConferenceName,
+      state: siteData.activeState || '',
+      city: siteData.activeCity || '',
+      startDate: siteData.activeStartDate || '',
+      endDate: siteData.activeEndDate || ''
+    };
+  }
+
+  // 2. Evaluate current date vs event dates
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+
+  let eventTiming = 'ACTIVE'; // 'ACTIVE' | 'UPCOMING' | 'CONCLUDED'
+  if (targetEvent) {
+    if (targetEvent.startDate && todayStr < targetEvent.startDate) {
+      eventTiming = 'UPCOMING';
+    } else if (targetEvent.endDate && todayStr > targetEvent.endDate) {
+      eventTiming = 'CONCLUDED';
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const eventParam = new URLSearchParams(window.location.search).get('event') || '';
     try {
       const res = await fetch('/api/conference-checkin', {
         method: 'POST',
@@ -50,6 +85,21 @@ const ConferenceCheckin = () => {
     setLoading(false);
   };
 
+  const cardContainerStyle = {
+    background: 'linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%)', 
+    padding: '35px 25px', borderRadius: '16px',
+    width: '100%', maxWidth: '440px', boxShadow: '0 20px 40px rgba(0,35,69,0.15)',
+    display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center', textAlign: 'center',
+    border: '1px solid rgba(0,35,69,0.1)'
+  };
+
+  const buttonStyle = {
+    padding: '13px 26px', background: 'linear-gradient(90deg, #002345 0%, #004080 100%)', 
+    color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', 
+    fontSize: '15px', fontWeight: 'bold', width: '100%',
+    boxShadow: '0 4px 12px rgba(0,35,69,0.25)', transition: 'transform 0.2s ease'
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
       <div style={{ filter: isActivated ? 'none' : 'blur(8px)', pointerEvents: isActivated ? 'auto' : 'none', transition: 'filter 0.5s ease' }}>
@@ -60,76 +110,142 @@ const ConferenceCheckin = () => {
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.4)', zIndex: 9999, padding: '20px'
+          backgroundColor: 'rgba(0, 0, 0, 0.45)', zIndex: 9999, padding: '20px'
         }}>
-          {isSubmitted ? (
-            <div style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%)', 
-              padding: '40px 30px', borderRadius: '16px',
-              width: '100%', maxWidth: '450px', boxShadow: '0 20px 40px rgba(0,35,69,0.15)',
-              display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', textAlign: 'center',
-              border: '1px solid rgba(0,35,69,0.1)'
-            }}>
-              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '60px', marginBottom: '10px' }} />
+          {/* CASE 1: UPCOMING EVENT (Accessed BEFORE Conference Begins) */}
+          {eventTiming === 'UPCOMING' ? (
+            <div style={cardContainerStyle}>
+              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '55px' }} />
               <div style={{ 
-                width: '80px', height: '80px', borderRadius: '50%', background: '#e6f4ea', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' 
+                width: '72px', height: '72px', borderRadius: '50%', background: '#e0f2fe', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' 
               }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                🗓️
+              </div>
+              <h2 style={{ margin: 0, color: '#002345', fontSize: '24px', fontWeight: '800' }}>
+                Registration Opens Soon
+              </h2>
+              {targetEvent?.conferenceName && (
+                <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bae6fd', width: '100%' }}>
+                  <strong style={{ color: '#0284c7', fontSize: '16px', display: 'block' }}>{targetEvent.conferenceName}</strong>
+                  {(targetEvent.city || targetEvent.state) && (
+                    <span style={{ color: '#64748b', fontSize: '13px' }}>📍 {targetEvent.city}{targetEvent.state ? `, ${targetEvent.state}` : ''}</span>
+                  )}
+                </div>
+              )}
+              <p style={{ color: '#4a5568', fontSize: '15px', margin: 0, lineHeight: '1.6' }}>
+                Thank you for your interest! Registration for this conference will open on <strong>{targetEvent?.startDate}</strong>. We look forward to welcoming you at our stall.
+              </p>
+              <button onClick={() => setIsActivated(true)} style={buttonStyle}>
+                Explore Emyris Website
+              </button>
+            </div>
+          ) : eventTiming === 'CONCLUDED' ? (
+            /* CASE 2: CONCLUDED EVENT (Accessed AFTER Conference Ended) */
+            <div style={cardContainerStyle}>
+              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '55px' }} />
+              <div style={{ 
+                width: '72px', height: '72px', borderRadius: '50%', background: '#fef3c7', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' 
+              }}>
+                🤝
+              </div>
+              <h2 style={{ margin: 0, color: '#002345', fontSize: '24px', fontWeight: '800' }}>
+                Registration Concluded
+              </h2>
+              {targetEvent?.conferenceName && (
+                <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #fde68a', width: '100%' }}>
+                  <strong style={{ color: '#475569', fontSize: '16px', display: 'block' }}>{targetEvent.conferenceName}</strong>
+                  {(targetEvent.city || targetEvent.state) && (
+                    <span style={{ color: '#64748b', fontSize: '13px' }}>📍 {targetEvent.city}{targetEvent.state ? `, ${targetEvent.state}` : ''}</span>
+                  )}
+                </div>
+              )}
+              <p style={{ color: '#4a5568', fontSize: '15px', margin: 0, lineHeight: '1.6' }}>
+                Thank you for visiting Emyris Biolifesciences! The registration for this conference has officially concluded. Please explore our website to discover our healthcare solutions and connect with our team.
+              </p>
+              <button onClick={() => setIsActivated(true)} style={buttonStyle}>
+                Explore Emyris Website
+              </button>
+            </div>
+          ) : isSubmitted ? (
+            /* CASE 3: SUBMITTED SUCCESS */
+            <div style={cardContainerStyle}>
+              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '60px' }} />
+              <div style={{ 
+                width: '76px', height: '76px', borderRadius: '50%', background: '#e6f4ea', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center' 
+              }}>
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </div>
-              <h2 style={{ margin: 0, color: '#002345', fontSize: '28px', fontWeight: '800' }}>Thank You!</h2>
-              <p style={{ color: '#4a5568', fontSize: '18px', margin: 0, lineHeight: '1.6' }}>
+              <h2 style={{ margin: 0, color: '#002345', fontSize: '26px', fontWeight: '800' }}>Thank You!</h2>
+              <p style={{ color: '#4a5568', fontSize: '17px', margin: 0, lineHeight: '1.6' }}>
                 Thank You for Submission.
               </p>
-              <button onClick={() => setIsActivated(true)} style={{
-                padding: '14px 28px', background: 'linear-gradient(90deg, #002345 0%, #004080 100%)', 
-                color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', 
-                fontSize: '16px', fontWeight: 'bold', width: '100%',
-                marginTop: '10px', boxShadow: '0 4px 12px rgba(0,35,69,0.3)', transition: 'transform 0.2s ease'
-              }}>
+              <button onClick={() => setIsActivated(true)} style={buttonStyle}>
                 Explore Site
               </button>
             </div>
           ) : (
+            /* CASE 4: ACTIVE REGISTRATION FORM */
             <form onSubmit={handleSubmit} style={{
-              background: 'white', padding: '30px', borderRadius: '12px',
-              width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-              display: 'flex', flexDirection: 'column', gap: '15px',
-              maxHeight: '90vh', overflowY: 'auto'
+              background: 'white', padding: '28px 24px', borderRadius: '14px',
+              width: '100%', maxWidth: '400px', boxShadow: '0 15px 30px rgba(0,0,0,0.2)',
+              display: 'flex', flexDirection: 'column', gap: '14px',
+              maxHeight: '92vh', overflowY: 'auto'
             }}>
-              <h2 style={{ textAlign: 'center', margin: '0 0 10px', color: '#002345' }}>Conference Check-in</h2>
-              <p style={{ textAlign: 'center', color: '#666', fontSize: '14px', margin: '0 0 10px' }}>
-                Please enter your details to proceed.
-              </p>
-              {error && <p style={{ color: 'red', fontSize: '14px', margin: 0 }}>{error}</p>}
+              <div style={{ textAlign: 'center', marginBottom: '4px' }}>
+                <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '42px', marginBottom: '6px' }} />
+                <h2 style={{ margin: '0 0 4px', color: '#002345', fontSize: '20px', fontWeight: '700' }}>Conference Check-in</h2>
+                <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
+                  Please share your details with our team.
+                </p>
+              </div>
+
+              {/* Event Badge */}
+              {targetEvent?.conferenceName && (
+                <div style={{ background: '#f0fdf4', padding: '7px 12px', borderRadius: '6px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+                  <span style={{ color: '#166534', fontWeight: 'bold', fontSize: '13px', display: 'block' }}>
+                    📍 {targetEvent.conferenceName}
+                  </span>
+                  {(targetEvent.city || targetEvent.state) && (
+                    <span style={{ color: '#15803d', fontSize: '12px' }}>
+                      {targetEvent.city}{targetEvent.state ? `, ${targetEvent.state}` : ''}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {error && <p style={{ color: '#dc2626', background: '#fee2e2', padding: '8px', borderRadius: '6px', fontSize: '13px', margin: 0 }}>{error}</p>}
               
               <input type="text" placeholder="Your Name *" required 
-                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                      onChange={e => setFormData({...formData, name: e.target.value})} />
                      
               <input type="text" placeholder="Your Address" 
-                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                      onChange={e => setFormData({...formData, address: e.target.value})} />
                      
               <input type="text" placeholder="Hospital Attached" 
-                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                      onChange={e => setFormData({...formData, hospitalAttached: e.target.value})} />
                      
               <input type="tel" placeholder="Phone No. *" required 
-                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                      onChange={e => setFormData({...formData, phone: e.target.value})} />
                      
               <input type="email" placeholder="Email ID" 
-                     style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                     style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                      onChange={e => setFormData({...formData, email: e.target.value})} />
               
               <button type="submit" disabled={loading} style={{
-                padding: '12px', background: '#002345', color: 'white', border: 'none',
-                borderRadius: '6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold'
+                padding: '12px', background: 'linear-gradient(90deg, #002345 0%, #004080 100%)', 
+                color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', 
+                fontSize: '15px', fontWeight: 'bold', marginTop: '4px'
               }}>
-                {loading ? 'Submitting...' : 'Enter Site'}
+                {loading ? 'Submitting...' : 'Submit & Enter Site'}
               </button>
             </form>
           )}

@@ -1806,6 +1806,33 @@ app.post('/api/conference-checkin', async (req, res) => {
       branding = await checkAndExpireEventConfig(branding, null);
     }
 
+    const today = getTodayDateStr();
+
+    // Check if specifically requested event is upcoming or concluded
+    if (requestedEvent && Array.isArray(branding.conferences)) {
+      const matched = branding.conferences.find(c => 
+        c.id === requestedEvent || 
+        c.code === requestedEvent || 
+        c.conferenceName?.toLowerCase() === requestedEvent.toLowerCase()
+      );
+      if (matched) {
+        if (matched.startDate && today < matched.startDate) {
+          return res.status(400).json({ 
+            success: false, 
+            status: 'UPCOMING',
+            error: `Registration for ${matched.conferenceName} will open on ${matched.startDate}.` 
+          });
+        }
+        if (matched.endDate && today > matched.endDate) {
+          return res.status(400).json({ 
+            success: false, 
+            status: 'CONCLUDED',
+            error: `Registration for ${matched.conferenceName} has officially concluded.` 
+          });
+        }
+      }
+    }
+
     const { conferenceName, state, city } = getActiveEventDetails(branding, requestedEvent);
     let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName, state, city, status: 'active', createdAt: new Date() };
 
