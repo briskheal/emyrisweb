@@ -3423,6 +3423,7 @@ function Admin() {
             </div>
 
             {/* ADD CONFERENCE EVENT MODAL */}
+            {/* ADD CONFERENCE EVENT MODAL */}
             {showAddEventModal && (
               <div style={{
                 position: 'fixed',
@@ -3436,28 +3437,46 @@ function Admin() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 99999,
-                padding: '1rem'
+                padding: '16px',
+                boxSizing: 'border-box'
               }}>
                 <div style={{
                   background: '#ffffff',
                   borderRadius: '14px',
                   maxWidth: '560px',
                   width: '100%',
-                  padding: '1.75rem',
-                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+                  maxHeight: 'min(90vh, 640px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  boxSizing: 'border-box'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>➕ Add Conference Event</h3>
+                  {/* Modal Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '14px 20px',
+                    borderBottom: '1px solid #e2e8f0',
+                    flexShrink: 0,
+                    background: '#ffffff'
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#0f172a' }}>➕ Add Conference Event</h3>
                     <button 
+                      type="button"
                       onClick={() => setShowAddEventModal(false)}
-                      style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94a3b8' }}
+                      style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94a3b8', lineHeight: 1 }}
                     >
                       ✕
                     </button>
                   </div>
 
-                  <form onSubmit={handleCreateNewEvent}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Modal Form */}
+                  <form onSubmit={handleCreateNewEvent} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                    {/* Scrollable Form Body */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', padding: '16px 20px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
                       <label style={{ margin: 0 }}>
                         <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
                           Conference Title *
@@ -3555,23 +3574,32 @@ function Admin() {
                           )}
                         </label>
                       </div>
+                    </div>
 
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button 
-                          type="button" 
-                          onClick={() => setShowAddEventModal(false)}
-                          style={{ background: 'transparent', border: '1px solid #cbd5e1', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', color: '#64748b' }}
-                        >
-                          Cancel
-                        </button>
-                        <button 
-                          type="submit" 
-                          className="btn"
-                          style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold' }}
-                        >
-                          Save Event & Generate Standee
-                        </button>
-                      </div>
+                    {/* Always-Visible Pinned Footer */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '10px',
+                      padding: '12px 20px',
+                      borderTop: '1px solid #e2e8f0',
+                      justifyContent: 'flex-end',
+                      background: '#f8fafc',
+                      flexShrink: 0
+                    }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAddEventModal(false)}
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '0.88rem' }}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="btn"
+                        style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.88rem' }}
+                      >
+                        Save Event & Generate Standee
+                      </button>
                     </div>
                   </form>
                 </div>
@@ -3593,28 +3621,46 @@ function Admin() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 99999,
-                padding: '1rem'
+                padding: '16px',
+                boxSizing: 'border-box'
               }}>
                 <div style={{
                   background: '#ffffff',
                   borderRadius: '14px',
                   maxWidth: '560px',
                   width: '100%',
-                  padding: '1.75rem',
-                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+                  maxHeight: 'min(90vh, 640px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  boxSizing: 'border-box'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>✏️ Edit Conference Event</h3>
+                  {/* Modal Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '14px 20px',
+                    borderBottom: '1px solid #e2e8f0',
+                    flexShrink: 0,
+                    background: '#ffffff'
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#0f172a' }}>✏️ Edit Conference Event</h3>
                     <button 
+                      type="button"
                       onClick={() => setEditingEvent(null)}
-                      style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94a3b8' }}
+                      style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94a3b8', lineHeight: 1 }}
                     >
                       ✕
                     </button>
                   </div>
 
-                  <form onSubmit={handleUpdateConferenceEvent}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Modal Form */}
+                  <form onSubmit={handleUpdateConferenceEvent} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                    {/* Scrollable Form Body */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', padding: '16px 20px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
                       <label style={{ margin: 0 }}>
                         <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
                           Conference Title *
@@ -3708,23 +3754,32 @@ function Admin() {
                           )}
                         </label>
                       </div>
+                    </div>
 
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button 
-                          type="button" 
-                          onClick={() => setEditingEvent(null)}
-                          style={{ background: 'transparent', border: '1px solid #cbd5e1', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', color: '#64748b' }}
-                        >
-                          Cancel
-                        </button>
-                        <button 
-                          type="submit" 
-                          className="btn"
-                          style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold' }}
-                        >
-                          Save Changes
-                        </button>
-                      </div>
+                    {/* Always-Visible Pinned Footer */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '10px',
+                      padding: '12px 20px',
+                      borderTop: '1px solid #e2e8f0',
+                      justifyContent: 'flex-end',
+                      background: '#f8fafc',
+                      flexShrink: 0
+                    }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setEditingEvent(null)}
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '0.88rem' }}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="btn"
+                        style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.88rem' }}
+                      >
+                        Save Changes
+                      </button>
                     </div>
                   </form>
                 </div>
