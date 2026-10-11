@@ -321,6 +321,8 @@ const defaultBranding = {
   logo: '/images/assets/logo.png',
   companyName: 'EMYRIS BIOLIFESCIENCES',
   activeConferenceName: '',
+  activeState: '',
+  activeCity: '',
   youtubeVideoId: 'ysz5S6PUM-U',
   contactNumber: '+91 7993163300',
   email: 'contact@emyrisbio.com',
@@ -1646,20 +1648,26 @@ app.post('/api/conference-checkin', async (req, res) => {
     }
 
     let currentConferenceName = '';
+    let currentState = '';
+    let currentCity = '';
     if (dbEnabled) {
       const brandRecord = await ConfigRecord.findByPk('branding');
       if (brandRecord) {
         const branding = JSON.parse(brandRecord.value);
         currentConferenceName = branding.activeConferenceName || '';
+        currentState = branding.activeState || '';
+        currentCity = branding.activeCity || '';
       }
     } else {
       currentConferenceName = inMemoryConfig.branding?.activeConferenceName || '';
+      currentState = inMemoryConfig.branding?.activeState || '';
+      currentCity = inMemoryConfig.branding?.activeCity || '';
     }
 
-    let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName, status: 'active', createdAt: new Date() };
+    let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName, state: currentState, city: currentCity, status: 'active', createdAt: new Date() };
 
     if (dbEnabled && ConferenceVisitor) {
-      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName });
+      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName, state: currentState, city: currentCity });
       savedRecord = newRecord.toJSON();
     } else {
       savedRecord.id = inMemoryConferenceVisitors.length + 1;

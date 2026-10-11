@@ -253,6 +253,8 @@ function Admin() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [activeConferenceInput, setActiveConferenceInput] = useState(siteData.activeConferenceName || '');
+  const [activeStateInput, setActiveStateInput] = useState(siteData.activeState || '');
+  const [activeCityInput, setActiveCityInput] = useState(siteData.activeCity || '');
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
@@ -431,7 +433,9 @@ function Admin() {
 
   useEffect(() => {
     setActiveConferenceInput(siteData.activeConferenceName || '');
-  }, [siteData.activeConferenceName]);
+    setActiveStateInput(siteData.activeState || '');
+    setActiveCityInput(siteData.activeCity || '');
+  }, [siteData.activeConferenceName, siteData.activeState, siteData.activeCity]);
 
   // Helper: fetch with admin token header automatically attached
   const adminFetch = (url, options = {}) => {
@@ -1298,20 +1302,30 @@ function Admin() {
 
   const handleBulkAssignConference = async () => {
     if (selectedVisitors.length === 0) return;
-    const confName = window.prompt(`Enter the conference name to assign to ${selectedVisitors.length} selected visitors:`);
-    if (confName === null) return; // User cancelled
-    
+    const confName = window.prompt(`Enter Conference Name for ${selectedVisitors.length} selected visitors:`, siteData.activeConferenceName || 'Gujarat Criticon');
+    if (confName === null) return;
+    const stateName = window.prompt(`Enter State for ${selectedVisitors.length} selected visitors:`, siteData.activeState || 'Gujarat');
+    if (stateName === null) return;
+    const cityName = window.prompt(`Enter City for ${selectedVisitors.length} selected visitors:`, siteData.activeCity || 'Rajkot');
+    if (cityName === null) return;
+
     setLoadingList(true);
     try {
+      const updatePayload = { ids: selectedVisitors };
+      if (confName) updatePayload.conferenceName = confName;
+      if (stateName) updatePayload.state = stateName;
+      if (cityName) updatePayload.city = cityName;
+
       const res = await adminFetch('/api/admin/conference-visitors/bulk-update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedVisitors, conferenceName: confName })
+        body: JSON.stringify(updatePayload)
       });
       const data = await res.json();
       if (data.success) {
-        setConferenceVisitors(conferenceVisitors.map(v => selectedVisitors.includes(v.id) ? { ...v, conferenceName: confName } : v));
+        setConferenceVisitors(conferenceVisitors.map(v => selectedVisitors.includes(v.id) ? { ...v, ...updatePayload } : v));
         setSelectedVisitors([]);
+        alert('✅ Assigned Conference, State & City successfully!');
       } else {
         alert(data.error || 'Failed to update visitors');
       }
@@ -3144,34 +3158,71 @@ function Admin() {
         {/* Conference Visitors */}
         {activeTab === 'ConferenceVisitors' && (
           <div className="admin-section">
-            <div className="admin-form glass" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-              <h4 style={{ margin: '0 0 1rem 0' }}>⚙️ Global Setting: Current Active Conference</h4>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                <label style={{ flex: 1, margin: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>
-                    Type the name of the ongoing conference. All new QR scans will be tagged with this event.
+            <div className="admin-form glass" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '700', color: 'var(--primary)' }}>
+                  ⚙️ Active Event Settings (Auto-tagging for QR Check-ins)
+                </h4>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  New QR scans will automatically be tagged with this Conference, State & City.
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <label style={{ flex: '2 1 200px', margin: 0 }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
+                    Conference Title
                   </span>
                   <input 
                     type="text" 
-                    placeholder="e.g., APICON 2026"
+                    placeholder="e.g., Gujarat Criticon"
                     value={activeConferenceInput}
                     onChange={(e) => setActiveConferenceInput(e.target.value)}
-                    style={{ padding: '10px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px' }}
+                    style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
+                  />
+                </label>
+                <label style={{ flex: '1 1 150px', margin: 0 }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
+                    State
+                  </span>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Gujarat"
+                    value={activeStateInput}
+                    onChange={(e) => setActiveStateInput(e.target.value)}
+                    style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
+                  />
+                </label>
+                <label style={{ flex: '1 1 150px', margin: 0 }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
+                    City
+                  </span>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Rajkot"
+                    value={activeCityInput}
+                    onChange={(e) => setActiveCityInput(e.target.value)}
+                    style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
                   />
                 </label>
                 <button 
                   className="btn"
+                  type="button"
                   onClick={async () => {
                     try {
-                      await saveConfigToServer({ ...siteData, activeConferenceName: activeConferenceInput });
-                      alert("✅ Active Conference saved successfully!");
+                      await saveConfigToServer({ 
+                        ...siteData, 
+                        activeConferenceName: activeConferenceInput,
+                        activeState: activeStateInput,
+                        activeCity: activeCityInput 
+                      });
+                      alert("✅ Active Conference, State & City saved successfully!");
                     } catch (e) {
-                      alert("❌ Failed to save Active Conference");
+                      alert("❌ Failed to save Event Details");
                     }
                   }}
-                  style={{ background: "#0f172a", padding: "8px 16px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                  style={{ background: "#0f172a", padding: "8px 18px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px", height: "36px" }}
                 >
-                  Save Active Conference
+                  Save Event Details
                 </button>
               </div>
             </div>
