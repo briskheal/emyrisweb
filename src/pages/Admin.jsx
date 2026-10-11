@@ -255,7 +255,7 @@ const formatDateToDisplay = (dateVal) => {
 };
 
 function Admin() {
-  const { siteData, updateSiteData, saveConfigToServer } = useContext(AppContext);
+  const { siteData, updateSiteData, saveConfigToServer, refreshConfig } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Profile');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminCreds, setAdminCreds] = useState({ adminId: '', password: '' });
@@ -1364,27 +1364,36 @@ function Admin() {
     const currentConferences = Array.isArray(siteData.conferences) ? siteData.conferences : [];
     const updatedConferences = [newEvent, ...currentConferences];
 
+    const payload = {
+      ...siteData,
+      conferences: updatedConferences,
+      // Also set as active primary if none set
+      activeConferenceName: siteData.activeConferenceName || newEventTitle,
+      activeState: siteData.activeState || newEventState,
+      activeCity: siteData.activeCity || newEventCity,
+      activeStartDate: siteData.activeStartDate || newEventStartDate,
+      activeEndDate: siteData.activeEndDate || newEventEndDate
+    };
+
+    // 1. Instant local update so grid displays the new conference with zero delay!
+    updateSiteData(payload);
+    setShowAddEventModal(false);
+    setNewEventTitle('');
+    setNewEventState('');
+    setNewEventCity('');
+    setNewEventStartDate('');
+    setNewEventEndDate('');
+    // Open the standee preview modal immediately for easy printing/sharing
+    setStandeeEvent(newEvent);
+
+    // 2. Persist to server and trigger internal refresh to guarantee perfect sync
     try {
-      await saveConfigToServer({
-        ...siteData,
-        conferences: updatedConferences,
-        // Also set as active primary if none set
-        activeConferenceName: siteData.activeConferenceName || newEventTitle,
-        activeState: siteData.activeState || newEventState,
-        activeCity: siteData.activeCity || newEventCity,
-        activeStartDate: siteData.activeStartDate || newEventStartDate,
-        activeEndDate: siteData.activeEndDate || newEventEndDate
-      });
-      setShowAddEventModal(false);
-      setNewEventTitle('');
-      setNewEventState('');
-      setNewEventCity('');
-      setNewEventStartDate('');
-      setNewEventEndDate('');
-      // Open the standee preview modal immediately for easy printing/sharing
-      setStandeeEvent(newEvent);
+      await saveConfigToServer(payload);
+      if (typeof refreshConfig === 'function') {
+        await refreshConfig();
+      }
     } catch (err) {
-      alert('Failed to save conference event.');
+      console.error('Failed to sync conference event to server:', err);
     }
   };
 
@@ -1392,11 +1401,16 @@ function Admin() {
     if (!window.confirm('Are you sure you want to delete this conference event?')) return;
     const currentConferences = Array.isArray(siteData.conferences) ? siteData.conferences : [];
     const updated = currentConferences.filter(e => e.id !== eventId);
+    const payload = {
+      ...siteData,
+      conferences: updated
+    };
+    updateSiteData(payload);
     try {
-      await saveConfigToServer({
-        ...siteData,
-        conferences: updated
-      });
+      await saveConfigToServer(payload);
+      if (typeof refreshConfig === 'function') {
+        await refreshConfig();
+      }
       alert('✅ Conference event deleted.');
     } catch (err) {
       alert('Failed to delete event.');
@@ -1408,12 +1422,17 @@ function Admin() {
     if (!editingEvent) return;
     const currentConferences = Array.isArray(siteData.conferences) ? siteData.conferences : [];
     const updated = currentConferences.map(c => c.id === editingEvent.id ? editingEvent : c);
+    const payload = {
+      ...siteData,
+      conferences: updated
+    };
+    updateSiteData(payload);
+    setEditingEvent(null);
     try {
-      await saveConfigToServer({
-        ...siteData,
-        conferences: updated
-      });
-      setEditingEvent(null);
+      await saveConfigToServer(payload);
+      if (typeof refreshConfig === 'function') {
+        await refreshConfig();
+      }
       alert('✅ Conference event updated successfully.');
     } catch (err) {
       alert('Failed to update event.');

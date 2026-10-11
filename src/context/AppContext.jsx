@@ -33,14 +33,41 @@ export const AppProvider = ({ children }) => {
     fetchConfig();
   }, []);
 
+  const refreshConfig = async () => {
+    try {
+      const res = await fetch('/api/config?t=' + Date.now());
+      const data = await res.json();
+      if (data.success && data.branding && data.pages) {
+        setSiteData(prev => {
+          const merged = {
+            ...prev,
+            ...data.branding,
+            ...data.pages
+          };
+          localStorage.setItem('emyrisSiteData', JSON.stringify(merged));
+          return merged;
+        });
+        return true;
+      }
+    } catch (err) {
+      console.warn("⚠️ Failed to refresh config from server:", err);
+    }
+    return false;
+  };
+
   const updateSiteData = (newData) => {
-    // Optimistic UI update only (does NOT hit the server)
+    // Optimistic UI update immediately
     const updated = { ...siteData, ...newData };
     setSiteData(updated);
     localStorage.setItem('emyrisSiteData', JSON.stringify(updated));
   };
 
   const saveConfigToServer = async (newDataToSave = siteData) => {
+    // 1. Instantly update state in React so the UI reflects changes with zero delay
+    const merged = { ...siteData, ...newDataToSave };
+    setSiteData(merged);
+    localStorage.setItem('emyrisSiteData', JSON.stringify(merged));
+
     // Partition keys to synchronize to the database
     const brandingKeys = [
       'logo', 'companyName', 'contactNumber', 'email', 'address', 'tollFree',
@@ -97,7 +124,7 @@ export const AppProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider value={{ siteData, updateSiteData, saveConfigToServer }}>
+    <AppContext.Provider value={{ siteData, updateSiteData, saveConfigToServer, refreshConfig }}>
       {children}
     </AppContext.Provider>
   );
