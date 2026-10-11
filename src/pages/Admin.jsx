@@ -3,6 +3,7 @@ import { AppContext } from '../context/AppContext';
 import indiaGeo from '../data/indiaGeo.json';
 import { exportVisitorsToExcel } from '../utils/excelExport';
 import ConferenceStandeeModal from '../components/ConferenceStandeeModal';
+import DoctorMailerModal from '../components/DoctorMailerModal';
 
 // Modern Visual Rich Text Editor (WYSIWYG) Component
 function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
@@ -261,6 +262,7 @@ function Admin() {
   const [activeStartDateInput, setActiveStartDateInput] = useState(siteData.activeStartDate || '');
   const [activeEndDateInput, setActiveEndDateInput] = useState(siteData.activeEndDate || '');
   const [standeeEvent, setStandeeEvent] = useState(null);
+  const [showMailerModal, setShowMailerModal] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventState, setNewEventState] = useState('');
@@ -3614,8 +3616,27 @@ function Admin() {
               />
             )}
 
+            {/* DOCTOR MAILER NOTIFICATION BOX MODAL */}
+            {showMailerModal && (
+              <DoctorMailerModal 
+                visitors={filteredVisitors}
+                selectedIds={selectedVisitors}
+                onClose={() => setShowMailerModal(false)}
+                adminFetch={adminFetch}
+              />
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>Conference Visitors ({filteredVisitors.length})</h3>
+                <button 
+                  className="btn" 
+                  type="button" 
+                  onClick={() => setShowMailerModal(true)} 
+                  style={{ background: "#0284c7", padding: "6px 14px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px", display: "flex", alignItems: "center", gap: "6px", fontWeight: "bold" }} 
+                  title="Send personalized emails and study materials to doctors"
+                >
+                  ✉️ Doctor Mailer {selectedVisitors.length > 0 ? `(${selectedVisitors.length})` : `(All ${filteredVisitors.length})`}
+                </button>
               <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", justifyContent: "flex-end" }}>
                 {selectedVisitors.length > 0 && (
                   <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: "#ef4444", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>

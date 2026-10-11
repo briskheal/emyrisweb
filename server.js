@@ -1351,6 +1351,105 @@ app.post('/api/admin/share-standee', requireAdmin, async (req, res) => {
   }
 });
 
+// Bulk/Single Doctor Mailer with Zoho Rate-Limiting Protection (Admin)
+app.post('/api/admin/send-doctor-mailer', requireAdmin, async (req, res) => {
+  const { recipients, subject, bodyHtml, attachment } = req.body;
+  if (!Array.isArray(recipients) || recipients.length === 0) {
+    return res.status(400).json({ success: false, error: 'At least one recipient doctor is required.' });
+  }
+  if (!subject || !bodyHtml) {
+    return res.status(400).json({ success: false, error: 'Subject and email body are required.' });
+  }
+
+  // Pre-filter valid emails
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const validRecipients = recipients.filter(r => r && r.email && emailRegex.test(r.email.trim()));
+  const skippedCount = recipients.length - validRecipients.length;
+
+  if (validRecipients.length === 0) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'None of the selected doctors have a valid email address.' 
+    });
+  }
+
+  // Prepare optional attachment
+  const mailAttachments = [];
+  if (attachment && attachment.content && attachment.filename) {
+    const base64Data = attachment.content.replace(/^data:.*?;base64,/, '');
+    mailAttachments.push({
+      filename: attachment.filename,
+      content: Buffer.from(base64Data, 'base64')
+    });
+  }
+
+  const results = {
+    total: recipients.length,
+    valid: validRecipients.length,
+    sent: 0,
+    failed: 0,
+    skipped: skippedCount,
+    errors: []
+  };
+
+  // Safe Sequential Send with 2.5-second throttling between emails
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  for (let i = 0; i < validRecipients.length; i++) {
+    const dr = validRecipients[i];
+    const drName = dr.name || 'Doctor';
+    const confName = dr.conferenceName || 'the Medical Conference';
+    
+    // Replace personalization tokens
+    const personalizedHtml = bodyHtml
+      .replace(/{doctor_name}/gi, drName)
+      .replace(/{name}/gi, drName)
+      .replace(/{conference}/gi, confName);
+
+    try {
+      await transporter.sendMail({
+        from: `"Emyris Biolifesciences" <${process.env.EMAIL_USER || 'contact@emyrisbio.com'}>`,
+        to: dr.email.trim(),
+        subject: subject.replace(/{doctor_name}/gi, drName),
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+            <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between;">
+              <h2 style="color: #0284c7; margin: 0; font-size: 20px;">Emyris Biolifesciences</h2>
+              <span style="font-size: 11px; color: #64748b; font-style: italic;">Enhancing Life, Excelling in Care</span>
+            </div>
+            
+            <div style="color: #1e293b; font-size: 14px; line-height: 1.6;">
+              ${personalizedHtml}
+            </div>
+
+            <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center;">
+              <p style="margin: 0;">Emyris Biolifesciences • Innovating Healthcare Solutions</p>
+              <p style="margin: 4px 0 0 0;"><a href="https://www.emyrisbio.com" style="color: #0284c7; text-decoration: none;">www.emyrisbio.com</a> | <a href="mailto:contact@emyrisbio.com" style="color: #0284c7; text-decoration: none;">contact@emyrisbio.com</a></p>
+            </div>
+          </div>
+        `,
+        attachments: mailAttachments
+      });
+      results.sent++;
+    } catch (err) {
+      console.error(`Failed sending mailer to ${dr.email}:`, err.message);
+      results.failed++;
+      results.errors.push({ email: dr.email, name: drName, error: err.message });
+    }
+
+    // Rate-limit throttle if not the last recipient
+    if (i < validRecipients.length - 1) {
+      await delay(2500); // 2.5 seconds gap per email for Zoho SMTP safety
+    }
+  }
+
+  res.json({
+    success: results.sent > 0,
+    results,
+    message: `Batch complete: ${results.sent} sent successfully, ${results.skipped} skipped, ${results.failed} failed.`
+  });
+});
+
 app.get('/api/admin/conference-visitors', requireAdmin, async (req, res) => {
   try {
     if (dbEnabled && ConferenceVisitor) {
