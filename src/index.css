@@ -1,14 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&display=swap');
 
 :root {
-  --bg-dark: #ffffff;
-  --bg-panel: #f5faff; /* Old grey-color */
-  --primary: #52cbcb; /* Old skin-color (teal) */
-  --secondary: #34b9cc; /* Old skin-border-color */
-  --text-light: #002345; /* Old dark-grey-color (navy) */
-  --text-muted: #475569; /* Darkened grey for better readability */
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
+  --bg-dark: #f8fafc;
+  --bg-panel: #ffffff;
+  --primary: #0284c7; /* Vibrant Corporate Medical Blue */
+  --secondary: #0ea5e9; /* Crisp Accent Cyan */
+  --text-light: #0f172a; /* Deep Charcoal/Slate for maximum sharpness */
+  --text-muted: #334155; /* High-contrast readable body text */
+  --glass-border: #cbd5e1; /* Crisp, distinct structural border */
+  --card-border: #e2e8f0;
+  --transition: all 0.25s ease-in-out;
 }
 
 * {
@@ -30,12 +31,10 @@ h1, h2, h3, h4, h5, h6, .section-subtitle {
 
 /* Glassmorphism Classes */
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
 }
 
 /* Navbar - matched to emyrisbio.com header color #002345 */
@@ -442,10 +441,11 @@ select option {
 .admin-layout {
   display: flex;
   min-height: calc(100vh - 80px);
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  gap: 2rem;
-  padding: 2rem;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: #f1f5f9;
 }
 
 .admin-sidebar {
@@ -510,11 +510,14 @@ select option {
 
 .admin-content {
   flex: 1;
-  padding: 2.5rem 2rem;
-  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  border-radius: 12px;
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
 }
 
 .admin-section {
@@ -969,11 +972,9 @@ p, .discover-content p, .service-card p, .offering-card p, .slider-card p, .page
 }
 
 .services-bg-section .premium-glass {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-top: 4px solid var(--secondary);
-  box-shadow: 0 10px 30px rgba(0, 35, 69, 0.04);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 35, 69, 0.06);
   border-radius: 20px;
   padding: 2.5rem;
   position: relative;
