@@ -23,6 +23,15 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
       .catch(err => console.error('QR Generation Error:', err));
   }, [eventUrl]);
 
+  // Close modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   // Generate ultra high-res 1200x780 PNG canvas for download and email
   const generateHighResCanvasDataUrl = async () => {
     if (!qrDataUrl) return null;
@@ -245,49 +254,54 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
 
   // Render via React Portal on document.body to ensure it floats above all navbars and layout containers
   return createPortal(
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.85)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999999, // Higher than any navbar
-      padding: '1rem'
-    }}>
+    <div 
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(6px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999999, // Float above all navbars and headers
+        padding: '12px'
+      }}
+    >
       <div style={{
         background: '#ffffff',
-        borderRadius: '16px',
-        maxWidth: '920px',
+        borderRadius: '14px',
+        maxWidth: '760px',
         width: '100%',
-        maxHeight: '94vh',
+        maxHeight: '90vh',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative'
       }}>
         
         {/* ── TOP ACTION BAR (ALWAYS VISIBLE & PROMINENT) ── */}
         <div style={{
           background: '#0f172a',
           color: '#ffffff',
-          padding: '14px 20px',
+          padding: '12px 18px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '12px'
+          gap: '10px',
+          flexShrink: 0
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 'bold', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '8px' }}>
               🖼 Doctor Registration Standee & QR
             </h3>
-            <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
               {event.conferenceName} ({event.city}, {event.state})
             </span>
           </div>
@@ -301,17 +315,17 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
                 background: '#0284c7',
                 color: '#fff',
                 border: 'none',
-                padding: '8px 16px',
+                padding: '7px 14px',
                 borderRadius: '6px',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '5px'
               }}
             >
-              📥 Download Standee (PNG)
+              📥 Download PNG
             </button>
 
             <button 
@@ -321,14 +335,14 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
                 background: '#25D366',
                 color: '#fff',
                 border: 'none',
-                padding: '8px 14px',
+                padding: '7px 12px',
                 borderRadius: '6px',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '5px'
               }}
             >
               💬 WhatsApp
@@ -341,52 +355,40 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
                 background: '#3b82f6',
                 color: '#fff',
                 border: 'none',
-                padding: '8px 14px',
+                padding: '7px 12px',
                 borderRadius: '6px',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '5px'
               }}
             >
               📧 Email
             </button>
 
-            <button 
-              type="button" 
-              onClick={() => window.open(eventUrl, '_blank')}
-              style={{
-                background: '#334155',
-                color: '#fff',
-                border: 'none',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                fontSize: '0.85rem',
-                cursor: 'pointer'
-              }}
-              title="Open registration URL in new tab"
-            >
-              🔗 Link
-            </button>
-
+            {/* HIGHLY VISIBLE RED CLOSE BUTTON */}
             <button 
               type="button" 
               onClick={onClose}
               style={{
-                background: '#ef4444',
-                color: '#fff',
+                background: '#dc2626',
+                color: '#ffffff',
                 border: 'none',
-                padding: '6px 12px',
+                padding: '7px 14px',
                 borderRadius: '6px',
-                fontSize: '1rem',
+                fontSize: '0.85rem',
                 cursor: 'pointer',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
               }}
               title="Close Standee Window"
             >
-              ✕
+              ✕ Close
             </button>
           </div>
         </div>
@@ -462,11 +464,11 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
           {/* THE STANDEE CARD (Matching User Sample Image) */}
           <div style={{
             background: '#ffffff',
-            borderRadius: '20px',
-            border: '2px solid #e2e8f0',
+            borderRadius: '16px',
+            border: '1px solid #cbd5e1',
             width: '100%',
-            maxWidth: '820px',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+            maxWidth: '700px',
+            boxShadow: '0 15px 25px -5px rgba(0,0,0,0.1)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
@@ -474,22 +476,22 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
           }}>
             
             {/* Card Main Body */}
-            <div style={{ padding: '36px 36px 28px', display: 'flex', justifyContent: 'space-between', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ padding: '22px 24px 18px', display: 'flex', justifyContent: 'space-between', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
               
               {/* Left Column: Branding & Headlines */}
-              <div style={{ flex: '1 1 340px' }}>
+              <div style={{ flex: '1 1 300px' }}>
                 
                 {/* Logo & Tagline */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '22px' }}>
-                  <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '56px', objectFit: 'contain' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                  <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '44px', objectFit: 'contain' }} />
                   <div>
-                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: '#0284c7', letterSpacing: '1px', lineHeight: 1.1 }}>
+                    <h2 style={{ margin: 0, fontSize: '19px', fontWeight: '900', color: '#0284c7', letterSpacing: '1px', lineHeight: 1.1 }}>
                       EMYRIS
                     </h2>
-                    <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#0369a1', letterSpacing: '2px', display: 'block' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#0369a1', letterSpacing: '1.5px', display: 'block' }}>
                       BIOLIFESCIENCES
                     </span>
-                    <span style={{ fontSize: '11px', fontStyle: 'italic', color: '#0284c7' }}>
+                    <span style={{ fontSize: '10px', fontStyle: 'italic', color: '#0284c7' }}>
                       Enhancing Life, Excelling in Care
                     </span>
                   </div>
@@ -500,20 +502,20 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
                   display: 'inline-block',
                   background: '#e0f2fe',
                   color: '#0284c7',
-                  padding: '5px 16px',
-                  borderRadius: '20px',
-                  fontSize: '11px',
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  fontSize: '10px',
                   fontWeight: '800',
                   letterSpacing: '0.5px',
-                  marginBottom: '16px'
+                  marginBottom: '12px'
                 }}>
                   FOR HEALTHCARE PROFESSIONALS
                 </div>
 
                 {/* Title */}
                 <h1 style={{
-                  margin: '0 0 10px',
-                  fontSize: '32px',
+                  margin: '0 0 8px',
+                  fontSize: '24px',
                   fontWeight: '900',
                   color: '#0f172a',
                   lineHeight: '1.2'
@@ -522,64 +524,64 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
                 </h1>
 
                 {/* Cyan Accent Bar */}
-                <div style={{ width: '80px', height: '5px', background: '#06b6d4', borderRadius: '3px', marginBottom: '18px' }} />
+                <div style={{ width: '60px', height: '4px', background: '#06b6d4', borderRadius: '2px', marginBottom: '12px' }} />
 
                 {/* Conference Tag */}
                 {event.conferenceName && (
                   <div style={{
                     background: '#f8fafc',
                     border: '1px solid #e2e8f0',
-                    padding: '8px 14px',
-                    borderRadius: '8px',
-                    marginBottom: '18px',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    marginBottom: '12px',
                     display: 'inline-block'
                   }}>
-                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#0f172a' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#0f172a' }}>
                       📍 {event.conferenceName}
                     </span>
                     {(event.city || event.state) && (
-                      <span style={{ fontSize: '13px', color: '#64748b', marginLeft: '6px' }}>
+                      <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px' }}>
                         • {event.city}{event.state ? `, ${event.state}` : ''}
                       </span>
                     )}
                   </div>
                 )}
 
-                <p style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: '500', color: '#475569' }}>
+                <p style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: '500', color: '#475569' }}>
                   Please scan the QR code to share your details with us.
                 </p>
-                <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+                <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>
                   It only takes a moment.
                 </p>
               </div>
 
               {/* Right Column: QR Code Standee Card Box */}
               <div style={{
-                flex: '0 0 280px',
+                flex: '0 0 230px',
                 background: '#ffffff',
-                border: '2px solid #e2e8f0',
-                borderRadius: '18px',
-                padding: '20px',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: '14px',
+                padding: '14px',
                 textAlign: 'center',
-                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.06)'
+                boxShadow: '0 8px 14px -3px rgba(0,0,0,0.06)'
               }}>
-                {/* QR Code Image: 100% Reliable Render */}
+                {/* QR Code Image */}
                 {qrDataUrl ? (
                   <img 
                     src={qrDataUrl} 
                     alt="Scan to Register" 
-                    style={{ width: '230px', height: '230px', objectFit: 'contain', display: 'block', margin: '0 auto 12px' }} 
+                    style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
                   />
                 ) : (
-                  <div style={{ width: '230px', height: '230px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', margin: '0 auto 12px' }}>
-                    <span>Generating QR...</span>
+                  <div style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', margin: '0 auto 8px' }}>
+                    <span style={{ fontSize: '13px', color: '#94a3b8' }}>Generating QR...</span>
                   </div>
                 )}
 
-                <h4 style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '900', color: '#0f172a', letterSpacing: '0.5px' }}>
+                <h4 style={{ margin: '0 0 2px', fontSize: '12px', fontWeight: '900', color: '#0f172a', letterSpacing: '0.5px' }}>
                   SCAN TO FILL
                 </h4>
-                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
                   your details securely
                 </p>
               </div>
@@ -590,21 +592,52 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
             <div style={{
               background: '#0f2744',
               color: '#ffffff',
-              padding: '14px 36px',
+              padding: '10px 24px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
             }}>
-              <span style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', letterSpacing: '1px' }}>
                 THANK YOU
               </span>
-              <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
                 Enhancing Life, Excelling in Care
               </span>
-              <div style={{ width: '45px', height: '4px', background: '#06b6d4', borderRadius: '2px' }} />
+              <div style={{ width: '35px', height: '3px', background: '#06b6d4', borderRadius: '2px' }} />
             </div>
 
           </div>
+        </div>
+
+        {/* ── BOTTOM TOOLBAR WITH CLEAR CLOSE BUTTON ── */}
+        <div style={{
+          background: '#f8fafc',
+          borderTop: '1px solid #e2e8f0',
+          padding: '10px 18px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0
+        }}>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>
+            💡 Press <kbd style={{ background: '#e2e8f0', padding: '2px 5px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>Esc</kbd> or click outside to dismiss
+          </span>
+          <button 
+            type="button" 
+            onClick={onClose}
+            style={{
+              background: '#475569',
+              color: '#ffffff',
+              border: 'none',
+              padding: '7px 18px',
+              borderRadius: '6px',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            ✕ Close Window
+          </button>
         </div>
 
       </div>

@@ -171,22 +171,78 @@ const ConferenceCheckin = () => {
           ) : isSubmitted ? (
             /* CASE 3: SUBMITTED SUCCESS */
             <div style={cardContainerStyle}>
-              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '60px' }} />
+              <img src="/images/assets/logo.png" alt="Emyris Biolifesciences" style={{ height: '56px' }} />
               <div style={{ 
-                width: '76px', height: '76px', borderRadius: '50%', background: '#e6f4ea', 
+                width: '72px', height: '72px', borderRadius: '50%', background: '#e6f4ea', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center' 
               }}>
-                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#137333" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </div>
-              <h2 style={{ margin: 0, color: '#002345', fontSize: '26px', fontWeight: '800' }}>Thank You!</h2>
-              <p style={{ color: '#4a5568', fontSize: '17px', margin: 0, lineHeight: '1.6' }}>
-                Thank You for Submission.
+              <h2 style={{ margin: 0, color: '#002345', fontSize: '24px', fontWeight: '800' }}>Thank You!</h2>
+              <p style={{ color: '#4a5568', fontSize: '15px', margin: 0, lineHeight: '1.5' }}>
+                Your details have been submitted successfully.
               </p>
-              <button onClick={() => setIsActivated(true)} style={buttonStyle}>
-                Explore Site
-              </button>
+
+              {/* TWO OPTIONS: VISIT SITE & CLOSE */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', marginTop: '8px' }}>
+                <button 
+                  onClick={() => setIsActivated(true)} 
+                  style={{
+                    ...buttonStyle,
+                    margin: 0,
+                    width: '100%',
+                    background: '#0284c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontSize: '15px'
+                  }}
+                >
+                  🌐 Visit Site
+                </button>
+
+                <button 
+                  onClick={() => {
+                    // Try closing the tab directly
+                    try { window.close(); } catch (e) {}
+                    try {
+                      window.open('', '_self', '');
+                      window.close();
+                    } catch (e) {}
+                    // If mobile browser policy prevents script close, navigate to about:blank
+                    setTimeout(() => {
+                      try {
+                        window.location.replace('about:blank');
+                      } catch (e) {}
+                    }, 250);
+                  }} 
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#334155',
+                    border: '1.5px solid #cbd5e1',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '15px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                You can safely close this browser window or return to your mobile screen.
+              </span>
             </div>
           ) : (
             /* CASE 4: ACTIVE REGISTRATION FORM */
@@ -198,9 +254,9 @@ const ConferenceCheckin = () => {
             }}>
               <div style={{ textAlign: 'center', marginBottom: '4px' }}>
                 <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '42px', marginBottom: '6px' }} />
-                <h2 style={{ margin: '0 0 4px', color: '#002345', fontSize: '20px', fontWeight: '700' }}>Conference Check-in</h2>
-                <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
-                  Please share your details with our team.
+                <h2 style={{ margin: '0 0 6px', color: '#002345', fontSize: '20px', fontWeight: '700' }}>Welcome to Emyris Stall</h2>
+                <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: '1.4' }}>
+                  Please share details to connect you in future for Patient support Activity.
                 </p>
               </div>
 
