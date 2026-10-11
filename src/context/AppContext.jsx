@@ -45,7 +45,7 @@ export const AppProvider = ({ children }) => {
     const brandingKeys = [
       'logo', 'companyName', 'contactNumber', 'email', 'address', 'tollFree',
       'headerColor', 'footerColor', 'headerTextColor', 'footerTextColor', 'socialLinks', 'youtubeVideoId', 
-      'activeConferenceName', 'activeState', 'activeCity', 'activeStartDate', 'activeEndDate'
+      'activeConferenceName', 'activeState', 'activeCity', 'activeStartDate', 'activeEndDate', 'conferences'
     ];
     const pagesKeys = ['slides', 'discover', 'offerings', 'services', 'advisors', 'doctors', 'enhancers', 'testimonials', 'logisticPartners', 'markets', 'blogs'];
 

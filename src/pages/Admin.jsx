@@ -1,5 +1,8 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
+import indiaGeo from '../data/indiaGeo.json';
+import { exportVisitorsToExcel } from '../utils/excelExport';
+import ConferenceStandeeModal from '../components/ConferenceStandeeModal';
 
 // Modern Visual Rich Text Editor (WYSIWYG) Component
 function WYSIWYGEditor({ value, onChange, idx, onImageUpload }) {
@@ -257,6 +260,13 @@ function Admin() {
   const [activeCityInput, setActiveCityInput] = useState(siteData.activeCity || '');
   const [activeStartDateInput, setActiveStartDateInput] = useState(siteData.activeStartDate || '');
   const [activeEndDateInput, setActiveEndDateInput] = useState(siteData.activeEndDate || '');
+  const [standeeEvent, setStandeeEvent] = useState(null);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventState, setNewEventState] = useState('');
+  const [newEventCity, setNewEventCity] = useState('');
+  const [newEventStartDate, setNewEventStartDate] = useState('');
+  const [newEventEndDate, setNewEventEndDate] = useState('');
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
@@ -440,6 +450,15 @@ function Admin() {
     setActiveStartDateInput(siteData.activeStartDate || '');
     setActiveEndDateInput(siteData.activeEndDate || '');
   }, [siteData.activeConferenceName, siteData.activeState, siteData.activeCity, siteData.activeStartDate, siteData.activeEndDate]);
+
+  
+  // Get cities list for selected state in add event modal
+  const selectedStateObj = indiaGeo.states.find(s => s.name.toLowerCase() === (newEventState || '').toLowerCase());
+  const stateCitiesList = selectedStateObj ? selectedStateObj.cities : [];
+
+  // Get cities list for main active state input
+  const mainActiveStateObj = indiaGeo.states.find(s => s.name.toLowerCase() === (activeStateInput || '').toLowerCase());
+  const mainActiveCitiesList = mainActiveStateObj ? mainActiveStateObj.cities : [];
 
   // Helper: fetch with admin token header automatically attached
   const adminFetch = (url, options = {}) => {
@@ -1302,6 +1321,66 @@ function Admin() {
     setSubmissions(submissions.filter(s => !selectedSubmissions.includes(s.id)));
     setSelectedSubmissions([]);
     setLoadingList(false);
+  };
+
+  
+  const handleCreateNewEvent = async (e) => {
+    e.preventDefault();
+    if (!newEventTitle || !newEventState || !newEventCity || !newEventStartDate || !newEventEndDate) {
+      alert('Please fill in all event details.');
+      return;
+    }
+    const eventId = 'evt_' + newEventTitle.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString().slice(-4);
+    const newEvent = {
+      id: eventId,
+      conferenceName: newEventTitle,
+      state: newEventState,
+      city: newEventCity,
+      startDate: newEventStartDate,
+      endDate: newEventEndDate,
+      createdAt: new Date().toISOString()
+    };
+
+    const currentConferences = Array.isArray(siteData.conferences) ? siteData.conferences : [];
+    const updatedConferences = [newEvent, ...currentConferences];
+
+    try {
+      await saveConfigToServer({
+        ...siteData,
+        conferences: updatedConferences,
+        // Also set as active primary if none set
+        activeConferenceName: siteData.activeConferenceName || newEventTitle,
+        activeState: siteData.activeState || newEventState,
+        activeCity: siteData.activeCity || newEventCity,
+        activeStartDate: siteData.activeStartDate || newEventStartDate,
+        activeEndDate: siteData.activeEndDate || newEventEndDate
+      });
+      setShowAddEventModal(false);
+      setNewEventTitle('');
+      setNewEventState('');
+      setNewEventCity('');
+      setNewEventStartDate('');
+      setNewEventEndDate('');
+      // Open the standee preview modal immediately for easy printing/sharing
+      setStandeeEvent(newEvent);
+    } catch (err) {
+      alert('Failed to save conference event.');
+    }
+  };
+
+  const handleDeleteConferenceEvent = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this conference event?')) return;
+    const currentConferences = Array.isArray(siteData.conferences) ? siteData.conferences : [];
+    const updated = currentConferences.filter(e => e.id !== eventId);
+    try {
+      await saveConfigToServer({
+        ...siteData,
+        conferences: updated
+      });
+      alert('✅ Conference event deleted.');
+    } catch (err) {
+      alert('Failed to delete event.');
+    }
   };
 
   const handleBulkAssignConference = async () => {
@@ -3164,125 +3243,375 @@ function Admin() {
           <div className="admin-section">
             <div className="admin-form glass" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem', borderRadius: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '700', color: 'var(--primary)' }}>
-                  ⚙️ Active Event Settings (Auto-tagging & Auto-Expiry)
-                </h4>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  Only check-ins between Date From & Date To will be tagged. Once Date To expires, details auto-clear.
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <label style={{ flex: '2 1 180px', margin: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
-                    Conference Title
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ⚙️ Active Conferences & Stall Standees
+                  </h4>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                    Manage multiple simultaneous events. Doctors scanning each QR will be tagged automatically.
                   </span>
-                  <input 
-                    type="text" 
-                    placeholder="e.g., Gujarat Criticon"
-                    value={activeConferenceInput}
-                    onChange={(e) => setActiveConferenceInput(e.target.value)}
-                    style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
-                  />
-                </label>
-                <label style={{ flex: '1 1 120px', margin: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
-                    State
-                  </span>
-                  <input 
-                    type="text" 
-                    placeholder="e.g., Gujarat"
-                    value={activeStateInput}
-                    onChange={(e) => setActiveStateInput(e.target.value)}
-                    style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
-                  />
-                </label>
-                <label style={{ flex: '1 1 120px', margin: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
-                    City
-                  </span>
-                  <input 
-                    type="text" 
-                    placeholder="e.g., Rajkot"
-                    value={activeCityInput}
-                    onChange={(e) => setActiveCityInput(e.target.value)}
-                    style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
-                  />
-                </label>
-                <label style={{ flex: '1 1 130px', margin: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
-                    Date From
-                  </span>
-                  <input 
-                    type="date" 
-                    value={activeStartDateInput}
-                    onChange={(e) => setActiveStartDateInput(e.target.value)}
-                    style={{ padding: '7px 10px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
-                  />
-                </label>
-                <label style={{ flex: '1 1 130px', margin: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
-                    Date To
-                  </span>
-                  <input 
-                    type="date" 
-                    value={activeEndDateInput}
-                    onChange={(e) => setActiveEndDateInput(e.target.value)}
-                    style={{ padding: '7px 10px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
-                  />
-                </label>
-                <button 
-                  className="btn"
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await saveConfigToServer({ 
-                        ...siteData, 
-                        activeConferenceName: activeConferenceInput,
-                        activeState: activeStateInput,
-                        activeCity: activeCityInput,
-                        activeStartDate: activeStartDateInput,
-                        activeEndDate: activeEndDateInput
-                      });
-                      alert("✅ Event schedule saved! Auto-expiry will trigger after Date To.");
-                    } catch (e) {
-                      alert("❌ Failed to save Event Details");
-                    }
-                  }}
-                  style={{ background: "#0f172a", padding: "8px 16px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px", height: "36px" }}
-                >
-                  Save Schedule
-                </button>
-                {(activeConferenceInput || activeStartDateInput || activeEndDateInput) && (
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <button 
                     type="button"
+                    className="btn"
+                    onClick={() => setShowAddEventModal(true)}
+                    style={{ background: '#0284c7', padding: '7px 16px', fontSize: '0.85rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    ➕ Add Conference Event
+                  </button>
+                  {siteData.activeConferenceName && (
+                    <button 
+                      type="button"
+                      className="btn"
+                      onClick={() => setStandeeEvent({
+                        id: 'primary',
+                        conferenceName: siteData.activeConferenceName,
+                        state: siteData.activeState,
+                        city: siteData.activeCity,
+                        startDate: siteData.activeStartDate,
+                        endDate: siteData.activeEndDate
+                      })}
+                      style={{ background: '#10b981', padding: '7px 14px', fontSize: '0.85rem', borderRadius: '6px' }}
+                    >
+                      🖼 View Active Standee
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Multi-Events Table / List */}
+              {Array.isArray(siteData.conferences) && siteData.conferences.length > 0 && (
+                <div style={{ marginTop: '0.75rem', marginBottom: '1rem', overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#ffffff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                    <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                      <tr>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569' }}>Conference</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569' }}>Location</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569' }}>Dates</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right', color: '#475569' }}>Standee & Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {siteData.conferences.map(conf => (
+                        <tr key={conf.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '8px 12px', fontWeight: 'bold', color: '#0f172a' }}>{conf.conferenceName}</td>
+                          <td style={{ padding: '8px 12px', color: '#64748b' }}>{conf.city}, {conf.state}</td>
+                          <td style={{ padding: '8px 12px', color: '#64748b' }}>{conf.startDate} to {conf.endDate}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                            <button 
+                              type="button" 
+                              onClick={() => setStandeeEvent(conf)}
+                              style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', marginRight: '6px', fontSize: '0.78rem' }}
+                            >
+                              🖼 Standee & QR
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => handleDeleteConferenceEvent(conf.id)}
+                              style={{ background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.78rem' }}
+                            >
+                              🗑
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Primary Active Conference Inline Quick-Edit with Searchable State & City */}
+              <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.5rem' }}>
+                  📌 Primary Active Conference (Applied to standard printed QR standees)
+                </span>
+                <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <label style={{ flex: '2 1 180px', margin: 0 }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
+                      Conference Title
+                    </span>
+                    <input 
+                      type="text" 
+                      placeholder="e.g., Gujarat Criticon"
+                      value={activeConferenceInput}
+                      onChange={(e) => setActiveConferenceInput(e.target.value)}
+                      style={{ padding: '7px 10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                  </label>
+                  
+                  {/* Searchable State Dropdown */}
+                  <label style={{ flex: '1 1 140px', margin: 0 }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
+                      State (Searchable)
+                    </span>
+                    <input 
+                      type="text"
+                      list="main-states-datalist"
+                      placeholder="Select State"
+                      value={activeStateInput}
+                      onChange={(e) => setActiveStateInput(e.target.value)}
+                      style={{ padding: '7px 10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                    <datalist id="main-states-datalist">
+                      {indiaGeo.states.map(s => (
+                        <option key={s.name} value={s.name} />
+                      ))}
+                    </datalist>
+                  </label>
+
+                  {/* Searchable City Dropdown with Custom Add Option */}
+                  <label style={{ flex: '1 1 140px', margin: 0 }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
+                      City (Search/Type)
+                    </span>
+                    <input 
+                      type="text"
+                      list="main-cities-datalist"
+                      placeholder="Select or Type City"
+                      value={activeCityInput}
+                      onChange={(e) => setActiveCityInput(e.target.value)}
+                      style={{ padding: '7px 10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                    <datalist id="main-cities-datalist">
+                      {mainActiveCitiesList.map(c => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
+                  </label>
+
+                  <label style={{ flex: '1 1 125px', margin: 0 }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
+                      Date From
+                    </span>
+                    <input 
+                      type="date" 
+                      value={activeStartDateInput}
+                      onChange={(e) => setActiveStartDateInput(e.target.value)}
+                      style={{ padding: '6px 8px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                  </label>
+                  <label style={{ flex: '1 1 125px', margin: 0 }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
+                      Date To
+                    </span>
+                    <input 
+                      type="date" 
+                      value={activeEndDateInput}
+                      onChange={(e) => setActiveEndDateInput(e.target.value)}
+                      style={{ padding: '6px 8px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+                    />
+                  </label>
+
+                  <button 
+                    className="btn"
+                    type="button"
                     onClick={async () => {
-                      if (!window.confirm("Clear active event details now?")) return;
                       try {
                         await saveConfigToServer({ 
                           ...siteData, 
-                          activeConferenceName: '',
-                          activeState: '',
-                          activeCity: '',
-                          activeStartDate: '',
-                          activeEndDate: ''
+                          activeConferenceName: activeConferenceInput,
+                          activeState: activeStateInput,
+                          activeCity: activeCityInput,
+                          activeStartDate: activeStartDateInput,
+                          activeEndDate: activeEndDateInput
                         });
-                        setActiveConferenceInput('');
-                        setActiveStateInput('');
-                        setActiveCityInput('');
-                        setActiveStartDateInput('');
-                        setActiveEndDateInput('');
-                        alert("✅ Active event cleared.");
+                        alert("✅ Primary Event saved successfully!");
                       } catch (e) {
-                        alert("❌ Failed to clear event");
+                        alert("❌ Failed to save Primary Event");
                       }
                     }}
-                    style={{ background: "transparent", border: "1px solid #cbd5e1", padding: "7px 12px", fontSize: "0.82rem", color: "#64748b", borderRadius: "6px", cursor: "pointer", height: "36px" }}
+                    style={{ background: "#0f172a", padding: "7px 16px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px", height: "34px" }}
                   >
-                    Clear
+                    Save Primary
                   </button>
-                )}
+                  {(activeConferenceInput || activeStartDateInput || activeEndDateInput) && (
+                    <button 
+                      type="button"
+                      onClick={async () => {
+                        if (!window.confirm("Clear primary active event details?")) return;
+                        try {
+                          await saveConfigToServer({ 
+                            ...siteData, 
+                            activeConferenceName: '',
+                            activeState: '',
+                            activeCity: '',
+                            activeStartDate: '',
+                            activeEndDate: ''
+                          });
+                          setActiveConferenceInput('');
+                          setActiveStateInput('');
+                          setActiveCityInput('');
+                          setActiveStartDateInput('');
+                          setActiveEndDateInput('');
+                          alert("✅ Cleared.");
+                        } catch (e) {
+                          alert("❌ Failed to clear");
+                        }
+                      }}
+                      style={{ background: "transparent", border: "1px solid #cbd5e1", padding: "6px 10px", fontSize: "0.8rem", color: "#64748b", borderRadius: "6px", cursor: "pointer", height: "34px" }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* ADD CONFERENCE EVENT MODAL */}
+            {showAddEventModal && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                backdropFilter: 'blur(4px)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 99999,
+                padding: '1rem'
+              }}>
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '14px',
+                  maxWidth: '560px',
+                  width: '100%',
+                  padding: '1.75rem',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>➕ Add Conference Event</h3>
+                    <button 
+                      onClick={() => setShowAddEventModal(false)}
+                      style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94a3b8' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateNewEvent}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <label style={{ margin: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                          Conference Title *
+                        </span>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. APICON 2026 or CardioCon 2026"
+                          value={newEventTitle}
+                          onChange={(e) => setNewEventTitle(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                        />
+                      </label>
+
+                      {/* State Dropdown with Search */}
+                      <label style={{ margin: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                          State * (Searchable Dropdown)
+                        </span>
+                        <input 
+                          type="text" 
+                          list="modal-states-datalist"
+                          placeholder="Type or select state (e.g. Gujarat, Maharashtra)"
+                          value={newEventState}
+                          onChange={(e) => setNewEventState(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                        />
+                        <datalist id="modal-states-datalist">
+                          {indiaGeo.states.map(s => (
+                            <option key={s.name} value={s.name} />
+                          ))}
+                        </datalist>
+                      </label>
+
+                      {/* City Dropdown with Search + Custom Input */}
+                      <label style={{ margin: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                          City * (Search major cities or type custom city)
+                        </span>
+                        <input 
+                          type="text" 
+                          list="modal-cities-datalist"
+                          placeholder="Type or select city (e.g. Rajkot, Mumbai)"
+                          value={newEventCity}
+                          onChange={(e) => setNewEventCity(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                        />
+                        <datalist id="modal-cities-datalist">
+                          {stateCitiesList.map(c => (
+                            <option key={c} value={c} />
+                          ))}
+                        </datalist>
+                        {stateCitiesList.length > 0 && (
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px', display: 'block' }}>
+                            Major cities loaded for {newEventState}. You can also type any custom city not in the list.
+                          </span>
+                        )}
+                      </label>
+
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <label style={{ flex: 1, margin: 0 }}>
+                          <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                            Date From *
+                          </span>
+                          <input 
+                            type="date" 
+                            value={newEventStartDate}
+                            onChange={(e) => setNewEventStartDate(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                          />
+                        </label>
+                        <label style={{ flex: 1, margin: 0 }}>
+                          <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                            Date To *
+                          </span>
+                          <input 
+                            type="date" 
+                            value={newEventEndDate}
+                            onChange={(e) => setNewEventEndDate(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                          />
+                        </label>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowAddEventModal(false)}
+                          style={{ background: 'transparent', border: '1px solid #cbd5e1', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', color: '#64748b' }}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="btn"
+                          style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold' }}
+                        >
+                          Save Event & Generate Standee
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* STANDEE PREVIEW & TEAM SHARING MODAL */}
+            {standeeEvent && (
+              <ConferenceStandeeModal 
+                event={standeeEvent} 
+                onClose={() => setStandeeEvent(null)} 
+                adminFetch={adminFetch} 
+              />
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>Conference Visitors ({filteredVisitors.length})</h3>
@@ -3297,31 +3626,45 @@ function Admin() {
                     🏷 Assign Conference ({selectedVisitors.length})
                   </button>
                 )}
-                <button className="btn" onClick={() => {
-                  const headers = ['Conference', 'State', 'City', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
-                  const csvRows = [headers.join(',')];
-                  filteredVisitors.forEach(v => {
-                    csvRows.push([
-                      `"${v.conferenceName || 'N/A'}"`, 
-                      `"${v.state || 'N/A'}"`, 
-                      `"${v.city || 'N/A'}"`, 
-                      `"${v.name}"`, 
-                      `"${v.email}"`, 
-                      `"${v.phone}"`, 
-                      `"${v.hospitalAttached}"`, 
-                      `"${v.address}"`, 
-                      `"${new Date(v.createdAt).toLocaleDateString()}"`
-                    ].join(','));
-                  });
-                  const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `Conference_Visitors${filterConference ? `_${filterConference}` : ''}.csv`;
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                }} style={{ background: "#10b981", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
-                  📥 Download CSV
+                <button 
+                  className="btn" 
+                  type="button"
+                  onClick={() => exportVisitorsToExcel(filteredVisitors, filterConference)} 
+                  style={{ background: "#1e3a8a", padding: "6px 14px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px", display: "flex", alignItems: "center", gap: "6px", fontWeight: "bold" }}
+                  title="Download Excel spreadsheet with full borders and dark blue header patch"
+                >
+                  📊 Download Excel (.xls)
+                </button>
+                <button 
+                  className="btn" 
+                  type="button"
+                  onClick={() => {
+                    const headers = ['Conference', 'State', 'City', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
+                    const csvRows = [headers.join(',')];
+                    filteredVisitors.forEach(v => {
+                      csvRows.push([
+                        `"${v.conferenceName || 'N/A'}"`, 
+                        `"${v.state || 'N/A'}"`, 
+                        `"${v.city || 'N/A'}"`, 
+                        `"${v.name}"`, 
+                        `"${v.email}"`, 
+                        `"${v.phone}"`, 
+                        `"${v.hospitalAttached}"`, 
+                        `"${v.address}"`, 
+                        `"${new Date(v.createdAt).toLocaleDateString()}"`
+                      ].join(','));
+                    });
+                    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Conference_Visitors${filterConference ? '_' + filterConference : ''}.csv`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                  }} 
+                  style={{ background: "#10b981", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                >
+                  📥 CSV
                 </button>
                 <button className="btn" onClick={fetchAdminData} disabled={loadingList} style={{ padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
                   {loadingList ? 'Refreshing...' : '🔄 Refresh'}

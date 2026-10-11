@@ -31,11 +31,12 @@ const ConferenceCheckin = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    const eventParam = new URLSearchParams(window.location.search).get('event') || '';
     try {
       const res = await fetch('/api/conference-checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, event: eventParam })
       });
       const data = await res.json();
       if (data.success) {

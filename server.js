@@ -325,6 +325,7 @@ const defaultBranding = {
   activeCity: '',
   activeStartDate: '',
   activeEndDate: '',
+  conferences: [],
   youtubeVideoId: 'ysz5S6PUM-U',
   contactNumber: '+91 7993163300',
   email: 'contact@emyrisbio.com',
@@ -1077,13 +1078,46 @@ const checkAndExpireEventConfig = async (branding, brandRecord = null) => {
 };
 
 // Helper to determine if an event is currently active for tagging
-const getActiveEventDetails = (branding) => {
-  if (!branding || !branding.activeConferenceName) {
+const getActiveEventDetails = (branding, requestedEvent = null) => {
+  if (!branding) return { conferenceName: '', state: '', city: '' };
+  const today = getTodayDateStr();
+
+  // If specific event was requested via QR link (?event=...)
+  if (requestedEvent && Array.isArray(branding.conferences)) {
+    const matched = branding.conferences.find(c => 
+      c.id === requestedEvent || 
+      c.code === requestedEvent || 
+      c.conferenceName?.toLowerCase() === requestedEvent.toLowerCase()
+    );
+    if (matched) {
+      return {
+        conferenceName: matched.conferenceName || '',
+        state: matched.state || '',
+        city: matched.city || ''
+      };
+    }
+  }
+
+  // Fallback: check active conferences array for today's active event
+  if (Array.isArray(branding.conferences) && branding.conferences.length > 0) {
+    const todayActive = branding.conferences.find(c => {
+      const started = !c.startDate || today >= c.startDate;
+      const notEnded = !c.endDate || today <= c.endDate;
+      return started && notEnded;
+    });
+    if (todayActive) {
+      return {
+        conferenceName: todayActive.conferenceName || '',
+        state: todayActive.state || '',
+        city: todayActive.city || ''
+      };
+    }
+  }
+
+  // Legacy single event fallback
+  if (!branding.activeConferenceName) {
     return { conferenceName: '', state: '', city: '' };
   }
-  const today = getTodayDateStr();
-  
-  // Outside date range check: only records within [startDate, endDate] get captured
   if (branding.activeStartDate && today < branding.activeStartDate) {
     return { conferenceName: '', state: '', city: '' };
   }
@@ -1266,6 +1300,54 @@ app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
     }
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+
+// Share Branded QR Standee Card via Email (Admin)
+app.post('/api/admin/share-standee', requireAdmin, async (req, res) => {
+  const { email, conferenceName, city, state, eventUrl, cardImageData } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, error: 'Recipient email is required' });
+  }
+  try {
+    const attachments = [];
+    if (cardImageData) {
+      const base64Data = cardImageData.replace(/^data:image\/\w+;base64,/, '');
+      attachments.push({
+        filename: `${(conferenceName || 'Conference').replace(/[^a-zA-Z0-9_-]/g, '_')}_QR_Standee.png`,
+        content: Buffer.from(base64Data, 'base64'),
+        cid: 'standeeQr'
+      });
+    }
+
+    await transporter.sendMail({
+      from: `"Emyris Biolifesciences" <${process.env.EMAIL_USER || 'contact@emyrisbio.com'}>`,
+      to: email,
+      subject: `Printable Doctor Registration QR Standee: ${conferenceName || 'Medical Conference'} (${city || ''})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 620px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff;">
+          <h2 style="color: #0284c7; margin-top: 0;">Emyris Biolifesciences</h2>
+          <h3 style="color: #0f172a; margin-top: 5px;">Doctor Details Registration - Official Standee</h3>
+          <p>Hello Team,</p>
+          <p>Attached is the high-resolution, ready-to-print Doctor Registration QR Code Standee for <strong>${conferenceName || 'Medical Conference'}</strong> in <strong>${city || ''}${state ? ', ' + state : ''}</strong>.</p>
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 16px; border-radius: 6px; margin: 15px 0;">
+            <p style="margin: 0; color: #166534; font-weight: bold;">Direct Online Registration Link:</p>
+            <p style="margin: 4px 0 0 0;"><a href="${eventUrl}" style="color: #0284c7; word-break: break-all;">${eventUrl}</a></p>
+          </div>
+          <p>Please print this graphic in color and display it prominently on the stall standee or acrylic table stand.</p>
+          <br/>
+          <hr style="border: none; border-top: 1px solid #e2e8f0;"/>
+          <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 0;">Enhancing Life, Excelling in Care — Emyris Biolifesciences</p>
+        </div>
+      `,
+      attachments
+    });
+
+    res.json({ success: true, message: 'Standee card sent successfully!' });
+  } catch (err) {
+    console.error('Error sending standee email:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -1704,7 +1786,8 @@ app.get('/api/admin/careers/:id/cv', requireAdmin, async (req, res) => {
 // Conference Check-in Endpoint
 app.post('/api/conference-checkin', async (req, res) => {
   try {
-    const { name, address, hospitalAttached, phone, email } = req.body;
+    const { name, address, hospitalAttached, phone, email, event } = req.body;
+    const requestedEvent = event || req.query.event;
     
     if (!name || !phone) {
       return res.status(400).json({ success: false, error: 'Name and phone are required.' });
@@ -1723,7 +1806,7 @@ app.post('/api/conference-checkin', async (req, res) => {
       branding = await checkAndExpireEventConfig(branding, null);
     }
 
-    const { conferenceName, state, city } = getActiveEventDetails(branding);
+    const { conferenceName, state, city } = getActiveEventDetails(branding, requestedEvent);
     let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName, state, city, status: 'active', createdAt: new Date() };
 
     if (dbEnabled && ConferenceVisitor) {
