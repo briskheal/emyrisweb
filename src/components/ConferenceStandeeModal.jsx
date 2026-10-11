@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 
 export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
@@ -7,55 +8,47 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState('');
   const [whatsappPhone, setWhatsappPhone] = useState('');
-  const [showShareOptions, setShowShareOptions] = useState(false);
-  const canvasRef = useRef(null);
+  const [activeTab, setActiveTab] = useState('none'); // 'none' | 'email' | 'whatsapp'
 
   const eventUrl = `${window.location.origin}/conference-checkin?event=${encodeURIComponent(event.id || event.conferenceName)}`;
 
   useEffect(() => {
-    // Generate QR Code data URL
+    // Generate crisp QR code
     QRCode.toDataURL(eventUrl, {
-      width: 450,
+      width: 500,
       margin: 1,
       color: { dark: '#000000', light: '#ffffff' }
     })
-      .then(url => {
-        setQrDataUrl(url);
-      })
+      .then(url => setQrDataUrl(url))
       .catch(err => console.error('QR Generation Error:', err));
   }, [eventUrl]);
 
-  // Render high-res printable standee on canvas
-  const drawStandeeOnCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !qrDataUrl) return null;
-    const ctx = canvas.getContext('2d');
-    
-    // Canvas dimensions: 1200 x 780 (High-res landscape standee card)
+  // Generate ultra high-res 1200x780 PNG canvas for download and email
+  const generateHighResCanvasDataUrl = async () => {
+    if (!qrDataUrl) return null;
+    const canvas = document.createElement('canvas');
     canvas.width = 1200;
     canvas.height = 780;
+    const ctx = canvas.getContext('2d');
 
-    // Background: clean white
+    // 1. Background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle background medical cross icon in top right
+    // Subtle background circle in top right
     ctx.fillStyle = 'rgba(2, 132, 199, 0.04)';
     ctx.beginPath();
     ctx.arc(1080, 100, 90, 0, Math.PI * 2);
     ctx.fill();
 
-    // Outer border rounded container
+    // Outer border
     ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 3;
     ctx.strokeRect(20, 20, 1160, 740);
 
-    // ── 1. LOGO & COMPANY NAME ──
-    // Draw Emyris Molecule Logo Icon
+    // 2. Logo Icon & Name
     const logoX = 70;
     const logoY = 80;
-    
-    // Draw outer nodes & connecting lines
     ctx.strokeStyle = '#0284c7';
     ctx.lineWidth = 3;
     const nodes = [
@@ -74,13 +67,11 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.closePath();
     ctx.stroke();
 
-    // Central core hexagon
     ctx.beginPath();
     ctx.arc(logoX + 35, logoY + 14, 12, 0, Math.PI * 2);
     ctx.fillStyle = '#0284c7';
     ctx.fill();
 
-    // Circular nodes
     nodes.forEach(n => {
       ctx.beginPath();
       ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
@@ -88,7 +79,6 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
       ctx.fill();
     });
 
-    // Company Name Text
     ctx.fillStyle = '#0284c7';
     ctx.font = 'bold 36px "Segoe UI", Arial, sans-serif';
     ctx.fillText('E M Y R I S', logoX + 85, logoY + 12);
@@ -101,7 +91,7 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.font = 'italic 13px "Segoe UI", Arial, sans-serif';
     ctx.fillText('Enhancing Life, Excelling in Care', logoX + 87, logoY + 46);
 
-    // ── 2. FOR HEALTHCARE PROFESSIONALS BADGE ──
+    // 3. For Healthcare Professionals Badge
     const badgeX = 70;
     const badgeY = 175;
     ctx.fillStyle = '#e0f2fe';
@@ -113,48 +103,47 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.font = 'bold 14px "Segoe UI", Arial, sans-serif';
     ctx.fillText('FOR HEALTHCARE PROFESSIONALS', badgeX + 22, badgeY + 23);
 
-    // ── 3. MAIN TITLE ──
+    // 4. Main Headline
     ctx.fillStyle = '#0f172a';
     ctx.font = 'bold 44px "Segoe UI", Arial, sans-serif';
     ctx.fillText('Doctor Details', 70, 270);
     ctx.fillText('Registration Form', 70, 325);
 
-    // Cyan accent underline
+    // Cyan underline
     ctx.fillStyle = '#06b6d4';
     ctx.beginPath();
     ctx.roundRect(70, 345, 120, 6, 3);
     ctx.fill();
 
-    // ── 4. CONFERENCE DETAIL SUB-BADGE ──
+    // 5. Conference details badge
     if (event.conferenceName) {
       ctx.fillStyle = '#f1f5f9';
       ctx.beginPath();
-      ctx.roundRect(70, 375, 460, 40, 8);
+      ctx.roundRect(70, 375, 480, 42, 8);
       ctx.fill();
 
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 16px "Segoe UI", Arial, sans-serif';
       const loc = event.city ? ` • ${event.city}${event.state ? `, ${event.state}` : ''}` : '';
-      ctx.fillText(`📍 ${event.conferenceName}${loc}`, 85, 400);
+      ctx.fillText(`📍 ${event.conferenceName}${loc}`, 85, 402);
     }
 
-    // ── 5. SUBTEXT ──
+    // 6. Subtext
     ctx.fillStyle = '#475569';
     ctx.font = '500 20px "Segoe UI", Arial, sans-serif';
-    ctx.fillText('Please scan the QR code to', 70, 455);
-    ctx.fillText('share your details with us.', 70, 485);
+    ctx.fillText('Please scan the QR code to', 70, 460);
+    ctx.fillText('share your details with us.', 70, 490);
 
     ctx.fillStyle = '#64748b';
     ctx.font = '16px "Segoe UI", Arial, sans-serif';
     ctx.fillText('It only takes a moment.', 70, 535);
 
-    // ── 6. RIGHT SIDE QR CARD CONTAINER ──
+    // 7. Right Side QR Card Box
     const cardX = 680;
     const cardY = 140;
     const cardW = 440;
     const cardH = 500;
 
-    // Outer card rounded box
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 2;
@@ -163,12 +152,14 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.fill();
     ctx.stroke();
 
-    // Draw QR Code Image
+    // Draw QR Code Image (Guaranteed async load)
     const qrImg = new Image();
-    qrImg.src = qrDataUrl;
+    await new Promise((resolve) => {
+      qrImg.onload = resolve;
+      qrImg.src = qrDataUrl;
+    });
     ctx.drawImage(qrImg, cardX + 45, cardY + 45, 350, 350);
 
-    // Text below QR code
     ctx.fillStyle = '#0f172a';
     ctx.font = 'bold 17px "Segoe UI", Arial, sans-serif';
     ctx.textAlign = 'center';
@@ -179,7 +170,7 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.fillText('your details securely', cardX + cardW / 2, cardY + 460);
     ctx.textAlign = 'left';
 
-    // ── 7. BOTTOM NAVY FOOTER RIBBON ──
+    // 8. Bottom Navy Ribbon
     const footerY = 690;
     const footerH = 70;
     ctx.fillStyle = '#0f2744';
@@ -193,7 +184,6 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.font = '15px "Segoe UI", Arial, sans-serif';
     ctx.fillText('Enhancing Life, Excelling in Care', 240, footerY + 41);
 
-    // Cyan indicator pill at right of footer
     ctx.fillStyle = '#06b6d4';
     ctx.beginPath();
     ctx.roundRect(1080, footerY + 34, 70, 6, 3);
@@ -202,21 +192,13 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     return canvas.toDataURL('image/png');
   };
 
-  useEffect(() => {
-    if (qrDataUrl) {
-      setTimeout(() => {
-        drawStandeeOnCanvas();
-      }, 100);
-    }
-  }, [qrDataUrl, event]);
-
-  const handleDownload = () => {
-    const dataUrl = drawStandeeOnCanvas();
+  const handleDownload = async () => {
+    const dataUrl = await generateHighResCanvasDataUrl();
     if (!dataUrl) return;
     const a = document.createElement('a');
     a.href = dataUrl;
-    const filename = `${(event.conferenceName || 'Conference').replace(/[^a-zA-Z0-9_-]/g, '_')}_QR_Standee.png`;
-    a.download = filename;
+    const cleanName = (event.conferenceName || 'Conference').replace(/[^a-zA-Z0-9_-]/g, '_');
+    a.download = `${cleanName}_QR_Standee.png`;
     a.click();
   };
 
@@ -226,7 +208,7 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     setIsSendingEmail(true);
     setEmailStatus('');
     try {
-      const cardImageData = drawStandeeOnCanvas();
+      const cardImageData = await generateHighResCanvasDataUrl();
       const res = await adminFetch('/api/admin/share-standee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -241,173 +223,392 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
       });
       const data = await res.json();
       if (data.success) {
-        setEmailStatus('✅ Standee card successfully sent to team email!');
+        setEmailStatus('✅ Standee card sent successfully to team email!');
         setEmailInput('');
       } else {
         setEmailStatus(`❌ Error: ${data.error || 'Failed to send'}`);
       }
     } catch (err) {
-      setEmailStatus('❌ Error sending email. Please check network.');
+      setEmailStatus('❌ Error sending email. Check network.');
     }
     setIsSendingEmail(false);
   };
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(
-      `Hello Team,\n\nHere is the official Doctor Registration Form QR link for *${event.conferenceName || 'Medical Conference'}* (${event.city || ''}, ${event.state || ''}):\n\n🔗 ${eventUrl}\n\nPlease display the printed standee at the stall for doctor check-ins.\n\n— Emyris Biolifesciences`
+      `Hello Team,\n\nHere is the official Doctor Registration Standee QR link for *${event.conferenceName || 'Medical Conference'}* (${event.city || ''}, ${event.state || ''}):\n\n🔗 ${eventUrl}\n\nPlease display the printed standee at the conference stall for doctor check-ins.\n\n— Emyris Biolifesciences`
     );
     const cleanPhone = whatsappPhone.replace(/[^0-9]/g, '');
     const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${text}` : `https://wa.me/?text=${text}`;
     window.open(url, '_blank');
   };
 
-  return (
+  // Render via React Portal on document.body to ensure it floats above all navbars and layout containers
+  return createPortal(
     <div style={{
       position: 'fixed',
       top: 0,
       left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(15, 23, 42, 0.75)',
-      backdropFilter: 'blur(6px)',
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(15, 23, 42, 0.85)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 99999,
+      zIndex: 9999999, // Higher than any navbar
       padding: '1rem'
     }}>
       <div style={{
         background: '#ffffff',
         borderRadius: '16px',
-        maxWidth: '850px',
+        maxWidth: '920px',
         width: '100%',
-        maxHeight: '92vh',
-        overflowY: 'auto',
-        padding: '1.75rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        position: 'relative'
+        maxHeight: '94vh',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        overflow: 'hidden'
       }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+        
+        {/* ── TOP ACTION BAR (ALWAYS VISIBLE & PROMINENT) ── */}
+        <div style={{
+          background: '#0f172a',
+          color: '#ffffff',
+          padding: '14px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.35rem', color: '#0f172a', fontWeight: 'bold' }}>
-              🖼 Official Doctor Registration Standee
+            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🖼 Doctor Registration Standee & QR
             </h3>
-            <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.88rem' }}>
-              Event: <strong style={{ color: '#0284c7' }}>{event.conferenceName}</strong> ({event.city}, {event.state})
-            </p>
+            <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+              {event.conferenceName} ({event.city}, {event.state})
+            </span>
           </div>
-          <button 
-            onClick={onClose} 
-            style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#94a3b8' }}
-          >
-            ✕
-          </button>
+
+          {/* Action Buttons Right at Top */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button 
+              type="button" 
+              onClick={handleDownload}
+              style={{
+                background: '#0284c7',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              📥 Download Standee (PNG)
+            </button>
+
+            <button 
+              type="button" 
+              onClick={() => setActiveTab(activeTab === 'whatsapp' ? 'none' : 'whatsapp')}
+              style={{
+                background: '#25D366',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              💬 WhatsApp
+            </button>
+
+            <button 
+              type="button" 
+              onClick={() => setActiveTab(activeTab === 'email' ? 'none' : 'email')}
+              style={{
+                background: '#3b82f6',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              📧 Email
+            </button>
+
+            <button 
+              type="button" 
+              onClick={() => window.open(eventUrl, '_blank')}
+              style={{
+                background: '#334155',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                cursor: 'pointer'
+              }}
+              title="Open registration URL in new tab"
+            >
+              🔗 Link
+            </button>
+
+            <button 
+              type="button" 
+              onClick={onClose}
+              style={{
+                background: '#ef4444',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+              title="Close Standee Window"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        {/* Standee Canvas Preview */}
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <canvas 
-            ref={canvasRef} 
-            style={{ 
-              maxWidth: '100%', 
-              height: 'auto', 
-              borderRadius: '8px', 
-              boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-              background: '#fff' 
-            }} 
-          />
-        </div>
-
-        {/* Action Controls */}
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '1.25rem' }}>
-          <button 
-            type="button" 
-            onClick={handleDownload} 
-            className="btn" 
-            style={{ background: '#0284c7', padding: '10px 20px', fontSize: '0.92rem', borderRadius: '8px' }}
-          >
-            📥 Download High-Res Standee (PNG)
-          </button>
-          <button 
-            type="button" 
-            onClick={() => setShowShareOptions(!showShareOptions)} 
-            className="btn" 
-            style={{ background: '#10b981', padding: '10px 20px', fontSize: '0.92rem', borderRadius: '8px' }}
-          >
-            🚀 Share with Team
-          </button>
-          <button 
-            type="button" 
-            onClick={() => window.open(eventUrl, '_blank')} 
-            className="btn-outline" 
-            style={{ padding: '8px 16px', fontSize: '0.9rem', borderRadius: '8px', alignSelf: 'center' }}
-          >
-            🔗 Open Link
-          </button>
-        </div>
-
-        {/* Share Options Panel */}
-        {showShareOptions && (
-          <div style={{ background: '#f1f5f9', padding: '1.25rem', borderRadius: '12px', marginTop: '1rem' }}>
-            <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#0f172a' }}>
-              Share Standee & QR with Field Team
-            </h4>
-
-            {/* Email Option */}
-            <form onSubmit={handleSendEmail} style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
-                📧 Send Printable Graphic to Team Email:
-              </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="email" 
-                  placeholder="e.g., coordinator@emyrisbio.com"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  required
-                  style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                />
-                <button 
-                  type="submit" 
-                  disabled={isSendingEmail} 
-                  style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 18px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  {isSendingEmail ? 'Sending...' : 'Send Email'}
-                </button>
-              </div>
-              {emailStatus && (
-                <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: emailStatus.startsWith('✅') ? '#10b981' : '#ef4444' }}>
-                  {emailStatus}
-                </p>
-              )}
-            </form>
-
-            {/* WhatsApp Option */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
-                💬 Share via WhatsApp (with Country Code):
-              </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="text" 
-                  placeholder="e.g. 919876543210 (or leave empty to pick in WhatsApp)"
-                  value={whatsappPhone}
-                  onChange={(e) => setWhatsappPhone(e.target.value)}
-                  style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                />
-                <button 
-                  type="button" 
-                  onClick={handleShareWhatsApp}
-                  style={{ background: '#25D366', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 18px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  Open WhatsApp
-                </button>
-              </div>
-            </div>
+        {/* ── EXPANDABLE SHARING CONTROLS ── */}
+        {activeTab === 'whatsapp' && (
+          <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#166534' }}>
+              WhatsApp Coordinator Number:
+            </span>
+            <input 
+              type="text" 
+              placeholder="e.g. 919876543210 (with country code)" 
+              value={whatsappPhone}
+              onChange={(e) => setWhatsappPhone(e.target.value)}
+              style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #86efac', fontSize: '0.88rem', minWidth: '240px' }}
+            />
+            <button 
+              type="button" 
+              onClick={handleShareWhatsApp}
+              style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '6px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              Open WhatsApp Chat
+            </button>
+            <button 
+              type="button" 
+              onClick={() => setActiveTab('none')}
+              style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              Cancel
+            </button>
           </div>
         )}
+
+        {activeTab === 'email' && (
+          <form onSubmit={handleSendEmail} style={{ background: '#eff6ff', borderBottom: '1px solid #bfdbfe', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#1e40af' }}>
+              Send Standee Graphic to Email:
+            </span>
+            <input 
+              type="email" 
+              placeholder="e.g. coordinator@emyrisbio.com" 
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              required
+              style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #93c5fd', fontSize: '0.88rem', minWidth: '240px' }}
+            />
+            <button 
+              type="submit" 
+              disabled={isSendingEmail}
+              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '6px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              {isSendingEmail ? 'Sending...' : 'Send Attachment'}
+            </button>
+            {emailStatus && (
+              <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: emailStatus.startsWith('✅') ? '#16a34a' : '#dc2626' }}>
+                {emailStatus}
+              </span>
+            )}
+            <button 
+              type="button" 
+              onClick={() => setActiveTab('none')}
+              style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              Cancel
+            </button>
+          </form>
+        )}
+
+        {/* ── SCROLLABLE PREVIEW AREA: PURE HTML/CSS STANDEE CARD ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', background: '#f1f5f9', display: 'flex', justifyContent: 'center' }}>
+          
+          {/* THE STANDEE CARD (Matching User Sample Image) */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '20px',
+            border: '2px solid #e2e8f0',
+            width: '100%',
+            maxWidth: '820px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative'
+          }}>
+            
+            {/* Card Main Body */}
+            <div style={{ padding: '36px 36px 28px', display: 'flex', justifyContent: 'space-between', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+              
+              {/* Left Column: Branding & Headlines */}
+              <div style={{ flex: '1 1 340px' }}>
+                
+                {/* Logo & Tagline */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '22px' }}>
+                  <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '56px', objectFit: 'contain' }} />
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: '#0284c7', letterSpacing: '1px', lineHeight: 1.1 }}>
+                      EMYRIS
+                    </h2>
+                    <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#0369a1', letterSpacing: '2px', display: 'block' }}>
+                      BIOLIFESCIENCES
+                    </span>
+                    <span style={{ fontSize: '11px', fontStyle: 'italic', color: '#0284c7' }}>
+                      Enhancing Life, Excelling in Care
+                    </span>
+                  </div>
+                </div>
+
+                {/* Pill Badge */}
+                <div style={{
+                  display: 'inline-block',
+                  background: '#e0f2fe',
+                  color: '#0284c7',
+                  padding: '5px 16px',
+                  borderRadius: '20px',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  letterSpacing: '0.5px',
+                  marginBottom: '16px'
+                }}>
+                  FOR HEALTHCARE PROFESSIONALS
+                </div>
+
+                {/* Title */}
+                <h1 style={{
+                  margin: '0 0 10px',
+                  fontSize: '32px',
+                  fontWeight: '900',
+                  color: '#0f172a',
+                  lineHeight: '1.2'
+                }}>
+                  Doctor Details<br/>Registration Form
+                </h1>
+
+                {/* Cyan Accent Bar */}
+                <div style={{ width: '80px', height: '5px', background: '#06b6d4', borderRadius: '3px', marginBottom: '18px' }} />
+
+                {/* Conference Tag */}
+                {event.conferenceName && (
+                  <div style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    marginBottom: '18px',
+                    display: 'inline-block'
+                  }}>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#0f172a' }}>
+                      📍 {event.conferenceName}
+                    </span>
+                    {(event.city || event.state) && (
+                      <span style={{ fontSize: '13px', color: '#64748b', marginLeft: '6px' }}>
+                        • {event.city}{event.state ? `, ${event.state}` : ''}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <p style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: '500', color: '#475569' }}>
+                  Please scan the QR code to share your details with us.
+                </p>
+                <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+                  It only takes a moment.
+                </p>
+              </div>
+
+              {/* Right Column: QR Code Standee Card Box */}
+              <div style={{
+                flex: '0 0 280px',
+                background: '#ffffff',
+                border: '2px solid #e2e8f0',
+                borderRadius: '18px',
+                padding: '20px',
+                textAlign: 'center',
+                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.06)'
+              }}>
+                {/* QR Code Image: 100% Reliable Render */}
+                {qrDataUrl ? (
+                  <img 
+                    src={qrDataUrl} 
+                    alt="Scan to Register" 
+                    style={{ width: '230px', height: '230px', objectFit: 'contain', display: 'block', margin: '0 auto 12px' }} 
+                  />
+                ) : (
+                  <div style={{ width: '230px', height: '230px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', margin: '0 auto 12px' }}>
+                    <span>Generating QR...</span>
+                  </div>
+                )}
+
+                <h4 style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '900', color: '#0f172a', letterSpacing: '0.5px' }}>
+                  SCAN TO FILL
+                </h4>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                  your details securely
+                </p>
+              </div>
+
+            </div>
+
+            {/* Bottom Navy Footer Ribbon */}
+            <div style={{
+              background: '#0f2744',
+              color: '#ffffff',
+              padding: '14px 36px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '1px' }}>
+                THANK YOU
+              </span>
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                Enhancing Life, Excelling in Care
+              </span>
+              <div style={{ width: '45px', height: '4px', background: '#06b6d4', borderRadius: '2px' }} />
+            </div>
+
+          </div>
+        </div>
+
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
