@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { AppContext } from '../context/AppContext';
 import indiaGeo from '../data/indiaGeo.json';
 import { exportVisitorsToExcel } from '../utils/excelExport';
@@ -3441,36 +3442,39 @@ function Admin() {
               })()}
             </div>
 
-            {/* ADD CONFERENCE EVENT MODAL */}
-            {/* ADD CONFERENCE EVENT MODAL */}
-            {showAddEventModal && (
+            {/* ADD CONFERENCE EVENT MODAL (Rendered in Portal to center on full screen without hazy blur) */}
+            {showAddEventModal && createPortal(
               <div style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
+                right: 0,
+                bottom: 0,
                 width: '100vw',
                 height: '100vh',
-                backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                backdropFilter: 'blur(4px)',
+                backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                zIndex: 99999,
+                zIndex: 9999999,
                 padding: '16px',
                 boxSizing: 'border-box'
               }}>
                 <div style={{
                   background: '#ffffff',
                   borderRadius: '14px',
-                  maxWidth: '560px',
+                  maxWidth: '520px',
                   width: '100%',
-                  maxHeight: 'min(90vh, 640px)',
+                  maxHeight: 'min(82vh, 520px)',
                   display: 'flex',
                   flexDirection: 'column',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                   border: '1px solid #cbd5e1',
                   overflow: 'hidden',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  margin: 'auto'
                 }}>
                   {/* Modal Header */}
                   <div style={{
@@ -3622,39 +3626,44 @@ function Admin() {
                     </div>
                   </form>
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
 
             
-            {/* EDIT CONFERENCE EVENT MODAL */}
-            {editingEvent && (
+            {/* EDIT CONFERENCE EVENT MODAL (Rendered in Portal to center on full screen without hazy blur) */}
+            {editingEvent && createPortal(
               <div style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
+                right: 0,
+                bottom: 0,
                 width: '100vw',
                 height: '100vh',
-                backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                backdropFilter: 'blur(4px)',
+                backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                zIndex: 99999,
+                zIndex: 9999999,
                 padding: '16px',
                 boxSizing: 'border-box'
               }}>
                 <div style={{
                   background: '#ffffff',
                   borderRadius: '14px',
-                  maxWidth: '560px',
+                  maxWidth: '520px',
                   width: '100%',
-                  maxHeight: 'min(90vh, 640px)',
+                  maxHeight: 'min(82vh, 520px)',
                   display: 'flex',
                   flexDirection: 'column',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                   border: '1px solid #cbd5e1',
                   overflow: 'hidden',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  margin: 'auto'
                 }}>
                   {/* Modal Header */}
                   <div style={{
@@ -3802,7 +3811,8 @@ function Admin() {
                     </div>
                   </form>
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
 
             {/* STANDEE PREVIEW & TEAM SHARING MODAL */}
