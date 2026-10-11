@@ -29,19 +29,26 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Serve static frontend files first
+app.use(express.static(path.join(__dirname, 'dist')));
+
 // ─── CORS: Restrict to own domain only ────────────────────────────────────────
-const allowedOrigins = [
-  'https://emyrisbio.com',
-  'http://localhost:5173',
-  'http://localhost:5000'
-];
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  try {
+    const url = new URL(origin);
+    if (url.hostname === 'emyrisbio.com' || url.hostname.endsWith('.emyrisbio.com')) return true;
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return true;
+  } catch (e) {}
+  return false;
+};
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman) or matching origins
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('CORS: Origin not allowed'));
+      callback(null, false);
     }
   },
   credentials: true
