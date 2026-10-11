@@ -255,6 +255,8 @@ function Admin() {
   const [activeConferenceInput, setActiveConferenceInput] = useState(siteData.activeConferenceName || '');
   const [activeStateInput, setActiveStateInput] = useState(siteData.activeState || '');
   const [activeCityInput, setActiveCityInput] = useState(siteData.activeCity || '');
+  const [activeStartDateInput, setActiveStartDateInput] = useState(siteData.activeStartDate || '');
+  const [activeEndDateInput, setActiveEndDateInput] = useState(siteData.activeEndDate || '');
   const [selectedInquiries, setSelectedInquiries] = useState([]);
   const [selectedCareers, setSelectedCareers] = useState([]);
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
@@ -435,7 +437,9 @@ function Admin() {
     setActiveConferenceInput(siteData.activeConferenceName || '');
     setActiveStateInput(siteData.activeState || '');
     setActiveCityInput(siteData.activeCity || '');
-  }, [siteData.activeConferenceName, siteData.activeState, siteData.activeCity]);
+    setActiveStartDateInput(siteData.activeStartDate || '');
+    setActiveEndDateInput(siteData.activeEndDate || '');
+  }, [siteData.activeConferenceName, siteData.activeState, siteData.activeCity, siteData.activeStartDate, siteData.activeEndDate]);
 
   // Helper: fetch with admin token header automatically attached
   const adminFetch = (url, options = {}) => {
@@ -3161,14 +3165,14 @@ function Admin() {
             <div className="admin-form glass" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem', borderRadius: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
                 <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '700', color: 'var(--primary)' }}>
-                  ⚙️ Active Event Settings (Auto-tagging for QR Check-ins)
+                  ⚙️ Active Event Settings (Auto-tagging & Auto-Expiry)
                 </h4>
                 <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  New QR scans will automatically be tagged with this Conference, State & City.
+                  Only check-ins between Date From & Date To will be tagged. Once Date To expires, details auto-clear.
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <label style={{ flex: '2 1 200px', margin: 0 }}>
+                <label style={{ flex: '2 1 180px', margin: 0 }}>
                   <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
                     Conference Title
                   </span>
@@ -3180,7 +3184,7 @@ function Admin() {
                     style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
                   />
                 </label>
-                <label style={{ flex: '1 1 150px', margin: 0 }}>
+                <label style={{ flex: '1 1 120px', margin: 0 }}>
                   <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
                     State
                   </span>
@@ -3192,7 +3196,7 @@ function Admin() {
                     style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
                   />
                 </label>
-                <label style={{ flex: '1 1 150px', margin: 0 }}>
+                <label style={{ flex: '1 1 120px', margin: 0 }}>
                   <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
                     City
                   </span>
@@ -3204,6 +3208,28 @@ function Admin() {
                     style={{ padding: '8px 12px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
                   />
                 </label>
+                <label style={{ flex: '1 1 130px', margin: 0 }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
+                    Date From
+                  </span>
+                  <input 
+                    type="date" 
+                    value={activeStartDateInput}
+                    onChange={(e) => setActiveStartDateInput(e.target.value)}
+                    style={{ padding: '7px 10px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
+                  />
+                </label>
+                <label style={{ flex: '1 1 130px', margin: 0 }}>
+                  <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '600', color: '#475569', marginBottom: '0.25rem' }}>
+                    Date To
+                  </span>
+                  <input 
+                    type="date" 
+                    value={activeEndDateInput}
+                    onChange={(e) => setActiveEndDateInput(e.target.value)}
+                    style={{ padding: '7px 10px', width: '100%', border: '1px solid var(--glass-border)', borderRadius: '6px', fontSize: '0.88rem' }}
+                  />
+                </label>
                 <button 
                   className="btn"
                   type="button"
@@ -3213,17 +3239,48 @@ function Admin() {
                         ...siteData, 
                         activeConferenceName: activeConferenceInput,
                         activeState: activeStateInput,
-                        activeCity: activeCityInput 
+                        activeCity: activeCityInput,
+                        activeStartDate: activeStartDateInput,
+                        activeEndDate: activeEndDateInput
                       });
-                      alert("✅ Active Conference, State & City saved successfully!");
+                      alert("✅ Event schedule saved! Auto-expiry will trigger after Date To.");
                     } catch (e) {
                       alert("❌ Failed to save Event Details");
                     }
                   }}
-                  style={{ background: "#0f172a", padding: "8px 18px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px", height: "36px" }}
+                  style={{ background: "#0f172a", padding: "8px 16px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px", height: "36px" }}
                 >
-                  Save Event Details
+                  Save Schedule
                 </button>
+                {(activeConferenceInput || activeStartDateInput || activeEndDateInput) && (
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      if (!window.confirm("Clear active event details now?")) return;
+                      try {
+                        await saveConfigToServer({ 
+                          ...siteData, 
+                          activeConferenceName: '',
+                          activeState: '',
+                          activeCity: '',
+                          activeStartDate: '',
+                          activeEndDate: ''
+                        });
+                        setActiveConferenceInput('');
+                        setActiveStateInput('');
+                        setActiveCityInput('');
+                        setActiveStartDateInput('');
+                        setActiveEndDateInput('');
+                        alert("✅ Active event cleared.");
+                      } catch (e) {
+                        alert("❌ Failed to clear event");
+                      }
+                    }}
+                    style={{ background: "transparent", border: "1px solid #cbd5e1", padding: "7px 12px", fontSize: "0.82rem", color: "#64748b", borderRadius: "6px", cursor: "pointer", height: "36px" }}
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
 

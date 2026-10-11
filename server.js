@@ -323,6 +323,8 @@ const defaultBranding = {
   activeConferenceName: '',
   activeState: '',
   activeCity: '',
+  activeStartDate: '',
+  activeEndDate: '',
   youtubeVideoId: 'ysz5S6PUM-U',
   contactNumber: '+91 7993163300',
   email: 'contact@emyrisbio.com',
@@ -1037,6 +1039,66 @@ async function initDb() {
 }
 
 // Initialize the Database
+
+// ─── ACTIVE EVENT AUTO-EXPIRY & DATE RANGE HELPERS ─────────────────────────
+// Helper to get today's date in Asia/Kolkata (YYYY-MM-DD)
+const getTodayDateStr = () => {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+};
+
+// Helper to check and auto-expire event settings if date has passed
+const checkAndExpireEventConfig = async (branding, brandRecord = null) => {
+  if (!branding) return branding;
+  const today = getTodayDateStr();
+  
+  if (branding.activeEndDate && today > branding.activeEndDate) {
+    branding.activeConferenceName = '';
+    branding.activeState = '';
+    branding.activeCity = '';
+    branding.activeStartDate = '';
+    branding.activeEndDate = '';
+
+    if (dbEnabled && brandRecord) {
+      try {
+        await brandRecord.update({ value: JSON.stringify(branding) });
+        console.log(`[Auto-Expire] Cleared event settings (today ${today} > endDate ${branding.activeEndDate})`);
+      } catch (err) {
+        console.error('[Auto-Expire Error]:', err);
+      }
+    } else if (inMemoryConfig && inMemoryConfig.branding) {
+      inMemoryConfig.branding.activeConferenceName = '';
+      inMemoryConfig.branding.activeState = '';
+      inMemoryConfig.branding.activeCity = '';
+      inMemoryConfig.branding.activeStartDate = '';
+      inMemoryConfig.branding.activeEndDate = '';
+    }
+  }
+  return branding;
+};
+
+// Helper to determine if an event is currently active for tagging
+const getActiveEventDetails = (branding) => {
+  if (!branding || !branding.activeConferenceName) {
+    return { conferenceName: '', state: '', city: '' };
+  }
+  const today = getTodayDateStr();
+  
+  // Outside date range check: only records within [startDate, endDate] get captured
+  if (branding.activeStartDate && today < branding.activeStartDate) {
+    return { conferenceName: '', state: '', city: '' };
+  }
+  if (branding.activeEndDate && today > branding.activeEndDate) {
+    return { conferenceName: '', state: '', city: '' };
+  }
+
+  return {
+    conferenceName: branding.activeConferenceName || '',
+    state: branding.activeState || '',
+    city: branding.activeCity || ''
+  };
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 initDb();
 
 // --- API ENDPOINTS ---
@@ -1070,7 +1132,8 @@ app.get('/api/config', async (req, res) => {
       const pagesRecord = await ConfigRecord.findByPk('pages');
       log.push(`[API] /api/config pagesRecord fetched after ${Date.now()-start}ms`);
 
-      const branding = brandRecord ? JSON.parse(brandRecord.value) : defaultBranding;
+      let branding = brandRecord ? JSON.parse(brandRecord.value) : defaultBranding;
+      branding = await checkAndExpireEventConfig(branding, brandRecord);
       const pages = pagesRecord ? JSON.parse(pagesRecord.value) : defaultPages;
       log.push(`[API] /api/config parsed JSON after ${Date.now()-start}ms`);
 
@@ -1647,27 +1710,24 @@ app.post('/api/conference-checkin', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Name and phone are required.' });
     }
 
-    let currentConferenceName = '';
-    let currentState = '';
-    let currentCity = '';
+    let branding = null;
+    let brandRecord = null;
     if (dbEnabled) {
-      const brandRecord = await ConfigRecord.findByPk('branding');
+      brandRecord = await ConfigRecord.findByPk('branding');
       if (brandRecord) {
-        const branding = JSON.parse(brandRecord.value);
-        currentConferenceName = branding.activeConferenceName || '';
-        currentState = branding.activeState || '';
-        currentCity = branding.activeCity || '';
+        branding = JSON.parse(brandRecord.value);
+        branding = await checkAndExpireEventConfig(branding, brandRecord);
       }
     } else {
-      currentConferenceName = inMemoryConfig.branding?.activeConferenceName || '';
-      currentState = inMemoryConfig.branding?.activeState || '';
-      currentCity = inMemoryConfig.branding?.activeCity || '';
+      branding = inMemoryConfig.branding || {};
+      branding = await checkAndExpireEventConfig(branding, null);
     }
 
-    let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName, state: currentState, city: currentCity, status: 'active', createdAt: new Date() };
+    const { conferenceName, state, city } = getActiveEventDetails(branding);
+    let savedRecord = { name, address, hospitalAttached, phone, email, conferenceName, state, city, status: 'active', createdAt: new Date() };
 
     if (dbEnabled && ConferenceVisitor) {
-      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email, conferenceName: currentConferenceName, state: currentState, city: currentCity });
+      const newRecord = await ConferenceVisitor.create({ name, address, hospitalAttached, phone, email, conferenceName, state, city });
       savedRecord = newRecord.toJSON();
     } else {
       savedRecord.id = inMemoryConferenceVisitors.length + 1;
