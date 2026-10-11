@@ -3609,7 +3609,8 @@ function Admin() {
               <ConferenceStandeeModal 
                 event={standeeEvent} 
                 onClose={() => setStandeeEvent(null)} 
-                adminFetch={adminFetch} 
+                adminFetch={adminFetch}
+                logoUrl={siteData.logo || '/images/assets/logo.png'}
               />
             )}
 

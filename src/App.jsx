@@ -254,7 +254,7 @@ const ConferenceCheckin = () => {
             }}>
               <div style={{ textAlign: 'center', marginBottom: '4px' }}>
                 <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '42px', marginBottom: '6px' }} />
-                <h2 style={{ margin: '0 0 6px', color: '#002345', fontSize: '20px', fontWeight: '700' }}>Welcome to Emyris Stall</h2>
+                <h2 style={{ margin: '0 0 6px', color: '#002345', fontSize: '20px', fontWeight: '700' }}>Welcome to EMYRIS</h2>
                 <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: '1.4' }}>
                   Please share details to connect you in future for Patient support Activity.
                 </p>

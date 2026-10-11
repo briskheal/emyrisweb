@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 
-export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
+export default function ConferenceStandeeModal({ event, onClose, adminFetch, logoUrl = '/images/assets/logo.png' }) {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -55,50 +55,26 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
     ctx.lineWidth = 3;
     ctx.strokeRect(20, 20, 1160, 740);
 
-    // 2. Logo Icon & Name
+    // 2. Official Company Profile Logo Image
     const logoX = 70;
-    const logoY = 80;
-    ctx.strokeStyle = '#0284c7';
-    ctx.lineWidth = 3;
-    const nodes = [
-      { x: logoX + 30, y: logoY - 20 },
-      { x: logoX + 60, y: logoY - 5 },
-      { x: logoX + 65, y: logoY + 25 },
-      { x: logoX + 40, y: logoY + 45 },
-      { x: logoX + 10, y: logoY + 35 },
-      { x: logoX + 5, y: logoY + 5 }
-    ];
-    ctx.beginPath();
-    nodes.forEach((n, idx) => {
-      if (idx === 0) ctx.moveTo(n.x, n.y);
-      else ctx.lineTo(n.x, n.y);
-    });
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(logoX + 35, logoY + 14, 12, 0, Math.PI * 2);
-    ctx.fillStyle = '#0284c7';
-    ctx.fill();
-
-    nodes.forEach(n => {
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fill();
-    });
-
-    ctx.fillStyle = '#0284c7';
-    ctx.font = 'bold 36px "Segoe UI", Arial, sans-serif';
-    ctx.fillText('E M Y R I S', logoX + 85, logoY + 12);
-    
-    ctx.fillStyle = '#0369a1';
-    ctx.font = 'bold 13px "Segoe UI", Arial, sans-serif';
-    ctx.fillText('BIOLIFESCIENCES', logoX + 87, logoY + 28);
-
-    ctx.fillStyle = '#0284c7';
-    ctx.font = 'italic 13px "Segoe UI", Arial, sans-serif';
-    ctx.fillText('Enhancing Life, Excelling in Care', logoX + 87, logoY + 46);
+    const logoY = 55;
+    try {
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve; // Continue even if load fails
+        logoImg.src = logoUrl;
+      });
+      if (logoImg.width && logoImg.height) {
+        // Draw exact company logo with proper aspect ratio
+        const logoHeight = 90;
+        const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
+        ctx.drawImage(logoImg, logoX, logoY, Math.min(logoWidth, 380), logoHeight);
+      }
+    } catch (e) {
+      console.warn('Canvas logo load fallback:', e);
+    }
 
     // 3. For Healthcare Professionals Badge
     const badgeX = 70;
@@ -483,18 +459,7 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch }) {
                 
                 {/* Logo & Tagline */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                  <img src="/images/assets/logo.png" alt="Emyris" style={{ height: '44px', objectFit: 'contain' }} />
-                  <div>
-                    <h2 style={{ margin: 0, fontSize: '19px', fontWeight: '900', color: '#0284c7', letterSpacing: '1px', lineHeight: 1.1 }}>
-                      EMYRIS
-                    </h2>
-                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#0369a1', letterSpacing: '1.5px', display: 'block' }}>
-                      BIOLIFESCIENCES
-                    </span>
-                    <span style={{ fontSize: '10px', fontStyle: 'italic', color: '#0284c7' }}>
-                      Enhancing Life, Excelling in Care
-                    </span>
-                  </div>
+                  <img src={logoUrl} alt="Emyris" style={{ height: '48px', maxWidth: '220px', objectFit: 'contain' }} />
                 </div>
 
                 {/* Pill Badge */}
