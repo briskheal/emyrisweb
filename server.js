@@ -1924,12 +1924,15 @@ app.post('/api/conference-checkin', async (req, res) => {
     const today = getTodayDateStr();
 
     // Check if specifically requested event is upcoming or concluded
-    if (requestedEvent && Array.isArray(branding.conferences)) {
-      const matched = branding.conferences.find(c => 
-        c.id === requestedEvent || 
-        c.code === requestedEvent || 
-        c.conferenceName?.toLowerCase() === requestedEvent.toLowerCase()
-      );
+    if (requestedEvent) {
+      let matched = null;
+      if (Array.isArray(branding.conferences)) {
+        matched = branding.conferences.find(c => 
+          c.id === requestedEvent || 
+          c.code === requestedEvent || 
+          c.conferenceName?.toLowerCase() === requestedEvent.toLowerCase()
+        );
+      }
       if (matched) {
         if (matched.startDate && today < matched.startDate) {
           return res.status(400).json({ 
@@ -1945,6 +1948,13 @@ app.post('/api/conference-checkin', async (req, res) => {
             error: `Registration for ${matched.conferenceName} has officially concluded.` 
           });
         }
+      } else {
+        // Event code or 'primary' was given, but is not active or has concluded
+        return res.status(400).json({
+          success: false,
+          status: 'CONCLUDED',
+          error: `Registration for this conference has officially concluded.`
+        });
       }
     }
 

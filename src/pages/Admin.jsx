@@ -3819,33 +3819,33 @@ function Admin() {
               </div>
             </div>
 
-            <div className="glass" style={{ display: 'flex', gap: '1rem', padding: '1rem', marginBottom: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', display: 'flex', gap: '1rem', padding: '1rem', marginBottom: '1.25rem', alignItems: 'flex-end', flexWrap: 'wrap', boxShadow: '0 2px 4px rgba(0,0,0,0.04)' }}>
               <label style={{ margin: 0, flex: 1, minWidth: '200px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Filter by Conference:</span>
-                <select value={filterConference} onChange={(e) => setFilterConference(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>Filter by Conference:</span>
+                <select value={filterConference} onChange={(e) => setFilterConference(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', background: '#ffffff', fontWeight: '500' }}>
                   <option value="">All Conferences</option>
                   {uniqueConferences.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </label>
               <label style={{ margin: 0, flex: 1, minWidth: '150px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Date From:</span>
-                <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>Date From:</span>
+                <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', background: '#ffffff' }} />
               </label>
               <label style={{ margin: 0, flex: 1, minWidth: '150px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Date To:</span>
-                <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>Date To:</span>
+                <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#0f172a', background: '#ffffff' }} />
               </label>
-              <button onClick={() => { setFilterConference(''); setFilterDateFrom(''); setFilterDateTo(''); }} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer' }}>Clear Filters</button>
+              <button onClick={() => { setFilterConference(''); setFilterDateFrom(''); setFilterDateTo(''); }} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#0f172a', fontWeight: '700' }}>Clear Filters</button>
             </div>
 
             {filteredVisitors.length === 0 ? (
-              <p style={{ color: '#64748b' }}>No visitors found matching your criteria.</p>
+              <p style={{ color: '#475569', fontWeight: '500' }}>No visitors found matching your criteria.</p>
             ) : (
-              <div style={{ overflowX: "auto", width: "100%", maxWidth: "100%", WebkitOverflowScrolling: "touch", border: "1px solid #e2e8f0", borderRadius: "8px" }}>
+              <div style={{ overflowX: "auto", width: "100%", maxWidth: "100%", WebkitOverflowScrolling: "touch", border: "1px solid #cbd5e1", borderRadius: "8px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", background: "white", minWidth: "980px" }}>
-                  <thead style={{ background: '#f1f5f9' }}>
+                  <thead style={{ background: '#1e3a8a', color: '#ffffff' }}>
                     <tr>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>
+                      <th style={{ padding: '12px 10px', border: '1px solid #3b82f6', color: '#ffffff', textAlign: 'center', width: '40px' }}>
                         <input 
                           type="checkbox" 
                           checked={selectedVisitors.length === filteredVisitors.length && filteredVisitors.length > 0}
@@ -3858,22 +3858,22 @@ function Admin() {
                           }}
                         />
                       </th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Date</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Conference</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>State</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>City</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Name</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Email</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Phone</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Hospital</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Address</th>
-                      <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>Actions</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>DATE</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>CONFERENCE</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>STATE</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>CITY</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>NAME</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>EMAIL</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>PHONE</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>HOSPITAL</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px' }}>ADDRESS</th>
+                      <th style={{ padding: '12px 14px', border: '1px solid #3b82f6', color: '#ffffff', fontWeight: 'bold', fontSize: '0.84rem', letterSpacing: '0.5px', textAlign: 'center' }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredVisitors.map(v => (
-                      <tr key={v.id} style={{ background: selectedVisitors.includes(v.id) ? '#f0f9ff' : 'white' }}>
-                        <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>
+                    {filteredVisitors.map((v, idx) => (
+                      <tr key={v.id} style={{ background: selectedVisitors.includes(v.id) ? '#e0f2fe' : (idx % 2 === 0 ? '#ffffff' : '#f8fafc') }}>
+                        <td style={{ padding: '12px 10px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
                           <input 
                             type="checkbox" 
                             checked={selectedVisitors.includes(v.id)}
@@ -3883,42 +3883,44 @@ function Admin() {
                             }}
                           />
                         </td>
-                        <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{new Date(v.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', whiteSpace: 'nowrap', fontWeight: '600', color: '#0f172a' }}>{formatDateToDisplay(v.createdAt)}</td>
                         {editingVisitorId === v.id ? (
                           <>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.conferenceName || ''} onChange={e => setEditVisitorData({...editVisitorData, conferenceName: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.state || ''} onChange={e => setEditVisitorData({...editVisitorData, state: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.city || ''} onChange={e => setEditVisitorData({...editVisitorData, city: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.hospitalAttached || ''} onChange={e => setEditVisitorData({...editVisitorData, hospitalAttached: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}><input value={editVisitorData.address || ''} onChange={e => setEditVisitorData({...editVisitorData, address: e.target.value})} style={{ width: '100%', padding: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.conferenceName || ''} onChange={e => setEditVisitorData({...editVisitorData, conferenceName: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.state || ''} onChange={e => setEditVisitorData({...editVisitorData, state: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.city || ''} onChange={e => setEditVisitorData({...editVisitorData, city: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.name || ''} onChange={e => setEditVisitorData({...editVisitorData, name: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.email || ''} onChange={e => setEditVisitorData({...editVisitorData, email: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.phone || ''} onChange={e => setEditVisitorData({...editVisitorData, phone: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.hospitalAttached || ''} onChange={e => setEditVisitorData({...editVisitorData, hospitalAttached: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
+                            <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}><input value={editVisitorData.address || ''} onChange={e => setEditVisitorData({...editVisitorData, address: e.target.value})} style={{ width: '100%', padding: '6px', border: '1px solid #94a3b8', borderRadius: '4px' }} /></td>
                           </>
                         ) : (
                           <>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.conferenceName || 'N/A'}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.state || 'N/A'}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>{v.city || 'N/A'}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{v.name}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.email}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.phone}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.hospitalAttached}</td>
-                            <td style={{ padding: '12px', border: '1px solid #e2e8f0' }}>{v.address}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '500' }}>{v.conferenceName || 'N/A'}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '500' }}>{v.state || 'N/A'}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '500' }}>{v.city || 'N/A'}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', fontWeight: '700', color: '#0f172a' }}>{v.name}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a' }}>{v.email}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '600' }}>{v.phone}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a' }}>{v.hospitalAttached}</td>
+                            <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', color: '#0f172a' }}>{v.address}</td>
                           </>
                         )}
-                        <td style={{ padding: '12px', border: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
-                          {editingVisitorId === v.id ? (
-                            <>
-                              <button onClick={() => handleSaveVisitorEdit(v.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Save">💾</button>
-                              <button onClick={() => setEditingVisitorId(null)} style={{ background: '#64748b', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Cancel">❌</button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => { setEditingVisitorId(v.id); setEditVisitorData(v); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Edit">✏️</button>
-                              <button onClick={() => deleteVisitor(v.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Delete">🗑</button>
-                            </>
-                          )}
+                        <td style={{ padding: '12px 14px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            {editingVisitorId === v.id ? (
+                              <>
+                                <button onClick={() => handleSaveVisitorEdit(v.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }} title="Save">💾</button>
+                                <button onClick={() => setEditingVisitorId(null)} style={{ background: '#64748b', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }} title="Cancel">❌</button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => { setEditingVisitorId(v.id); setEditVisitorData(v); }} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', padding: '5px 8px', cursor: 'pointer', fontSize: '0.9rem' }} title="Edit">✏️</button>
+                                <button onClick={() => deleteVisitor(v.id)} style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '4px', padding: '5px 8px', cursor: 'pointer', fontSize: '0.9rem' }} title="Delete">🗑</button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -28,7 +28,7 @@ const ConferenceCheckin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Resolve target event from URL parameter (?event=...) or primary active event
+  // 1. Resolve target event from URL parameter (?event=...) or active conferences
   const eventParam = new URLSearchParams(window.location.search).get('event') || '';
   
   let targetEvent = null;
@@ -40,7 +40,7 @@ const ConferenceCheckin = () => {
     );
   }
 
-  // Fallback to primary active conference
+  // Fallback to legacy primary active conference if matching
   if (!targetEvent && siteData.activeConferenceName) {
     targetEvent = {
       conferenceName: siteData.activeConferenceName,
@@ -51,7 +51,7 @@ const ConferenceCheckin = () => {
     };
   }
 
-  // 2. Evaluate current date vs event dates
+  // 2. Evaluate current date vs event dates (Asia/Kolkata timezone)
   const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 
   let eventTiming = 'ACTIVE'; // 'ACTIVE' | 'UPCOMING' | 'CONCLUDED'
@@ -60,6 +60,29 @@ const ConferenceCheckin = () => {
       eventTiming = 'UPCOMING';
     } else if (targetEvent.endDate && todayStr > targetEvent.endDate) {
       eventTiming = 'CONCLUDED';
+    }
+  } else if (eventParam) {
+    // A specific event link/QR was accessed (?event=primary or past conference),
+    // but is no longer in the active schedule or has concluded.
+    eventTiming = 'CONCLUDED';
+    targetEvent = {
+      conferenceName: eventParam === 'primary' ? 'Medical Conference' : eventParam
+    };
+  } else {
+    // No eventParam passed: check if any conference in siteData.conferences is currently active today
+    const currentActive = Array.isArray(siteData.conferences) && siteData.conferences.find(c => {
+      const started = !c.startDate || todayStr >= c.startDate;
+      const notEnded = !c.endDate || todayStr <= c.endDate;
+      return started && notEnded;
+    });
+
+    if (currentActive) {
+      targetEvent = currentActive;
+      eventTiming = 'ACTIVE';
+    } else {
+      // No active conference today
+      eventTiming = 'CONCLUDED';
+      targetEvent = { conferenceName: 'Medical Conference' };
     }
   }
 

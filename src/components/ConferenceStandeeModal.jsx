@@ -524,29 +524,29 @@ export default function ConferenceStandeeModal({ event, onClose, adminFetch, log
               <div style={{
                 flex: '0 0 230px',
                 background: '#ffffff',
-                border: '1.5px solid #e2e8f0',
+                border: '2px solid #cbd5e1',
                 borderRadius: '14px',
-                padding: '14px',
+                padding: '16px',
                 textAlign: 'center',
-                boxShadow: '0 8px 14px -3px rgba(0,0,0,0.06)'
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
               }}>
                 {/* QR Code Image */}
                 {qrDataUrl ? (
                   <img 
                     src={qrDataUrl} 
                     alt="Scan to Register" 
-                    style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
+                    style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block', margin: '0 auto 10px', imageRendering: 'pixelated', borderRadius: '4px' }} 
                   />
                 ) : (
-                  <div style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', margin: '0 auto 8px' }}>
+                  <div style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', margin: '0 auto 10px' }}>
                     <span style={{ fontSize: '13px', color: '#94a3b8' }}>Generating QR...</span>
                   </div>
                 )}
 
-                <h4 style={{ margin: '0 0 2px', fontSize: '12px', fontWeight: '900', color: '#0f172a', letterSpacing: '0.5px' }}>
+                <h4 style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: '900', color: '#0f172a', letterSpacing: '0.5px' }}>
                   SCAN TO FILL
                 </h4>
-                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                <p style={{ margin: 0, fontSize: '11px', fontWeight: '600', color: '#475569' }}>
                   your details securely
                 </p>
               </div>

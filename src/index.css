@@ -568,39 +568,42 @@ select option {
   border: 1px solid var(--glass-border) !important;
 }
 
-/* Admin Tables */
+/* Admin Tables - Crisp & High Contrast */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  background: rgba(255, 255, 255, 0.5);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   overflow: hidden;
 }
 
 th {
-  background: rgba(82, 203, 203, 0.08);
-  color: var(--primary);
+  background: #1e3a8a;
+  color: #ffffff;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   letter-spacing: 0.5px;
-  padding: 14px 12px;
+  padding: 12px 14px;
+  border: 1px solid #3b82f6;
 }
 
 td {
-  padding: 14px 12px;
-  border-bottom: 1px solid var(--glass-border);
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
   vertical-align: middle;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+tr:nth-child(even) td {
+  background: #f8fafc;
 }
 
 tr:hover td {
-  background: rgba(82, 203, 203, 0.02);
-}
-
-tr:last-child td {
-  border-bottom: none;
+  background: #f1f5f9;
 }
 
 /* File Upload Controls */
