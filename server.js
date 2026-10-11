@@ -1051,27 +1051,43 @@ const getTodayDateStr = () => {
 const checkAndExpireEventConfig = async (branding, brandRecord = null) => {
   if (!branding) return branding;
   const today = getTodayDateStr();
+  let modified = false;
   
+  // 1. Expire legacy single event if date passed
   if (branding.activeEndDate && today > branding.activeEndDate) {
     branding.activeConferenceName = '';
     branding.activeState = '';
     branding.activeCity = '';
     branding.activeStartDate = '';
     branding.activeEndDate = '';
+    modified = true;
+  }
 
+  // 2. Automatically clean expired events from multi-conferences grid
+  if (Array.isArray(branding.conferences)) {
+    const activeConferences = branding.conferences.filter(c => {
+      // If no endDate specified or today is on/before endDate, keep it active
+      if (!c.endDate) return true;
+      return today <= c.endDate;
+    });
+
+    if (activeConferences.length !== branding.conferences.length) {
+      branding.conferences = activeConferences;
+      modified = true;
+      console.log(`[Auto-Expire] Cleaned ${branding.conferences.length - activeConferences.length} expired conference(s) from active grid.`);
+    }
+  }
+
+  if (modified) {
     if (dbEnabled && brandRecord) {
       try {
         await brandRecord.update({ value: JSON.stringify(branding) });
-        console.log(`[Auto-Expire] Cleared event settings (today ${today} > endDate ${branding.activeEndDate})`);
+        console.log(`[Auto-Expire] Saved updated active conference config to database.`);
       } catch (err) {
         console.error('[Auto-Expire Error]:', err);
       }
     } else if (inMemoryConfig && inMemoryConfig.branding) {
-      inMemoryConfig.branding.activeConferenceName = '';
-      inMemoryConfig.branding.activeState = '';
-      inMemoryConfig.branding.activeCity = '';
-      inMemoryConfig.branding.activeStartDate = '';
-      inMemoryConfig.branding.activeEndDate = '';
+      inMemoryConfig.branding = branding;
     }
   }
   return branding;

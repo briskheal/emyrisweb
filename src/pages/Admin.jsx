@@ -237,6 +237,23 @@ const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) =
   });
 };
 
+// Format any date string (ISO, YYYY-MM-DD, etc.) into DD-MM-YYYY format
+const formatDateToDisplay = (dateVal) => {
+  if (!dateVal) return '';
+  if (/^\d{2}-\d{2}-\d{4}$/.test(dateVal)) return dateVal;
+  const ymdMatch = String(dateVal).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymdMatch) {
+    const [, y, m, d] = ymdMatch;
+    return `${d}-${m}-${y}`;
+  }
+  const dt = new Date(dateVal);
+  if (isNaN(dt.getTime())) return String(dateVal);
+  const day = String(dt.getDate()).padStart(2, '0');
+  const month = String(dt.getMonth() + 1).padStart(2, '0');
+  const year = dt.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
 function Admin() {
   const { siteData, updateSiteData, saveConfigToServer } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('Profile');
@@ -264,6 +281,7 @@ function Admin() {
   const [standeeEvent, setStandeeEvent] = useState(null);
   const [showMailerModal, setShowMailerModal] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventState, setNewEventState] = useState('');
   const [newEventCity, setNewEventCity] = useState('');
@@ -1382,6 +1400,23 @@ function Admin() {
       alert('✅ Conference event deleted.');
     } catch (err) {
       alert('Failed to delete event.');
+    }
+  };
+
+  const handleUpdateConferenceEvent = async (e) => {
+    e.preventDefault();
+    if (!editingEvent) return;
+    const currentConferences = Array.isArray(siteData.conferences) ? siteData.conferences : [];
+    const updated = currentConferences.map(c => c.id === editingEvent.id ? editingEvent : c);
+    try {
+      await saveConfigToServer({
+        ...siteData,
+        conferences: updated
+      });
+      setEditingEvent(null);
+      alert('✅ Conference event updated successfully.');
+    } catch (err) {
+      alert('Failed to update event.');
     }
   };
 
@@ -3243,221 +3278,148 @@ function Admin() {
         {/* Conference Visitors */}
         {activeTab === 'ConferenceVisitors' && (
           <div className="admin-section">
+            {/* UNIFIED CONFERENCES MANAGEMENT (EXCEL-STYLE GRID WITH HORIZONTAL SCROLL) */}
             <div className="admin-form glass" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem', borderRadius: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    ⚙️ Active Conferences & Stall Standees
+                  <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ⚙️ Active Conferences Schedule & Stall Standees
                   </h4>
-                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                    Manage multiple simultaneous events. Doctors scanning each QR will be tagged automatically.
+                  <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                    Scheduled events with automated date-based doctor check-in tagging. Expired events automatically clean up from this active grid.
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div>
                   <button 
                     type="button"
                     className="btn"
                     onClick={() => setShowAddEventModal(true)}
-                    style={{ background: '#0284c7', padding: '7px 16px', fontSize: '0.85rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{ background: '#0284c7', padding: '8px 18px', fontSize: '0.88rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)' }}
                   >
                     ➕ Add Conference Event
                   </button>
-                  {siteData.activeConferenceName && (
-                    <button 
-                      type="button"
-                      className="btn"
-                      onClick={() => setStandeeEvent({
-                        id: 'primary',
-                        conferenceName: siteData.activeConferenceName,
-                        state: siteData.activeState,
-                        city: siteData.activeCity,
-                        startDate: siteData.activeStartDate,
-                        endDate: siteData.activeEndDate
-                      })}
-                      style={{ background: '#10b981', padding: '7px 14px', fontSize: '0.85rem', borderRadius: '6px' }}
-                    >
-                      🖼 View Active Standee
-                    </button>
-                  )}
                 </div>
               </div>
 
-              {/* Multi-Events Table / List */}
-              {Array.isArray(siteData.conferences) && siteData.conferences.length > 0 && (
-                <div style={{ marginTop: '0.75rem', marginBottom: '1rem', overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#ffffff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                    <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                      <tr>
-                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569' }}>Conference</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569' }}>Location</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569' }}>Dates</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'right', color: '#475569' }}>Standee & Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {siteData.conferences.map(conf => (
-                        <tr key={conf.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '8px 12px', fontWeight: 'bold', color: '#0f172a' }}>{conf.conferenceName}</td>
-                          <td style={{ padding: '8px 12px', color: '#64748b' }}>{conf.city}, {conf.state}</td>
-                          <td style={{ padding: '8px 12px', color: '#64748b' }}>{conf.startDate} to {conf.endDate}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                            <button 
-                              type="button" 
-                              onClick={() => setStandeeEvent(conf)}
-                              style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', marginRight: '6px', fontSize: '0.78rem' }}
-                            >
-                              🖼 Standee & QR
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={() => handleDeleteConferenceEvent(conf.id)}
-                              style={{ background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.78rem' }}
-                            >
-                              🗑
-                            </button>
-                          </td>
+              {/* Excel-Style Grid with Right Horizontal Scrollbar */}
+              {(() => {
+                const today = new Date().toISOString().slice(0, 10);
+                const rawConfs = Array.isArray(siteData.conferences) ? siteData.conferences : [];
+                // Auto-clean expired events: only display active and upcoming events (today <= endDate)
+                const activeConfs = rawConfs.filter(c => !c.endDate || today <= c.endDate);
+
+                if (activeConfs.length === 0) {
+                  return (
+                    <div style={{ background: '#f8fafc', border: '1.5px dashed #cbd5e1', borderRadius: '8px', padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                      <p style={{ margin: '0 0 6px', fontWeight: '600', fontSize: '0.95rem' }}>No Active or Upcoming Conferences Scheduled</p>
+                      <span style={{ fontSize: '0.82rem' }}>Click <strong>"+ Add Conference Event"</strong> above to schedule your next conference stall and generate a ready-to-print QR standee.</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{
+                    width: '100%',
+                    overflowX: 'auto',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+                    background: '#ffffff'
+                  }}>
+                    <table style={{
+                      width: '100%',
+                      minWidth: '920px',
+                      borderCollapse: 'collapse',
+                      fontSize: '0.86rem',
+                      textAlign: 'left'
+                    }}>
+                      <thead style={{ background: '#1e3a8a', color: '#ffffff' }}>
+                        <tr>
+                          <th style={{ padding: '10px 12px', border: '1px solid #3b82f6', width: '45px', textAlign: 'center' }}>#</th>
+                          <th style={{ padding: '10px 14px', border: '1px solid #3b82f6', fontWeight: 'bold' }}>Conference Name</th>
+                          <th style={{ padding: '10px 12px', border: '1px solid #3b82f6' }}>State</th>
+                          <th style={{ padding: '10px 12px', border: '1px solid #3b82f6' }}>City</th>
+                          <th style={{ padding: '10px 12px', border: '1px solid #3b82f6', textAlign: 'center' }}>Date From (DD-MM-YYYY)</th>
+                          <th style={{ padding: '10px 12px', border: '1px solid #3b82f6', textAlign: 'center' }}>Date To (DD-MM-YYYY)</th>
+                          <th style={{ padding: '10px 12px', border: '1px solid #3b82f6', textAlign: 'center' }}>Status</th>
+                          <th style={{ padding: '10px 14px', border: '1px solid #3b82f6', textAlign: 'center', minWidth: '220px' }}>Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Primary Active Conference Inline Quick-Edit with Searchable State & City */}
-              <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.5rem' }}>
-                  📌 Primary Active Conference (Applied to standard printed QR standees)
-                </span>
-                <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  <label style={{ flex: '2 1 180px', margin: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
-                      Conference Title
-                    </span>
-                    <input 
-                      type="text" 
-                      placeholder="e.g., Gujarat Criticon"
-                      value={activeConferenceInput}
-                      onChange={(e) => setActiveConferenceInput(e.target.value)}
-                      style={{ padding: '7px 10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
-                    />
-                  </label>
-                  
-                  {/* Searchable State Dropdown */}
-                  <label style={{ flex: '1 1 140px', margin: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
-                      State (Searchable)
-                    </span>
-                    <input 
-                      type="text"
-                      list="main-states-datalist"
-                      placeholder="Select State"
-                      value={activeStateInput}
-                      onChange={(e) => setActiveStateInput(e.target.value)}
-                      style={{ padding: '7px 10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
-                    />
-                    <datalist id="main-states-datalist">
-                      {indiaGeo.states.map(s => (
-                        <option key={s.name} value={s.name} />
-                      ))}
-                    </datalist>
-                  </label>
-
-                  {/* Searchable City Dropdown with Custom Add Option */}
-                  <label style={{ flex: '1 1 140px', margin: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
-                      City (Search/Type)
-                    </span>
-                    <input 
-                      type="text"
-                      list="main-cities-datalist"
-                      placeholder="Select or Type City"
-                      value={activeCityInput}
-                      onChange={(e) => setActiveCityInput(e.target.value)}
-                      style={{ padding: '7px 10px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
-                    />
-                    <datalist id="main-cities-datalist">
-                      {mainActiveCitiesList.map(c => (
-                        <option key={c} value={c} />
-                      ))}
-                    </datalist>
-                  </label>
-
-                  <label style={{ flex: '1 1 125px', margin: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
-                      Date From
-                    </span>
-                    <input 
-                      type="date" 
-                      value={activeStartDateInput}
-                      onChange={(e) => setActiveStartDateInput(e.target.value)}
-                      style={{ padding: '6px 8px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
-                    />
-                  </label>
-                  <label style={{ flex: '1 1 125px', margin: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: '600', color: '#64748b', marginBottom: '2px' }}>
-                      Date To
-                    </span>
-                    <input 
-                      type="date" 
-                      value={activeEndDateInput}
-                      onChange={(e) => setActiveEndDateInput(e.target.value)}
-                      style={{ padding: '6px 8px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
-                    />
-                  </label>
-
-                  <button 
-                    className="btn"
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await saveConfigToServer({ 
-                          ...siteData, 
-                          activeConferenceName: activeConferenceInput,
-                          activeState: activeStateInput,
-                          activeCity: activeCityInput,
-                          activeStartDate: activeStartDateInput,
-                          activeEndDate: activeEndDateInput
-                        });
-                        alert("✅ Primary Event saved successfully!");
-                      } catch (e) {
-                        alert("❌ Failed to save Primary Event");
-                      }
-                    }}
-                    style={{ background: "#0f172a", padding: "7px 16px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px", height: "34px" }}
-                  >
-                    Save Primary
-                  </button>
-                  {(activeConferenceInput || activeStartDateInput || activeEndDateInput) && (
-                    <button 
-                      type="button"
-                      onClick={async () => {
-                        if (!window.confirm("Clear primary active event details?")) return;
-                        try {
-                          await saveConfigToServer({ 
-                            ...siteData, 
-                            activeConferenceName: '',
-                            activeState: '',
-                            activeCity: '',
-                            activeStartDate: '',
-                            activeEndDate: ''
-                          });
-                          setActiveConferenceInput('');
-                          setActiveStateInput('');
-                          setActiveCityInput('');
-                          setActiveStartDateInput('');
-                          setActiveEndDateInput('');
-                          alert("✅ Cleared.");
-                        } catch (e) {
-                          alert("❌ Failed to clear");
-                        }
-                      }}
-                      style={{ background: "transparent", border: "1px solid #cbd5e1", padding: "6px 10px", fontSize: "0.8rem", color: "#64748b", borderRadius: "6px", cursor: "pointer", height: "34px" }}
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
+                      </thead>
+                      <tbody>
+                        {activeConfs.map((conf, idx) => {
+                          const isActiveToday = (!conf.startDate || today >= conf.startDate) && (!conf.endDate || today <= conf.endDate);
+                          const isUpcoming = conf.startDate && today < conf.startDate;
+                          return (
+                            <tr key={conf.id || idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', transition: 'background 0.2s' }}>
+                              <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
+                                {idx + 1}
+                              </td>
+                              <td style={{ padding: '10px 14px', border: '1px solid #e2e8f0', fontWeight: 'bold', color: '#0f172a' }}>
+                                {conf.conferenceName}
+                              </td>
+                              <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', color: '#334155' }}>
+                                {conf.state}
+                              </td>
+                              <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', color: '#334155' }}>
+                                {conf.city}
+                              </td>
+                              <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', textAlign: 'center', fontWeight: '600', color: '#0284c7' }}>
+                                {formatDateToDisplay(conf.startDate)}
+                              </td>
+                              <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', textAlign: 'center', fontWeight: '600', color: '#0284c7' }}>
+                                {formatDateToDisplay(conf.endDate)}
+                              </td>
+                              <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                                {isActiveToday ? (
+                                  <span style={{ background: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    🟢 Active
+                                  </span>
+                                ) : isUpcoming ? (
+                                  <span style={{ background: '#fef3c7', color: '#92400e', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    ⏳ Upcoming
+                                  </span>
+                                ) : (
+                                  <span style={{ background: '#f1f5f9', color: '#64748b', padding: '3px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 'bold' }}>
+                                    Concluded
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '10px 14px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                                <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setStandeeEvent(conf)}
+                                    style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                    title="View / Download QR Standee"
+                                  >
+                                    🖼 Standee & QR
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setEditingEvent(conf)}
+                                    style={{ background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', padding: '5px 9px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '0.78rem' }}
+                                    title="Edit Conference Details"
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleDeleteConferenceEvent(conf.id)}
+                                    style={{ background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca', padding: '5px 8px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.78rem' }}
+                                    title="Delete Event"
+                                  >
+                                    🗑
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* ADD CONFERENCE EVENT MODAL */}
@@ -3569,6 +3531,11 @@ function Admin() {
                             required
                             style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
                           />
+                          {newEventStartDate && (
+                            <span style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '2px', display: 'block' }}>
+                              Display: {formatDateToDisplay(newEventStartDate)}
+                            </span>
+                          )}
                         </label>
                         <label style={{ flex: 1, margin: 0 }}>
                           <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
@@ -3581,6 +3548,11 @@ function Admin() {
                             required
                             style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
                           />
+                          {newEventEndDate && (
+                            <span style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '2px', display: 'block' }}>
+                              Display: {formatDateToDisplay(newEventEndDate)}
+                            </span>
+                          )}
                         </label>
                       </div>
 
@@ -3598,6 +3570,159 @@ function Admin() {
                           style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold' }}
                         >
                           Save Event & Generate Standee
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            
+            {/* EDIT CONFERENCE EVENT MODAL */}
+            {editingEvent && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                backdropFilter: 'blur(4px)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 99999,
+                padding: '1rem'
+              }}>
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '14px',
+                  maxWidth: '560px',
+                  width: '100%',
+                  padding: '1.75rem',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>✏️ Edit Conference Event</h3>
+                    <button 
+                      onClick={() => setEditingEvent(null)}
+                      style={{ background: 'transparent', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94a3b8' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleUpdateConferenceEvent}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <label style={{ margin: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                          Conference Title *
+                        </span>
+                        <input 
+                          type="text" 
+                          value={editingEvent.conferenceName || ''}
+                          onChange={(e) => setEditingEvent({ ...editingEvent, conferenceName: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                        />
+                      </label>
+
+                      {/* State Dropdown with Search */}
+                      <label style={{ margin: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                          State * (Searchable Dropdown)
+                        </span>
+                        <input 
+                          type="text" 
+                          list="edit-modal-states-datalist"
+                          placeholder="Type or select state"
+                          value={editingEvent.state || ''}
+                          onChange={(e) => setEditingEvent({ ...editingEvent, state: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                        />
+                        <datalist id="edit-modal-states-datalist">
+                          {indiaGeo.states.map(s => (
+                            <option key={s.name} value={s.name} />
+                          ))}
+                        </datalist>
+                      </label>
+
+                      {/* City Dropdown with Search + Custom Input */}
+                      <label style={{ margin: 0 }}>
+                        <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                          City * (Search major cities or type custom city)
+                        </span>
+                        <input 
+                          type="text" 
+                          list="edit-modal-cities-datalist"
+                          placeholder="Type or select city"
+                          value={editingEvent.city || ''}
+                          onChange={(e) => setEditingEvent({ ...editingEvent, city: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                        />
+                        <datalist id="edit-modal-cities-datalist">
+                          {(() => {
+                            const found = indiaGeo.states.find(s => s.name?.toLowerCase() === (editingEvent.state || '').trim().toLowerCase());
+                            const cities = found?.cities || [];
+                            return cities.map(c => <option key={c} value={c} />);
+                          })()}
+                        </datalist>
+                      </label>
+
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <label style={{ flex: 1, margin: 0 }}>
+                          <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                            Date From *
+                          </span>
+                          <input 
+                            type="date" 
+                            value={editingEvent.startDate || ''}
+                            onChange={(e) => setEditingEvent({ ...editingEvent, startDate: e.target.value })}
+                            required
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                          />
+                          {editingEvent.startDate && (
+                            <span style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '2px', display: 'block' }}>
+                              Display: {formatDateToDisplay(editingEvent.startDate)}
+                            </span>
+                          )}
+                        </label>
+                        <label style={{ flex: 1, margin: 0 }}>
+                          <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                            Date To *
+                          </span>
+                          <input 
+                            type="date" 
+                            value={editingEvent.endDate || ''}
+                            onChange={(e) => setEditingEvent({ ...editingEvent, endDate: e.target.value })}
+                            required
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.9rem' }}
+                          />
+                          {editingEvent.endDate && (
+                            <span style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '2px', display: 'block' }}>
+                              Display: {formatDateToDisplay(editingEvent.endDate)}
+                            </span>
+                          )}
+                        </label>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingEvent(null)}
+                          style={{ background: 'transparent', border: '1px solid #cbd5e1', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', color: '#64748b' }}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="btn"
+                          style={{ background: '#0284c7', padding: '9px 22px', borderRadius: '6px', fontWeight: 'bold' }}
+                        >
+                          Save Changes
                         </button>
                       </div>
                     </div>
@@ -3673,7 +3798,7 @@ function Admin() {
                         `"${v.phone}"`, 
                         `"${v.hospitalAttached}"`, 
                         `"${v.address}"`, 
-                        `"${new Date(v.createdAt).toLocaleDateString()}"`
+                        `"${formatDateToDisplay(v.createdAt)}"`
                       ].join(','));
                     });
                     const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
