@@ -3160,7 +3160,7 @@ function Admin() {
                   />
                 </label>
                 <button 
-                  className="btn" 
+                  className="btn"
                   onClick={async () => {
                     try {
                       await saveConfigToServer({ ...siteData, activeConferenceName: activeConferenceInput });
@@ -3169,7 +3169,7 @@ function Admin() {
                       alert("❌ Failed to save Active Conference");
                     }
                   }}
-                  style={{ background: '#0f172a' }}
+                  style={{ background: "#0f172a", padding: "8px 16px", fontSize: "0.85rem", whiteSpace: "nowrap", borderRadius: "6px" }}
                 >
                   Save Active Conference
                 </button>
@@ -3177,15 +3177,15 @@ function Admin() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ margin: 0, whiteSpace: 'nowrap' }}>Conference Visitors ({filteredVisitors.length})</h3>
-              <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px', flex: 1, justifyContent: 'flex-end', WebkitOverflowScrolling: 'touch' }}>
+              <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>Conference Visitors ({filteredVisitors.length})</h3>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", justifyContent: "flex-end" }}>
                 {selectedVisitors.length > 0 && (
-                  <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: '#ef4444', padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                  <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: "#ef4444", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
                     🗑 Delete Selected ({selectedVisitors.length})
                   </button>
                 )}
                 {selectedVisitors.length > 0 && (
-                  <button className="btn" onClick={handleBulkAssignConference} style={{ background: '#3b82f6', padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                  <button className="btn" onClick={handleBulkAssignConference} style={{ background: "#3b82f6", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
                     🏷 Assign Conference ({selectedVisitors.length})
                   </button>
                 )}
@@ -3212,10 +3212,10 @@ function Admin() {
                   a.download = `Conference_Visitors${filterConference ? `_${filterConference}` : ''}.csv`;
                   a.click();
                   window.URL.revokeObjectURL(url);
-                }} style={{ background: '#10b981', padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                }} style={{ background: "#10b981", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
                   📥 Download CSV
                 </button>
-                <button className="btn" onClick={fetchAdminData} disabled={loadingList} style={{ padding: '6px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                <button className="btn" onClick={fetchAdminData} disabled={loadingList} style={{ padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
                   {loadingList ? 'Refreshing...' : '🔄 Refresh'}
                 </button>
               </div>
@@ -3243,8 +3243,8 @@ function Admin() {
             {filteredVisitors.length === 0 ? (
               <p style={{ color: '#64748b' }}>No visitors found matching your criteria.</p>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'white', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+              <div style={{ overflowX: "auto", width: "100%", maxWidth: "100%", WebkitOverflowScrolling: "touch", border: "1px solid #e2e8f0", borderRadius: "8px" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", background: "white", minWidth: "980px" }}>
                   <thead style={{ background: '#f1f5f9' }}>
                     <tr>
                       <th style={{ padding: '12px', border: '1px solid #e2e8f0' }}>

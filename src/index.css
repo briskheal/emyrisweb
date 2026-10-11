@@ -510,8 +510,16 @@ select option {
 
 .admin-content {
   flex: 1;
-  padding: 3rem;
+  padding: 2.5rem 2rem;
   border-radius: 16px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.admin-section {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .admin-section h3 {

@@ -24,6 +24,9 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 // ─── CORS: Restrict to own domain only ────────────────────────────────────────
@@ -1698,7 +1701,6 @@ app.post('/api/conference-checkin', async (req, res) => {
 });
 
 // Cloudinary & Local VPS File Upload Endpoint (Admin Only)
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const vpsUploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(vpsUploadsDir)) {
   fs.mkdirSync(vpsUploadsDir, { recursive: true });
