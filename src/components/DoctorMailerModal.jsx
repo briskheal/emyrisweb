@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 export default function DoctorMailerModal({ visitors, selectedIds, onClose, adminFetch }) {
   // Determine initial recipient pool
   const hasSelection = selectedIds && selectedIds.length > 0;
   const [recipientMode, setRecipientMode] = useState(hasSelection ? 'selected' : 'all'); // 'all' | 'selected'
+  const fileInputRef = useRef(null);
   
   const [subject, setSubject] = useState('Update & Study Material from Emyris Biolifesciences for Dr. {doctor_name}');
   const [bodyMessage, setBodyMessage] = useState(
@@ -26,6 +27,15 @@ www.emyrisbio.com | contact@emyrisbio.com`
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const handleResetToFresh = () => {
+    setSendResult(null);
+    setErrorMessage('');
+    setAttachment(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Compute recipients based on mode
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -99,6 +109,11 @@ www.emyrisbio.com | contact@emyrisbio.com`
       const data = await res.json();
       if (data.success) {
         setSendResult(data.results);
+        // Automatically clear attachment so the screen gets fresh!
+        setAttachment(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       } else {
         setErrorMessage(data.error || 'Failed to dispatch emails.');
       }
@@ -118,8 +133,9 @@ www.emyrisbio.com | contact@emyrisbio.com`
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.82)',
-        backdropFilter: 'blur(6px)',
+        backgroundColor: 'rgba(15, 23, 42, 0.72)',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -268,6 +284,7 @@ www.emyrisbio.com | contact@emyrisbio.com`
                 📎 Attach Study Material / Document (Optional):
               </label>
               <input 
+                ref={fileInputRef}
                 type="file" 
                 onChange={handleFileChange} 
                 disabled={isSending}
@@ -281,27 +298,92 @@ www.emyrisbio.com | contact@emyrisbio.com`
               )}
             </div>
 
+            <style>{`
+              @keyframes doctorMailerSpin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+
             {/* Live Progress / Results */}
             {isSending && (
-              <div style={{ background: '#e0f2fe', padding: '12px', borderRadius: '8px', border: '1px solid #7dd3fc', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.9rem', color: '#0369a1', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
-                  🚀 Sending emails via Zoho SMTP...
-                </span>
-                <span style={{ fontSize: '0.8rem', color: '#0284c7' }}>
-                  Please do not close this window. Throttling at 2.5 seconds per doctor to protect your Zoho quota.
-                </span>
+              <div style={{
+                background: '#eff6ff',
+                padding: '14px 18px',
+                borderRadius: '8px',
+                border: '1.5px solid #3b82f6',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.1)'
+              }}>
+                <div style={{
+                  fontSize: '28px',
+                  display: 'inline-block',
+                  animation: 'doctorMailerSpin 1.2s linear infinite'
+                }}>
+                  ⏳
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 3px', color: '#1e40af', fontSize: '0.95rem', fontWeight: 'bold' }}>
+                    Processing & Sending via Zoho SMTP...
+                  </h4>
+                  <span style={{ fontSize: '0.82rem', color: '#2563eb' }}>
+                    Delivering personalized emails with 2.5s safe quota delay. Please do not close this window.
+                  </span>
+                </div>
               </div>
             )}
 
             {sendResult && (
-              <div style={{ background: '#f0fdf4', padding: '12px 16px', borderRadius: '8px', border: '1px solid #86efac' }}>
-                <h4 style={{ margin: '0 0 6px', color: '#166534', fontSize: '0.95rem' }}>
-                  🎉 Dispatch Completed Successfully!
-                </h4>
-                <div style={{ fontSize: '0.85rem', color: '#15803d' }}>
+              <div style={{ background: '#f0fdf4', padding: '14px 18px', borderRadius: '10px', border: '1.5px solid #86efac' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '20px' }}>✅</span>
+                  <h4 style={{ margin: 0, color: '#166534', fontSize: '0.96rem', fontWeight: 'bold' }}>
+                    Dispatch Completed Successfully!
+                  </h4>
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#15803d', lineHeight: '1.5', marginBottom: '10px' }}>
                   • <strong>{sendResult.sent}</strong> email(s) successfully delivered.<br/>
                   • <strong>{sendResult.skipped}</strong> invalid email(s) skipped.<br/>
                   {sendResult.failed > 0 && <span>• <strong>{sendResult.failed}</strong> failed.<br/></span>}
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={handleResetToFresh}
+                    style={{
+                      background: '#16a34a',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      fontSize: '0.82rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    🔄 Fresh Screen (Compose New)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      fontSize: '0.82rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      color: '#475569'
+                    }}
+                  >
+                    Close Window
+                  </button>
                 </div>
               </div>
             )}
@@ -318,29 +400,61 @@ www.emyrisbio.com | contact@emyrisbio.com`
                 type="button" 
                 onClick={onClose} 
                 disabled={isSending}
-                style={{ background: '#64748b', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: isSending ? 'not-allowed' : 'pointer' }}
+                style={{ background: '#64748b', color: '#fff', border: 'none', padding: '9px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: isSending ? 'not-allowed' : 'pointer' }}
               >
-                Cancel
+                {sendResult ? 'Close' : 'Cancel'}
               </button>
-              <button 
-                type="submit" 
-                disabled={isSending || validRecipients.length === 0}
-                style={{
-                  background: isSending || validRecipients.length === 0 ? '#94a3b8' : '#0284c7',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '8px 22px',
-                  borderRadius: '6px',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  cursor: isSending || validRecipients.length === 0 ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                {isSending ? 'Sending in Progress...' : `🚀 Send to ${validRecipients.length} Doctor(s)`}
-              </button>
+              {sendResult ? (
+                <button
+                  type="button"
+                  onClick={handleResetToFresh}
+                  style={{
+                    background: '#16a34a',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '9px 22px',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  🔄 Refresh Screen
+                </button>
+              ) : (
+                <button 
+                  type="submit" 
+                  disabled={isSending || validRecipients.length === 0}
+                  style={{
+                    background: isSending || validRecipients.length === 0 ? '#94a3b8' : '#0284c7',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '9px 24px',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    cursor: isSending || validRecipients.length === 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {isSending ? (
+                    <>
+                      <span style={{ display: 'inline-block', animation: 'doctorMailerSpin 1s linear infinite' }}>⏳</span>
+                      <span>Processing & Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🚀</span>
+                      <span>Send to {validRecipients.length} Doctor(s)</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </form>
 
