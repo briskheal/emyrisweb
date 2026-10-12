@@ -281,6 +281,23 @@ function Admin() {
   const [activeEndDateInput, setActiveEndDateInput] = useState(siteData.activeEndDate || '');
   const [standeeEvent, setStandeeEvent] = useState(null);
   const [showMailerModal, setShowMailerModal] = useState(false);
+  const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
+  const downloadDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(event.target)) {
+        setShowDownloadDropdown(false);
+      }
+    }
+    if (showDownloadDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDownloadDropdown]);
+
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [newEventTitle, setNewEventTitle] = useState('');
@@ -3836,7 +3853,30 @@ function Admin() {
             )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>Conference Visitors ({filteredVisitors.length})</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>
+                  Conference Visitors ({filteredVisitors.length})
+                </h3>
+                {selectedVisitors.length > 0 && (
+                  <button 
+                    className="btn" 
+                    type="button"
+                    onClick={handleBulkDeleteVisitors} 
+                    style={{ background: "#ef4444", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                  >
+                    🗑 Delete Selected ({selectedVisitors.length})
+                  </button>
+                )}
+                {selectedVisitors.length > 0 && (
+                  <button 
+                    className="btn" 
+                    type="button"
+                    onClick={handleBulkAssignConference} 
+                    style={{ background: "#3b82f6", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                  >
+                    🏷 Assign Conference ({selectedVisitors.length})
+                  </button>
+                )}
                 <button 
                   className="btn" 
                   type="button" 
@@ -3846,57 +3886,131 @@ function Admin() {
                 >
                   ✉️ Doctor Mailer {selectedVisitors.length > 0 ? `(${selectedVisitors.length})` : `(All ${filteredVisitors.length})`}
                 </button>
-              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", justifyContent: "flex-end" }}>
-                {selectedVisitors.length > 0 && (
-                  <button className="btn" onClick={handleBulkDeleteVisitors} style={{ background: "#ef4444", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
-                    🗑 Delete Selected ({selectedVisitors.length})
+              </div>
+
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", justifyContent: "flex-end", position: "relative" }} ref={downloadDropdownRef}>
+                <div style={{ position: "relative" }}>
+                  <button 
+                    className="btn" 
+                    type="button"
+                    onClick={() => setShowDownloadDropdown(prev => !prev)} 
+                    style={{ 
+                      background: "#0f766e", 
+                      padding: "6px 14px", 
+                      fontSize: "0.82rem", 
+                      whiteSpace: "nowrap", 
+                      borderRadius: "6px", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "6px", 
+                      fontWeight: "bold",
+                      cursor: "pointer"
+                    }}
+                    title="Download visitor details in Excel (.xlsx) or CSV format"
+                  >
+                    📥 Download ▾
                   </button>
-                )}
-                {selectedVisitors.length > 0 && (
-                  <button className="btn" onClick={handleBulkAssignConference} style={{ background: "#3b82f6", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
-                    🏷 Assign Conference ({selectedVisitors.length})
-                  </button>
-                )}
-                <button 
-                  className="btn" 
-                  type="button"
-                  onClick={() => exportVisitorsToExcel(filteredVisitors, filterConference)} 
-                  style={{ background: "#1e3a8a", padding: "6px 14px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px", display: "flex", alignItems: "center", gap: "6px", fontWeight: "bold" }}
-                  title="Download Excel spreadsheet with full borders and dark blue header patch"
-                >
-                  📊 Download Excel (.xls)
-                </button>
-                <button 
-                  className="btn" 
-                  type="button"
-                  onClick={() => {
-                    const headers = ['Conference', 'State', 'City', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
-                    const csvRows = [headers.join(',')];
-                    filteredVisitors.forEach(v => {
-                      csvRows.push([
-                        `"${v.conferenceName || 'N/A'}"`, 
-                        `"${v.state || 'N/A'}"`, 
-                        `"${v.city || 'N/A'}"`, 
-                        `"${v.name}"`, 
-                        `"${v.email}"`, 
-                        `"${v.phone}"`, 
-                        `"${v.hospitalAttached}"`, 
-                        `"${v.address}"`, 
-                        `"${formatDateToDisplay(v.createdAt)}"`
-                      ].join(','));
-                    });
-                    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Conference_Visitors${filterConference ? '_' + filterConference : ''}.csv`;
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                  }} 
-                  style={{ background: "#10b981", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}
-                >
-                  📥 CSV
-                </button>
+
+                  {showDownloadDropdown && (
+                    <div 
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 5px)",
+                        right: 0,
+                        background: "#ffffff",
+                        borderRadius: "8px",
+                        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                        border: "1px solid #cbd5e1",
+                        zIndex: 1000,
+                        minWidth: "205px",
+                        overflow: "hidden"
+                      }}
+                    >
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setShowDownloadDropdown(false);
+                          exportVisitorsToExcel(filteredVisitors, filterConference);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          width: "100%",
+                          padding: "10px 14px",
+                          background: "transparent",
+                          border: "none",
+                          borderBottom: "1px solid #f1f5f9",
+                          textAlign: "left",
+                          fontSize: "0.83rem",
+                          color: "#0f172a",
+                          fontWeight: "600",
+                          cursor: "pointer"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <span style={{ fontSize: "1.1rem" }}>📊</span>
+                        <div>
+                          <div>Excel Spreadsheet</div>
+                          <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: "normal" }}>Format: .xlsx / .xls</div>
+                        </div>
+                      </button>
+
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setShowDownloadDropdown(false);
+                          const headers = ['Conference', 'State', 'City', 'Name', 'Email', 'Phone', 'Hospital Attached', 'Address', 'Date'];
+                          const csvRows = [headers.join(',')];
+                          filteredVisitors.forEach(v => {
+                            csvRows.push([
+                              `"${v.conferenceName || 'N/A'}"`, 
+                              `"${v.state || 'N/A'}"`, 
+                              `"${v.city || 'N/A'}"`, 
+                              `"${v.name}"`, 
+                              `"${v.email}"`, 
+                              `"${v.phone}"`, 
+                              `"${v.hospitalAttached}"`, 
+                              `"${v.address}"`, 
+                              `"${formatDateToDisplay(v.createdAt)}"`
+                            ].join(','));
+                          });
+                          const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `Conference_Visitors${filterConference ? '_' + filterConference : ''}.csv`;
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          width: "100%",
+                          padding: "10px 14px",
+                          background: "transparent",
+                          border: "none",
+                          textAlign: "left",
+                          fontSize: "0.83rem",
+                          color: "#0f172a",
+                          fontWeight: "600",
+                          cursor: "pointer"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <span style={{ fontSize: "1.1rem" }}>📄</span>
+                        <div>
+                          <div>CSV Spreadsheet</div>
+                          <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: "normal" }}>Format: .csv</div>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button className="btn" onClick={fetchAdminData} disabled={loadingList} style={{ padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}>
                   {loadingList ? 'Refreshing...' : '🔄 Refresh'}
                 </button>
