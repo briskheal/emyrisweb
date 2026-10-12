@@ -3852,9 +3852,9 @@ function Admin() {
               />
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0, fontSize: "1.15rem", fontWeight: "700", borderBottom: "none", paddingBottom: 0, whiteSpace: "nowrap" }}>
                   Conference Visitors ({filteredVisitors.length})
                 </h3>
                 {selectedVisitors.length > 0 && (
@@ -3862,9 +3862,10 @@ function Admin() {
                     className="btn" 
                     type="button"
                     onClick={handleBulkDeleteVisitors} 
-                    style={{ background: "#ef4444", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                    style={{ background: "#ef4444", padding: "5px 10px", fontSize: "0.8rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                    title="Delete selected doctors"
                   >
-                    🗑 Delete Selected ({selectedVisitors.length})
+                    🗑 Delete ({selectedVisitors.length})
                   </button>
                 )}
                 {selectedVisitors.length > 0 && (
@@ -3872,23 +3873,24 @@ function Admin() {
                     className="btn" 
                     type="button"
                     onClick={handleBulkAssignConference} 
-                    style={{ background: "#3b82f6", padding: "6px 12px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                    style={{ background: "#3b82f6", padding: "5px 10px", fontSize: "0.8rem", whiteSpace: "nowrap", borderRadius: "6px" }}
+                    title="Assign selected doctors to a conference"
                   >
-                    🏷 Assign Conference ({selectedVisitors.length})
+                    🏷 Assign Conf. ({selectedVisitors.length})
                   </button>
                 )}
                 <button 
                   className="btn" 
                   type="button" 
                   onClick={() => setShowMailerModal(true)} 
-                  style={{ background: "#0284c7", padding: "6px 14px", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "6px", display: "flex", alignItems: "center", gap: "6px", fontWeight: "bold" }} 
+                  style={{ background: "#0284c7", padding: "5px 11px", fontSize: "0.8rem", whiteSpace: "nowrap", borderRadius: "6px", display: "flex", alignItems: "center", gap: "5px", fontWeight: "600" }} 
                   title="Send personalized emails and study materials to doctors"
                 >
                   ✉️ Doctor Mailer {selectedVisitors.length > 0 ? `(${selectedVisitors.length})` : `(All ${filteredVisitors.length})`}
                 </button>
               </div>
 
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", justifyContent: "flex-end", position: "relative" }} ref={downloadDropdownRef}>
+              <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", justifyContent: "flex-end", position: "relative" }} ref={downloadDropdownRef}>
                 <div style={{ position: "relative" }}>
                   <button 
                     className="btn" 
@@ -3896,14 +3898,14 @@ function Admin() {
                     onClick={() => setShowDownloadDropdown(prev => !prev)} 
                     style={{ 
                       background: "#0f766e", 
-                      padding: "6px 14px", 
-                      fontSize: "0.82rem", 
+                      padding: "5px 11px", 
+                      fontSize: "0.8rem", 
                       whiteSpace: "nowrap", 
                       borderRadius: "6px", 
                       display: "flex", 
                       alignItems: "center", 
-                      gap: "6px", 
-                      fontWeight: "bold",
+                      gap: "5px", 
+                      fontWeight: "600",
                       cursor: "pointer"
                     }}
                     title="Download visitor details in Excel (.xlsx) or CSV format"
